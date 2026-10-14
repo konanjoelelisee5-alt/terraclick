@@ -26,7 +26,13 @@ export function TabBar() {
       go: () => exigerCompte(() => go("mesProjets")),
     },
     { nom: "Chat", icon: "message-circle", actif: etat.screen === "chat", go: () => ouvrirChat(etat.active) },
-    { nom: "Compte", icon: "user", actif: etat.screen === "compte", go: () => exigerCompte(() => go("compte")) },
+    {
+      nom: "Compte",
+      icon: "user",
+      actif: etat.screen === "compte" || etat.screen === "connexion" || etat.screen === "inscription",
+      // Comme « Se connecter » sur ordinateur : la page de connexion, pas la feuille basse.
+      go: () => (etat.auth ? go("compte") : go("connexion", { telDraft: "" })),
+    },
   ];
 
   return (

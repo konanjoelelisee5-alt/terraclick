@@ -16,11 +16,11 @@ class DemoSeeder extends Seeder
 {
     public function run(): void
     {
-        $habitat = Quartier::where('slug', 'habitat')->value('id');
+        $habitat = Quartier::where('slug', 'habitat')->first();
 
         $aya = User::updateOrCreate(
             ['telephone' => '+2250758421903'],
-            ['nom' => 'Aya Konan', 'quartier_id' => $habitat, 'telephone_verifie_le' => now()],
+            ['nom' => 'Aya Konan', 'ville_id' => $habitat->ville_id, 'quartier_id' => $habitat->id, 'telephone_verifie_le' => now()],
         );
         $moussa = User::updateOrCreate(
             ['telephone' => '+2250102030405'],

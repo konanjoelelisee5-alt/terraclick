@@ -53,23 +53,23 @@ class AuthController extends Controller
         return response()->json([
             'token' => $token,
             'nouveau_compte' => $user->wasRecentlyCreated,
-            'utilisateur' => UtilisateurResource::make($user->load('quartier')),
+            'utilisateur' => UtilisateurResource::make($user->load(['ville', 'quartier'])),
         ], $user->wasRecentlyCreated ? 201 : 200);
     }
 
     /** GET /api/moi */
     public function moi(Request $request): UtilisateurResource
     {
-        return UtilisateurResource::make($request->user()->load('quartier'));
+        return UtilisateurResource::make($request->user()->load(['ville', 'quartier']));
     }
 
     /** PATCH /api/moi — sert aussi à compléter le profil juste après l'inscription. */
     public function modifierProfil(ModifierProfilRequest $request): UtilisateurResource
     {
         $user = $request->user();
-        $user->update($request->validated());
+        $user->update($request->profil());
 
-        return UtilisateurResource::make($user->load('quartier'));
+        return UtilisateurResource::make($user->load(['ville', 'quartier']));
     }
 
     /** POST /api/auth/deconnexion — ferme seulement la session de cet appareil. */

@@ -17,6 +17,8 @@ class UtilisateurResource extends JsonResource
             'telephone' => $this->telephone,
             'telephone_affichage' => Telephone::affichage($this->telephone),
             'nom' => $this->nom,
+            'email' => $this->email,
+            'ville' => $this->whenLoaded('ville', fn () => $this->ville ? ['id' => $this->ville->id, 'nom' => $this->ville->nom] : null),
             'quartier' => QuartierResource::make($this->whenLoaded('quartier')),
             'profil_complet' => $this->profilComplet(),
         ];

@@ -15,7 +15,7 @@ use Laravel\Sanctum\HasApiTokens;
  * Compte client. Pas de mot de passe : l'accès se prouve par un code
  * envoyé sur le numéro (voir OtpService).
  */
-#[Fillable(['telephone', 'nom', 'quartier_id', 'telephone_verifie_le'])]
+#[Fillable(['telephone', 'nom', 'email', 'ville_id', 'quartier_id', 'telephone_verifie_le'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -26,6 +26,11 @@ class User extends Authenticatable
         return [
             'telephone_verifie_le' => 'datetime',
         ];
+    }
+
+    public function ville(): BelongsTo
+    {
+        return $this->belongsTo(Ville::class);
     }
 
     public function quartier(): BelongsTo

@@ -23,7 +23,9 @@ export type Ecran =
   | "fiche"
   | "compte"
   | "recu"
-  | "avis";
+  | "avis"
+  | "connexion"
+  | "inscription";
 
 /** Les trois entrées de l'accueil. */
 export type ModeAccueil = "recherche" | "carte" | "box";

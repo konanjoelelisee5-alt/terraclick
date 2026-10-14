@@ -32,6 +32,22 @@ prochaines décisions. Les coûts indiqués sont des estimations, à mesurer en 
 - Configuration décrite dans `backend/README.md`.
 - Reste à faire : un webhook Meta pour détecter les messages non remis (numéro sans WhatsApp).
 
+**Interfaces reprises de la maquette `servis-yakro-app`** (5 rôles : visiteur, client,
+prestataire, manager, administrateur)
+
+Méthode retenue : ne rien remplacer dans l'application existante. On crée seulement les
+interfaces qui manquent, avec le design system actuel et la logique actuelle (connexion sans
+mot de passe).
+
+- **Visiteur — fait** :
+  - page **Connexion** : numéro, puis code SMS ou WhatsApp ;
+  - page **Inscription** : nom, e-mail facultatif, téléphone, ville, quartier, conditions.
+  - L'accueil, les résultats et la fiche existaient déjà et n'ont pas été modifiés.
+  - « Se connecter » et « S'inscrire » dans l'en-tête, ainsi que l'onglet « Compte » sur
+    mobile, mènent à ces pages. La feuille basse reste le mur au moment d'agir.
+  - Le compte gagne un e-mail facultatif et une ville.
+- **À venir, sur demande** : client, prestataire, manager, administrateur.
+
 **API prête, pas encore branchée à l'écran**
 
 - la publication d'un avis ;

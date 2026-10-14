@@ -11,11 +11,13 @@ import { Assistant } from "./screens/Assistant";
 import { Avis } from "./screens/Avis";
 import { Chat } from "./screens/Chat";
 import { Compte } from "./screens/Compte";
+import { Connexion } from "./screens/Connexion";
 import { Construction } from "./screens/Construction";
 import { Contrat } from "./screens/Contrat";
 import { Devis } from "./screens/Devis";
 import { FichePro } from "./screens/FichePro";
 import { Home } from "./screens/Home";
+import { Inscription } from "./screens/Inscription";
 import { MesProjets } from "./screens/MesProjets";
 import { Publie } from "./screens/Publie";
 import { Recu } from "./screens/Recu";
@@ -50,6 +52,8 @@ const ECRANS: Record<Ecran, () => JSX.Element> = {
   compte: Compte,
   recu: Recu,
   avis: Avis,
+  connexion: Connexion,
+  inscription: Inscription,
 };
 
 function Coque() {

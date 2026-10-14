@@ -73,6 +73,8 @@ export type Utilisateur = {
   telephone: string;
   telephone_affichage: string;
   nom: string | null;
+  email: string | null;
+  ville: { id: number; nom: string } | null;
   quartier: Quartier | null;
   profil_complet: boolean;
 };
@@ -234,7 +236,12 @@ export const api = {
       corps: { telephone, code, appareil: navigator.userAgent.slice(0, 100) },
     }),
   moi: () => requete<{ data: Utilisateur }>("/moi").then((r) => r.data),
-  modifierProfil: (profil: { nom?: string; quartier_id?: number | null }) =>
+  modifierProfil: (profil: {
+    nom?: string;
+    email?: string | null;
+    ville_id?: number | null;
+    quartier_id?: number | null;
+  }) =>
     requete<{ data: Utilisateur }>("/moi", { methode: "PATCH", corps: profil }).then((r) => r.data),
   deconnexion: () => requete<{ message: string }>("/auth/deconnexion", { methode: "POST" }),
 };

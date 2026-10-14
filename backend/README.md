@@ -41,7 +41,7 @@ attendent l'en-tête `Authorization: Bearer <token>`.
 | POST | `/auth/verifier` | Vérifie le code et renvoie un `token`. Crée le compte si le numéro est inconnu |
 | POST | `/auth/deconnexion` 🔒 | Révoque le jeton de cet appareil |
 | GET | `/moi` 🔒 | Profil de l'utilisateur connecté |
-| PATCH | `/moi` 🔒 | Modifie `nom` et `quartier_id`. Le nom est obligatoire si le profil n'a jamais été rempli |
+| PATCH | `/moi` 🔒 | Modifie `nom`, `email` (facultatif, unique), `ville_id` et `quartier_id`. Le nom est obligatoire si le profil n'a jamais été rempli. Sans ville, celle du quartier est reprise ; un quartier doit appartenir à la ville choisie |
 | GET | `/villes` | Villes couvertes et leurs quartiers |
 | GET | `/departements` | Méga-menu : départements, rubriques et catégories, avec le nombre de prestataires |
 | GET | `/prestataires` | Recherche (voir les filtres ci-dessous), paginée |

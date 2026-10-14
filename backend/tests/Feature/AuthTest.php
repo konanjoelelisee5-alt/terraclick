@@ -113,6 +113,55 @@ class AuthTest extends TestCase
             ->assertJsonPath('data.profil_complet', true);
     }
 
+    public function test_l_inscription_enregistre_email_et_ville(): void
+    {
+        $quartier = $this->creerQuartier();
+        $user = User::factory()->sansProfil()->create();
+
+        $this->actingAs($user)
+            ->patchJson('/api/moi', ['nom' => 'Awa Koné', 'email' => ' Awa.Kone@Example.ci ', 'quartier_id' => $quartier->id])
+            ->assertOk()
+            ->assertJsonPath('data.email', 'awa.kone@example.ci')
+            // Ville déduite du quartier.
+            ->assertJsonPath('data.ville.nom', 'Yamoussoukro')
+            ->assertJsonPath('data.quartier.nom', 'Habitat');
+
+        // Un e-mail vidé est effacé.
+        $this->actingAs($user)->patchJson('/api/moi', ['email' => ''])->assertOk()->assertJsonPath('data.email', null);
+    }
+
+    public function test_une_ville_sans_quartier_est_acceptee(): void
+    {
+        $bouake = Ville::create(['nom' => 'Bouaké', 'slug' => 'bouake']);
+
+        $this->actingAs(User::factory()->sansProfil()->create())
+            ->patchJson('/api/moi', ['nom' => 'Serge Bamba', 'ville_id' => $bouake->id])
+            ->assertOk()
+            ->assertJsonPath('data.ville.nom', 'Bouaké')
+            ->assertJsonPath('data.quartier', null);
+    }
+
+    public function test_le_quartier_doit_etre_dans_la_ville(): void
+    {
+        $habitat = $this->creerQuartier();
+        $bouake = Ville::create(['nom' => 'Bouaké', 'slug' => 'bouake']);
+
+        $this->actingAs(User::factory()->sansProfil()->create())
+            ->patchJson('/api/moi', ['nom' => 'Serge Bamba', 'ville_id' => $bouake->id, 'quartier_id' => $habitat->id])
+            ->assertStatus(422)
+            ->assertJsonPath('errors.quartier_id.0', 'Ce quartier n\'appartient pas à la ville choisie.');
+    }
+
+    public function test_un_email_ne_sert_qu_a_un_compte(): void
+    {
+        User::factory()->create(['email' => 'awa@example.ci']);
+
+        $this->actingAs(User::factory()->sansProfil()->create())
+            ->patchJson('/api/moi', ['nom' => 'Awa Bis', 'email' => 'AWA@example.ci'])
+            ->assertStatus(422)
+            ->assertJsonPath('errors.email.0', 'Cette adresse e-mail est déjà utilisée par un autre compte.');
+    }
+
     public function test_le_profil_exige_un_nom_a_la_premiere_connexion(): void
     {
         $user = User::factory()->sansProfil()->create();

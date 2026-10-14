@@ -53,11 +53,11 @@ async function connecter(p, tel = '07 58 42 19 03') {
   await ctx.close();
 }
 
-// B · Numéro inconnu : création du profil en deux champs
+// B · Numéro inconnu dans la feuille basse (le mur) : création du profil en deux champs
 {
   const { ctx, p } = await neuve();
-  await p.getByRole('button', { name: "S'inscrire" }).click();
-  await p.waitForTimeout(200);
+  await p.getByRole('button', { name: 'Demander un devis' }).first().click();
+  await apparait(p.getByText('Votre numéro, et c\'est parti'));
   await p.getByLabel('Votre numéro de téléphone').fill('07 11 22 33 44');
   await p.getByRole('button', { name: 'Recevoir mon code' }).click();
   await p.getByText(/appuyer pour remplir/).click();
@@ -179,25 +179,73 @@ async function connecter(p, tel = '07 58 42 19 03') {
   await ctx.close();
 }
 
-// I · Les erreurs du serveur s'affichent, un nouveau compte garde son nom et sa session
+const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart(8, '0');
+
+// I · Page Connexion : erreurs du serveur, compte connu, numéro inconnu renvoyé vers l'inscription
 {
   const { ctx, p } = await neuve();
-  await p.getByRole('button', { name: "S'inscrire" }).click();
-  await p.getByLabel('Votre numéro de téléphone').fill('09 12 34 56 78');
+  await p.getByRole('button', { name: 'Se connecter' }).click();
+  ok('« Se connecter » ouvre la page Connexion', await apparait(p.getByRole('heading', { name: 'Connexion' })));
+  await p.getByLabel('Téléphone', { exact: true }).fill('09 12 34 56 78');
   await p.getByRole('button', { name: 'Recevoir mon code' }).click();
   ok('numéro refusé par le serveur : le motif s’affiche', await apparait(p.getByText(/pas un numéro ivoirien valide/)));
 
-  const numero = '07' + String(Math.floor(Math.random() * 1e8)).padStart(8, '0');
-  await p.getByLabel('Votre numéro de téléphone').fill(numero);
+  await p.getByLabel('Téléphone', { exact: true }).fill('07 58 42 19 03');
+  await p.getByRole('radio', { name: /WhatsApp/ }).click();
   await p.getByRole('button', { name: 'Recevoir mon code' }).click();
+  ok('code demandé par WhatsApp : le canal est rappelé', await apparait(p.getByText(/Code envoyé par WhatsApp/)));
   await p.getByText(/appuyer pour remplir/).click();
-  await apparait(p.getByText('Comment on vous appelle ?'));
-  await p.getByLabel('Prénom et nom').fill('Awa Test');
-  await p.getByRole('button', { name: 'Kokrenou' }).click();
-  await p.getByRole('button', { name: 'Terminer' }).click();
-  ok('profil enregistré : le nom apparaît dans l’en-tête', await apparait(p.getByText('Awa Test').first()));
+  ok('compte connu : connexion puis espace client', await apparait(p.getByText('Aya Konan').first()));
+  await ctx.close();
+
+  const second = await neuve();
+  await second.p.getByRole('button', { name: 'Se connecter' }).click();
+  await second.p.getByLabel('Téléphone', { exact: true }).fill(numeroNeuf());
+  await second.p.getByRole('button', { name: 'Recevoir mon code' }).click();
+  await second.p.getByText(/appuyer pour remplir/).click();
+  ok('numéro inconnu : renvoyé vers l’inscription, numéro déjà vérifié',
+     await apparait(second.p.getByText(/vérifié\. Il ne reste qu'à compléter votre profil/)));
+  await second.p.getByLabel('Nom complet').fill('Kouassi Test');
+  await second.p.locator('.sy-choice').click();
+  await second.p.getByRole('button', { name: 'Terminer mon inscription' }).click();
+  ok('profil complété sans nouveau code', await apparait(second.p.getByText('Kouassi Test').first()));
+  await second.ctx.close();
+}
+
+// J · Page Inscription : formulaire, code, puis compte avec e-mail et ville ; session gardée
+{
+  const { ctx, p } = await neuve();
+  await p.getByRole('button', { name: "S'inscrire" }).click();
+  ok('« S’inscrire » ouvre la page Inscription', await apparait(p.getByRole('heading', { name: 'Créer un compte' })));
+  await p.getByLabel('Nom complet').fill('Awa Test');
+  await p.getByRole('button', { name: 'Créer mon compte' }).click();
+  ok('conditions non acceptées : inscription bloquée', await apparait(p.getByText(/Acceptez les conditions/)));
+
+  const numero = numeroNeuf();
+  await p.getByLabel('E-mail (facultatif)').fill(`awa.${numero}@exemple.ci`);
+  await p.getByLabel('Téléphone', { exact: true }).fill(numero);
+  await p.getByLabel('Quartier').selectOption({ label: 'Kokrenou' });
+  await p.locator('.sy-choice').click();
+  await p.getByRole('button', { name: 'Créer mon compte' }).click();
+  await p.getByText(/appuyer pour remplir/).click();
+  ok('compte créé : le nom apparaît dans l’en-tête', await apparait(p.getByText('Awa Test').first()));
+  const moi = await p.evaluate(async () => {
+    const r = await fetch('/api/moi', { headers: { Accept: 'application/json', Authorization: 'Bearer ' + localStorage.getItem('sy.jeton') } });
+    return (await r.json()).data;
+  });
+  ok('e-mail, ville et quartier enregistrés',
+     moi?.email === `awa.${numero}@exemple.ci` && moi?.ville?.nom === 'Yamoussoukro' && moi?.quartier?.nom === 'Kokrenou');
   await p.reload({ waitUntil: 'domcontentloaded' });
   ok('la session survit au rechargement de la page', await apparait(p.getByText('Awa Test').first()));
+  await ctx.close();
+}
+
+// K · Sur téléphone, l'onglet « Compte » mène à la page de connexion
+{
+  const { ctx, p } = await neuve(390, 844);
+  await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Compte/ }).click();
+  ok('mobile : l’onglet Compte ouvre la page Connexion', await apparait(p.getByRole('heading', { name: 'Connexion' })));
+  ok('mobile : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
   await ctx.close();
 }
 

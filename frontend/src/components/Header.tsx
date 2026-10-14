@@ -178,14 +178,12 @@ export function Header() {
           )}
           {!connecte && (
             <>
-              <button
-                onClick={() => set({ authOpen: true, authStep: "tel", telDraft: "", code: "" })}
-                className="sy-btn sy-btn--outline sy-btn--md"
-              >
+              {/* Pages dédiées ; la feuille basse reste le mur qui monte au moment d'agir. */}
+              <button onClick={() => go("connexion", { telDraft: "" })} className="sy-btn sy-btn--outline sy-btn--md">
                 Se connecter
               </button>
               <button
-                onClick={() => set({ authOpen: true, authStep: "tel", telDraft: "", code: "" })}
+                onClick={() => go("inscription", { telDraft: "" })}
                 className="sy-btn sy-btn--primary sy-btn--md"
               >
                 S'inscrire
