@@ -366,7 +366,12 @@ export function Home() {
             <p style={{ color: "var(--color-neutral-700)", fontSize: "14.5px", margin: "0 0 18px" }}>
               Créez votre fiche, faites vérifier votre CNI et recevez les demandes de votre quartier.
             </p>
-            <button className="sy-btn sy-btn--outline sy-btn--md">Devenir partenaire</button>
+            <button
+              onClick={() => exigerCompte(() => go("proDashboard"))}
+              className="sy-btn sy-btn--outline sy-btn--md"
+            >
+              Devenir partenaire
+            </button>
           </div>
         </div>
       </section>

@@ -46,7 +46,18 @@ mot de passe).
   - « Se connecter » et « S'inscrire » dans l'en-tête, ainsi que l'onglet « Compte » sur
     mobile, mènent à ces pages. La feuille basse reste le mur au moment d'agir.
   - Le compte gagne un e-mail facultatif et une ville.
-- **À venir, sur demande** : client, prestataire, manager, administrateur.
+- **Prestataire — interfaces faites** (données de démonstration, pas encore reliées à l'API) :
+  - les 10 écrans : tableau de bord, demandes de devis et détail, profil, réalisations,
+    vérification, abonnement et factures, mise en avant, avis, notifications ;
+  - un rail latéral, qui devient une rangée d'onglets sous 1 080 px.
+  - Accès : « Devenir partenaire » sur l'accueil, et « Devenir partenaire » ou « Espace pro »
+    dans le pied de page. Un compte connecté est demandé.
+  - Composants ajoutés et réutilisables : fenêtre de confirmation (`Dialogue`) et message
+    éphémère (`Toast`).
+  - **Reste à faire côté backend** : un rôle prestataire relié au compte (aujourd'hui, tout
+    compte connecté voit l'espace de démonstration de Koffi Tanoh), les demandes de devis,
+    les abonnements, les factures et les mises en avant.
+- **À venir, sur demande** : client, manager, administrateur.
 
 **API prête, pas encore branchée à l'écran**
 

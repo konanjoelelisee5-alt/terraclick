@@ -25,7 +25,18 @@ export type Ecran =
   | "recu"
   | "avis"
   | "connexion"
-  | "inscription";
+  | "inscription"
+  /* Espace prestataire */
+  | "proDashboard"
+  | "proDemandes"
+  | "proDemande"
+  | "proProfil"
+  | "proRealisations"
+  | "proVerification"
+  | "proAbonnement"
+  | "proMiseEnAvant"
+  | "proAvis"
+  | "proNotifications";
 
 /** Les trois entrées de l'accueil. */
 export type ModeAccueil = "recherche" | "carte" | "box";

@@ -93,6 +93,41 @@ svg,
   max-width: 100%;
 }
 
+/* ---- Espace prestataire : rail à gauche, contenu à droite ---- */
+[data-r="pro-shell"] {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+[data-r="pro-rail"] {
+  position: sticky;
+  top: 92px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 14px 8px;
+}
+
+/* Contenu principal + colonne latérale (actions, état du profil). */
+[data-r="pro-split"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 24px;
+  align-items: start;
+}
+
+[data-r="pro-split"] > aside {
+  position: sticky;
+  top: 92px;
+}
+
+/* Tableau des factures : grille sur grand écran, cartes en dessous. */
+[data-r="factures-cartes"] {
+  display: none;
+}
+
 /* ---- Palier laptop ---- */
 @media (max-width: 1119px) {
   [data-grid="421"] {
@@ -126,6 +161,37 @@ svg,
 
   [data-r="fiche-bar"] {
     bottom: 64px !important;
+  }
+
+  /* Le rail devient une rangée d'onglets balayable au-dessus du contenu. */
+  [data-r="pro-shell"] {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  [data-r="pro-rail"] {
+    position: static;
+    padding: 6px;
+    border-radius: 999px;
+  }
+
+  [data-r="pro-rail-tete"] {
+    display: none !important;
+  }
+
+  [data-r="pro-nav"] {
+    flex-direction: row !important;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  [data-r="pro-nav"]::-webkit-scrollbar {
+    display: none;
+  }
+
+  [data-r="pro-nav"] button {
+    flex: none;
+    border-radius: 999px !important;
   }
 }
 
@@ -178,8 +244,21 @@ svg,
   }
 
   [data-r="promo"],
-  [data-r="map-split"] {
+  [data-r="map-split"],
+  [data-r="pro-split"] {
     grid-template-columns: 1fr !important;
+  }
+
+  [data-r="pro-split"] > aside {
+    position: static;
+  }
+
+  [data-r="factures-table"] {
+    display: none !important;
+  }
+
+  [data-r="factures-cartes"] {
+    display: flex;
   }
 
   [data-r="results-head"] > div:last-child {

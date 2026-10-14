@@ -54,7 +54,7 @@ class AppServiceProvider extends ServiceProvider
                     ->response(fn () => $this->tropDeDemandes('Patientez une minute avant de redemander un code.')),
                 Limit::perHour(config('otp.envois_par_heure'))->by('otp-heure:'.$telephone)
                     ->response(fn () => $this->tropDeDemandes('Trop de codes demandés pour ce numéro. Réessayez dans une heure.')),
-                Limit::perMinute(10)->by('otp-ip:'.$request->ip())
+                Limit::perMinute(config('otp.envois_par_ip_minute'))->by('otp-ip:'.$request->ip())
                     ->response(fn () => $this->tropDeDemandes('Trop de demandes depuis cette connexion. Patientez une minute.')),
             ];
         });

@@ -7,8 +7,11 @@ const COLONNES = [
   { titre: "Villes", liens: ["Yamoussoukro", "Abidjan", "Bouaké", "Daloa"] },
 ];
 
+/** Liens menant à l'espace prestataire. */
+const LIENS_PRO = ["Devenir partenaire", "Espace pro"];
+
 export function Footer() {
-  const { etat } = useApp();
+  const { etat, go, exigerCompte } = useApp();
 
   return (
     <footer
@@ -43,11 +46,23 @@ export function Footer() {
         {COLONNES.map((col) => (
           <div key={col.titre} style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: "13.5px" }}>
             <span style={{ fontFamily: "var(--font-heading)", fontSize: "15px" }}>{col.titre}</span>
-            {col.liens.map((lien) => (
-              <span key={lien} className="text-muted">
-                {lien}
-              </span>
-            ))}
+            {col.liens.map((lien) =>
+              LIENS_PRO.includes(lien) ? (
+                <button
+                  key={lien}
+                  type="button"
+                  className="text-muted"
+                  onClick={() => exigerCompte(() => go("proDashboard"))}
+                  style={{ background: "none", border: 0, padding: 0, cursor: "pointer", font: "inherit", textAlign: "left" }}
+                >
+                  {lien}
+                </button>
+              ) : (
+                <span key={lien} className="text-muted">
+                  {lien}
+                </span>
+              ),
+            )}
           </div>
         ))}
       </div>

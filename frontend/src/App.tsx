@@ -29,6 +29,17 @@ import { ProjOffres } from "./screens/projet/ProjOffres";
 import { ProjQuest } from "./screens/projet/ProjQuest";
 import { ProjSuivi } from "./screens/projet/ProjSuivi";
 import { ProjetDashboard } from "./screens/projet/ProjetDashboard";
+import { ProAbonnement } from "./screens/pro/ProAbonnement";
+import { ProAvis } from "./screens/pro/ProAvis";
+import { ProDashboard } from "./screens/pro/ProDashboard";
+import { ProDemande } from "./screens/pro/ProDemande";
+import { ProDemandes } from "./screens/pro/ProDemandes";
+import { ProMiseEnAvant } from "./screens/pro/ProMiseEnAvant";
+import { ProNotifications } from "./screens/pro/ProNotifications";
+import { ProProfil } from "./screens/pro/ProProfil";
+import { ProRealisations } from "./screens/pro/ProRealisations";
+import { ProVerification } from "./screens/pro/ProVerification";
+import { ToastProvider } from "./components/Toast";
 import type { Ecran } from "./state/types";
 
 const ECRANS: Record<Ecran, () => JSX.Element> = {
@@ -54,6 +65,16 @@ const ECRANS: Record<Ecran, () => JSX.Element> = {
   avis: Avis,
   connexion: Connexion,
   inscription: Inscription,
+  proDashboard: ProDashboard,
+  proDemandes: ProDemandes,
+  proDemande: ProDemande,
+  proProfil: ProProfil,
+  proRealisations: ProRealisations,
+  proVerification: ProVerification,
+  proAbonnement: ProAbonnement,
+  proMiseEnAvant: ProMiseEnAvant,
+  proAvis: ProAvis,
+  proNotifications: ProNotifications,
 };
 
 function Coque() {
@@ -97,7 +118,9 @@ export function App() {
 
   return (
     <AppProvider>
-      <Coque />
+      <ToastProvider>
+        <Coque />
+      </ToastProvider>
     </AppProvider>
   );
 }

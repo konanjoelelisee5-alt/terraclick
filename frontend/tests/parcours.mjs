@@ -249,6 +249,72 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
   await ctx.close();
 }
 
+// L · Espace prestataire : entrée, rail, demandes, réponse, fenêtres, réalisations
+{
+  const { ctx, p } = await neuve();
+  await p.getByRole('button', { name: 'Devenir partenaire' }).first().click();
+  ok('« Devenir partenaire » demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
+  await connecter(p);
+  ok('après connexion : tableau de bord prestataire', await apparait(p.getByRole('heading', { name: 'Bonjour, Koffi Tanoh' })));
+
+  const rail = p.getByRole('complementary', { name: 'Espace prestataire' });
+  await rail.getByRole('button', { name: /Demandes de devis/ }).click();
+  await apparait(p.getByRole('heading', { name: 'Demandes de devis' }));
+  await p.getByRole('button', { name: 'Acceptées', exact: true }).click();
+  const cartes = await p.getByRole('button', { name: 'Voir la demande' }).count();
+  ok('filtre « Acceptées » : une seule demande', cartes === 1);
+  await p.getByRole('button', { name: 'Toutes', exact: true }).click();
+  await p.getByRole('button', { name: 'Voir la demande' }).first().click();
+  ok('détail de la demande ouvert', await apparait(p.getByRole('heading', { name: 'Awa · Plomberie' })));
+
+  await p.getByRole('button', { name: 'Marquer la prestation terminée' }).click();
+  ok('fenêtre « Marquer la prestation terminée »', await apparait(p.getByRole('dialog')));
+  await p.keyboard.press('Escape');
+  ok('Échap referme la fenêtre', !(await p.getByRole('dialog').isVisible().catch(() => false)));
+  await p.getByRole('button', { name: 'Déclarer un paiement reçu' }).click();
+  ok('déclaration de paiement : montant, moyen et date', await apparait(p.getByLabel('Moyen')));
+  await p.getByRole('button', { name: 'Enregistrer ma déclaration' }).click();
+  ok('déclaration confirmée par un toast', await apparait(p.getByText('Déclaration enregistrée')));
+
+  await p.getByRole('button', { name: 'Envoyer ma réponse' }).click();
+  ok('réponse vide refusée', await apparait(p.getByText('Message trop court')));
+  await p.getByLabel('Message au client').fill('Je passe mardi à 9 h, le joint est à changer.');
+  await p.getByRole('button', { name: 'Envoyer ma réponse' }).click();
+  await apparait(p.getByRole('heading', { name: 'Demandes de devis' }));
+  ok('réponse envoyée : la demande passe à « Répondue »', (await p.getByText('Répondue', { exact: true }).count()) >= 2);
+
+  await rail.getByRole('button', { name: /Mes réalisations/ }).click();
+  await p.getByRole('button', { name: 'Ajouter une photo' }).first().click();
+  await rail.getByRole('button', { name: /Mon profil/ }).click();
+  ok('photo ajoutée visible dans le profil (4 sur 5)', await apparait(p.getByText(/^4$/).first()));
+
+  for (const [entree, titre] of [
+    [/Vérification/, 'Soumettre à vérification'],
+    [/Abonnement et factures/, 'Abonnement et factures'],
+    [/Mise en avant/, 'Mise en avant'],
+    [/Mes avis/, 'Mes avis'],
+    [/Notifications/, 'Notifications'],
+  ]) {
+    await rail.getByRole('button', { name: entree }).click();
+    ok(`rail : écran « ${titre} »`, await apparait(p.getByRole('heading', { name: titre, exact: true })));
+  }
+  await p.getByRole('button', { name: 'Tout marquer comme lu' }).click();
+  ok('notifications lues : plus de pastille « Nouveau »', !(await p.getByText('Nouveau', { exact: true }).isVisible().catch(() => false)));
+  await ctx.close();
+}
+
+// M · Espace prestataire sur téléphone : rail en onglets, factures en cartes, pas de débordement
+{
+  const { ctx, p } = await neuve(390, 844);
+  await p.getByRole('button', { name: 'Devenir partenaire' }).first().click();
+  await connecter(p);
+  await apparait(p.getByRole('heading', { name: 'Bonjour, Koffi Tanoh' }));
+  await p.getByRole('complementary', { name: 'Espace prestataire' }).getByRole('button', { name: /Abonnement/ }).click();
+  ok('mobile : factures affichées en cartes', await apparait(p.locator('[data-r="factures-cartes"]').getByText('FAC-2026-00042')));
+  ok('mobile : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+  await ctx.close();
+}
+
 await b.close();
 console.log(R.join('\n'));
 const reussies = R.filter((x) => x.startsWith('  OK')).length;
