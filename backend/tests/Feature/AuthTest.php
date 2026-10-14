@@ -43,6 +43,47 @@ class AuthTest extends TestCase
         $this->assertDatabaseMissing('otp_codes', ['code_hash' => $this->boite->dernierCode()]);
     }
 
+    public function test_whatsapp_en_panne_le_code_part_par_sms(): void
+    {
+        $this->boite->enPanne = ['whatsapp'];
+
+        $this->postJson('/api/auth/code', ['telephone' => self::NUMERO, 'canal' => 'whatsapp'])
+            ->assertStatus(202)
+            ->assertJson([
+                'message' => 'Code envoyé par SMS au 07 11 22 33 44.',
+                'canal' => 'sms',
+                'repli' => true,
+            ]);
+
+        $this->assertSame('sms', $this->boite->envois[0]['canal']);
+        $this->assertDatabaseHas('otp_codes', ['telephone' => self::NORMALISE, 'canal' => 'sms']);
+
+        // Le code reçu par SMS fonctionne normalement.
+        $this->postJson('/api/auth/verifier', ['telephone' => self::NUMERO, 'code' => $this->boite->dernierCode()])
+            ->assertStatus(201);
+    }
+
+    public function test_aucun_canal_disponible_le_code_est_annule(): void
+    {
+        $this->boite->enPanne = ['whatsapp', 'sms'];
+
+        $this->postJson('/api/auth/code', ['telephone' => self::NUMERO, 'canal' => 'whatsapp'])
+            ->assertStatus(503)
+            ->assertJsonPath('message', 'Impossible d\'envoyer le code pour le moment. Réessayez dans quelques instants.');
+
+        // Aucun code utilisable ne reste en base : personne ne pourrait le connaître.
+        $this->assertSame(0, OtpCode::where('telephone', self::NORMALISE)->valides()->count());
+    }
+
+    public function test_un_sms_en_panne_ne_bascule_pas_sur_whatsapp(): void
+    {
+        $this->boite->enPanne = ['sms'];
+
+        $this->postJson('/api/auth/code', ['telephone' => self::NUMERO, 'canal' => 'sms'])->assertStatus(503);
+
+        $this->assertEmpty($this->boite->envois);
+    }
+
     public function test_un_numero_non_ivoirien_est_refuse(): void
     {
         $this->postJson('/api/auth/code', ['telephone' => '58 42 19 03'])

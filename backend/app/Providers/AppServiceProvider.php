@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Contracts\EnvoiCode;
 use App\Services\EnvoiCode\LogEnvoiCode;
+use App\Services\EnvoiCode\RouteurEnvoiCode;
+use App\Services\EnvoiCode\WhatsAppCloudEnvoiCode;
 use App\Support\Telephone;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\JsonResponse;
@@ -16,10 +18,29 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->bind(EnvoiCode::class, fn () => match (config('otp.driver')) {
+        $this->app->singleton(RouteurEnvoiCode::class, fn () => new RouteurEnvoiCode(
+            [
+                'sms' => $this->envoiCode(config('otp.canaux.sms'), 'sms'),
+                'whatsapp' => $this->envoiCode(config('otp.canaux.whatsapp'), 'whatsapp'),
+            ],
+            config('otp.repli_sms'),
+        ));
+    }
+
+    /** Fournisseur d'envoi désigné par OTP_SMS_DRIVER ou OTP_WHATSAPP_DRIVER. */
+    private function envoiCode(string $fournisseur, string $canal): EnvoiCode
+    {
+        return match ($fournisseur) {
             'log' => new LogEnvoiCode,
-            default => throw new InvalidArgumentException('OTP_DRIVER inconnu : '.config('otp.driver')),
-        });
+            'whatsapp_cloud' => new WhatsAppCloudEnvoiCode(
+                config('services.whatsapp.token'),
+                config('services.whatsapp.phone_number_id'),
+                config('services.whatsapp.modele_code'),
+                config('services.whatsapp.langue'),
+                config('services.whatsapp.version'),
+            ),
+            default => throw new InvalidArgumentException("Fournisseur d'envoi inconnu pour le canal {$canal} : {$fournisseur}"),
+        };
     }
 
     public function boot(): void

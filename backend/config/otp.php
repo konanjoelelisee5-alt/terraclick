@@ -3,11 +3,19 @@
 return [
 
     /*
-    | Canal d'envoi des codes. « log » écrit le code dans storage/logs/laravel.log ;
-    | un fournisseur SMS/WhatsApp réel s'ajoute comme une nouvelle implémentation
-    | de App\Contracts\EnvoiCode, déclarée dans AppServiceProvider.
+    | Fournisseur utilisé pour chaque canal :
+    |  - « log » écrit le code dans storage/logs/laravel.log (développement ; refusé en production) ;
+    |  - « whatsapp_cloud » passe par WhatsApp Cloud API de Meta (voir config/services.php).
+    | Un nouveau fournisseur s'ajoute comme une implémentation de App\Contracts\EnvoiCode,
+    | déclarée dans AppServiceProvider::envoiCode().
     */
-    'driver' => env('OTP_DRIVER', 'log'),
+    'canaux' => [
+        'sms' => env('OTP_SMS_DRIVER', 'log'),
+        'whatsapp' => env('OTP_WHATSAPP_DRIVER', 'log'),
+    ],
+
+    // Si WhatsApp échoue (service injoignable, mauvaise configuration), le code part par SMS.
+    'repli_sms' => (bool) env('OTP_REPLI_SMS', true),
 
     'longueur' => 6,
 

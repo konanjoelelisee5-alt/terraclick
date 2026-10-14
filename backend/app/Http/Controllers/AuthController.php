@@ -26,11 +26,14 @@ class AuthController extends Controller
         $telephone = $request->validated('telephone');
         $canal = $request->validated('canal');
 
-        $this->otp->emettre($telephone, $canal);
+        $otp = $this->otp->emettre($telephone, $canal);
 
         // La réponse ne dit pas si le numéro est connu : on ne le révèle qu'au porteur du code.
         return response()->json([
-            'message' => 'Code envoyé par '.($canal === 'whatsapp' ? 'WhatsApp' : 'SMS').' au '.Telephone::affichage($telephone).'.',
+            'message' => 'Code envoyé par '.($otp->canal === 'whatsapp' ? 'WhatsApp' : 'SMS').' au '.Telephone::affichage($telephone).'.',
+            // Canal réellement utilisé : SMS si WhatsApp a échoué.
+            'canal' => $otp->canal,
+            'repli' => $otp->canal !== $canal,
             'expire_dans_secondes' => config('otp.duree_minutes') * 60,
         ], 202);
     }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\EnvoiCodeImpossible;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
@@ -27,6 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(fn (AuthenticationException $e, Request $request) => $request->is('api/*')
             ? response()->json(['message' => 'Connectez-vous pour continuer.'], 401)
             : null);
+
+        // Le détail (fournisseur, configuration) part dans les logs ; l'utilisateur reçoit un message simple.
+        $exceptions->render(fn (EnvoiCodeImpossible $e) => response()->json([
+            'message' => 'Impossible d\'envoyer le code pour le moment. Réessayez dans quelques instants.',
+        ], 503));
 
         // Ne pas exposer les noms de classes internes (« No query results for model… »).
         $exceptions->render(fn (NotFoundHttpException $e, Request $request) => $request->is('api/*')

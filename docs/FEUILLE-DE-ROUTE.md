@@ -24,6 +24,14 @@ prochaines décisions. Les coûts indiqués sont des estimations, à mesurer en 
 - les prestataires à la une ;
 - la fiche professionnelle.
 
+**Envoi des codes** (14 octobre 2026)
+
+- WhatsApp Cloud API (Meta) est intégré, avec bascule automatique sur le SMS.
+- Le fournisseur SMS reste à choisir. En attendant, les codes sont écrits dans le log en
+  développement, et ce mode est refusé en production.
+- Configuration décrite dans `backend/README.md`.
+- Reste à faire : un webhook Meta pour détecter les messages non remis (numéro sans WhatsApp).
+
 **API prête, pas encore branchée à l'écran**
 
 - la publication d'un avis ;

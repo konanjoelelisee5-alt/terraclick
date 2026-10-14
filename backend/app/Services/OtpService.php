@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
-use App\Contracts\EnvoiCode;
+use App\Exceptions\EnvoiCodeImpossible;
 use App\Models\OtpCode;
+use App\Services\EnvoiCode\RouteurEnvoiCode;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -11,9 +12,14 @@ use Illuminate\Validation\ValidationException;
 /** Émission et vérification des codes à usage unique. */
 class OtpService
 {
-    public function __construct(private EnvoiCode $envoi) {}
+    public function __construct(private RouteurEnvoiCode $envoi) {}
 
-    /** Émet un nouveau code ; les codes précédents de ce numéro deviennent inutilisables. */
+    /**
+     * Émet un nouveau code ; les codes précédents de ce numéro deviennent inutilisables.
+     * Le canal enregistré est celui par lequel le code est réellement parti.
+     *
+     * @throws EnvoiCodeImpossible aucun canal n'a pu le transmettre ; le code est alors annulé
+     */
     public function emettre(string $telephone, string $canal): OtpCode
     {
         $code = $this->genererCode();
@@ -29,7 +35,16 @@ class OtpService
             ]);
         });
 
-        $this->envoi->envoyer($telephone, $code, $canal);
+        try {
+            $canalUtilise = $this->envoi->envoyer($telephone, $code, $canal);
+        } catch (EnvoiCodeImpossible $e) {
+            $otp->update(['expire_le' => now()]);
+            throw $e;
+        }
+
+        if ($canalUtilise !== $canal) {
+            $otp->update(['canal' => $canalUtilise]);
+        }
 
         return $otp;
     }

@@ -218,7 +218,13 @@ export const api = {
 
   /* Compte */
   demanderCode: (telephone: string, canal: "sms" | "whatsapp") =>
-    requete<{ message: string; expire_dans_secondes: number }>("/auth/code", {
+    requete<{
+      message: string;
+      /** Canal réellement utilisé : SMS si WhatsApp n'a pas pu être joint. */
+      canal: "sms" | "whatsapp";
+      repli: boolean;
+      expire_dans_secondes: number;
+    }>("/auth/code", {
       methode: "POST",
       corps: { telephone, canal },
     }),

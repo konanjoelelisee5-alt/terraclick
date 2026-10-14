@@ -31,6 +31,8 @@ const ALERTE: React.CSSProperties = {
 export function AuthSheet() {
   const { etat, set, terminerAuth } = useApp();
   const [erreur, setErreur] = useState<string | null>(null);
+  /** Information non bloquante, par exemple le passage de WhatsApp au SMS. */
+  const [info, setInfo] = useState<string | null>(null);
   const [occupe, setOccupe] = useState(false);
   // Quartiers proposés au profil : ceux de Yamoussoukro, servis par l'API.
   const { donnees: villes } = useApi(() => api.villes(), []);
@@ -42,6 +44,7 @@ export function AuthSheet() {
 
   const fermer = () => {
     setErreur(null);
+    setInfo(null);
     set({ authOpen: false });
   };
 
@@ -65,8 +68,10 @@ export function AuthSheet() {
       return;
     }
     appeler(async () => {
-      await api.demanderCode(etat.telDraft, etat.authCanal);
-      set({ authStep: "code", code: "" });
+      const envoi = await api.demanderCode(etat.telDraft, etat.authCanal);
+      // Le serveur peut avoir changé de canal : l'écran suivant dit où chercher le code.
+      setInfo(envoi.repli ? "WhatsApp n'a pas pu être joint : votre code vous a été envoyé par SMS." : null);
+      set({ authStep: "code", code: "", authCanal: envoi.canal });
     }, "telephone");
   };
 
@@ -287,6 +292,22 @@ export function AuthSheet() {
             <p style={{ fontSize: "14.5px", margin: 0, color: "var(--text-muted)" }}>
               Envoyé par {etat.authCanal === "whatsapp" ? "WhatsApp" : "SMS"} au {etat.telDraft || "07 00 00 00 00"}.
             </p>
+            {info && (
+              <p
+                role="status"
+                style={{
+                  fontSize: "13.5px",
+                  lineHeight: 1.45,
+                  margin: 0,
+                  padding: "10px 12px",
+                  borderRadius: "var(--radius-md)",
+                  background: "var(--state-info-soft)",
+                  color: "var(--state-info)",
+                }}
+              >
+                {info}
+              </p>
+            )}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 8 }}>
               {[0, 1, 2, 3, 4, 5].map((i) => (
                 <div key={i} style={caseCode(etat.code.length, i)}>
