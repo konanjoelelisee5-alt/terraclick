@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics="">
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Architects+Daughter&amp;family=Kalam:wght@300;400;700&amp;display=swap">
+<link rel="stylesheet" href="_ds/organic-b7fe5ce4-607f-48d3-b8d4-226052e4c557/styles.css">
+<script src="_ds/organic-b7fe5ce4-607f-48d3-b8d4-226052e4c557/_ds_bundle.js"></script>
+<style>
+body{margin:0;background:#f0eee9;font-family:'Kalam',system-ui,sans-serif}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 13px/1.2 system-ui,sans-serif;color:#1a1a1a}
+.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.55)}
+.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}
+.dv-next{margin:22px 0 0;font:12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.5)}
+.wf{padding:16px;display:flex;flex-direction:column;gap:14px;color:#332f2a}
+.wf h1,.wf h2,.wf h3{font-family:'Architects Daughter',cursive;font-weight:400;margin:0;letter-spacing:0}
+.bar{height:9px;border-radius:5px;background:#ddd8ce}
+.box{border:1.6px dashed #b9b3a8;border-radius:12px}
+.solid{border:1.6px solid #45403a;border-radius:12px}
+.pill{border:1.6px solid #45403a;border-radius:999px;padding:4px 12px;font-size:13px;line-height:1.3;display:inline-flex;align-items:center;gap:5px}
+.pill-soft{border:1.4px dashed #b9b3a8;border-radius:999px;padding:4px 11px;font-size:13px;color:#7d766c;display:inline-flex;align-items:center;gap:5px}
+.acc{color:#c67139;border-color:#c67139}
+.fill{background:#c67139;color:#fff;border-color:#c67139}
+.row{display:flex;align-items:center;gap:8px}
+.note{font-size:12.5px;color:#8d867b;line-height:1.35}
+.chrome{display:flex;gap:5px;align-items:center;padding:8px 12px;border-bottom:1.4px solid #e6e1d8;background:#faf8f4}
+.dot{width:8px;height:8px;border-radius:99px;background:#ddd8ce}
+.cell{border:1.6px dashed #b9b3a8;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:7px;min-height:86px}
+.circ{width:26px;height:26px;border-radius:999px;border:1.6px solid #45403a;display:grid;place-items:center;font-size:12px;flex:none}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t9">
+<div class="dv-thd"><a class="dv-tid" href="#t9">9</a><span class="dv-tname">Inscription &amp; connexion — six variantes, chacune sur un principe différent</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="9a">
+<div class="dv-olabel"><a class="dv-oid" href="#9a">9a</a>Appel manqué au lieu du SMS — gratuit, arrive même sans forfait</div>
+<div class="dv-card" style="width:300px">
+<div class="chrome" style="padding:6px 10px"><div class="bar" style="flex:1;max-width:80px"></div></div>
+<div class="wf" style="gap:12px;min-height:320px">
+  <div class="row"><span class="note">←</span></div>
+  <h2 style="font-size:23px">On vous appelle</h2>
+  <span class="note">Un appel va sonner sur le <b>07 58 42 19 03</b>. Ne décrochez pas : les <b>4 derniers chiffres</b> du numéro appelant sont votre code.</span>
+  <div class="solid" style="padding:14px;display:flex;flex-direction:column;align-items:center;gap:9px;border-color:#c67139">
+    <span class="circ" style="width:46px;height:46px;border-color:#c67139;color:#c67139;font-size:18px">◉</span>
+    <span style="font-size:15px">Appel en cours…</span>
+    <span class="note">+225 27 •• •• <b>3 0 4 1</b></span>
+  </div>
+  <div class="row" style="gap:7px">
+    <div class="solid" style="flex:1;height:44px;display:grid;place-items:center;font-size:18px">3</div>
+    <div class="solid" style="flex:1;height:44px;display:grid;place-items:center;font-size:18px">0</div>
+    <div class="solid" style="flex:1;height:44px;display:grid;place-items:center;border-color:#c67139"></div>
+    <div class="box" style="flex:1;height:44px"></div>
+  </div>
+  <div style="flex:1"></div>
+  <span class="note" style="text-align:center">Zéro franc pour vous. <span style="text-decoration:underline">Recevoir un SMS à la place</span></span>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="9b">
+<div class="dv-olabel"><a class="dv-oid" href="#9b">9b</a>Compte invisible — on n'inscrit personne, on retient</div>
+<div class="dv-card" style="width:300px">
+<div class="chrome" style="padding:6px 10px"><div class="bar" style="flex:1;max-width:80px"></div></div>
+<div class="wf" style="gap:11px">
+  <div class="row"><span class="circ" style="width:26px;height:26px">?</span><span style="font-size:14px">Vos recherches</span><span class="pill-soft" style="margin-left:auto;font-size:11px">Invité</span></div>
+  <div class="box" style="padding:9px;display:flex;flex-direction:column;gap:6px">
+    <span class="note">3 prestataires consultés · 1 devis commencé</span>
+    <div class="bar" style="width:80%"></div><div class="bar" style="width:55%"></div>
+  </div>
+  <div class="solid" style="padding:13px;display:flex;flex-direction:column;gap:8px;border-color:#c67139">
+    <span style="font-size:15px">Gardez tout ça</span>
+    <span class="note">Votre devis part dans 2 minutes. Laissez un numéro pour recevoir les réponses — le reste est déjà enregistré.</span>
+    <div class="row" style="gap:6px">
+      <div class="box" style="padding:9px 10px"><span style="font-size:13px">+225</span></div>
+      <div class="solid" style="flex:1;padding:9px 12px"><span class="note">07 00 00 00 00</span></div>
+    </div>
+    <span class="pill fill" style="justify-content:center;padding:9px">Envoyer le devis</span>
+  </div>
+  <span class="note">Aucune page d'inscription : le compte se crée au moment où il devient utile, avec l'historique déjà dedans.</span>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="9c">
+<div class="dv-olabel"><a class="dv-oid" href="#9c">9c</a>Feuille basse — on ne quitte jamais la fiche du prestataire</div>
+<div class="dv-card" style="width:300px">
+<div class="chrome" style="padding:6px 10px"><div class="bar" style="flex:1;max-width:80px"></div></div>
+<div class="wf" style="gap:0;padding:0;min-height:340px;position:relative">
+  <div style="padding:12px;display:flex;flex-direction:column;gap:9px;opacity:.35">
+    <div class="row"><span class="note">←</span><span style="font-size:13px">Koffi Tanoh</span></div>
+    <div class="box" style="height:70px"></div>
+    <div class="bar" style="width:80%"></div><div class="bar" style="width:60%"></div>
+    <div class="box" style="height:44px"></div>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1.6px solid #45403a;border-radius:18px 18px 0 0;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 -8px 24px rgba(0,0,0,.1)">
+    <div style="width:38px;height:4px;border-radius:99px;background:#ddd8ce;align-self:center"></div>
+    <span style="font-size:16px">Votre numéro pour continuer</span>
+    <span class="note">Koffi voit votre prénom, jamais votre numéro tant que vous n'appelez pas.</span>
+    <div class="row" style="gap:6px">
+      <div class="box" style="padding:9px 10px"><span style="font-size:13px">+225</span></div>
+      <div class="solid" style="flex:1;padding:9px 12px"><span class="note">07 00 00 00 00</span></div>
+    </div>
+    <span class="pill fill" style="justify-content:center;padding:9px">Continuer</span>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="9d">
+<div class="dv-olabel"><a class="dv-oid" href="#9d">9d</a>Code par WhatsApp — là où les gens lisent vraiment</div>
+<div class="dv-card" style="width:300px">
+<div class="chrome" style="padding:6px 10px"><div class="bar" style="flex:1;max-width:80px"></div></div>
+<div class="wf" style="gap:12px;min-height:310px">
+  <h2 style="font-size:23px">Où envoyer le code ?</h2>
+  <span class="note">Le même numéro, deux chemins. WhatsApp arrive en wifi, même sans crédit.</span>
+  <div class="solid" style="padding:12px;display:flex;gap:10px;align-items:center;border-color:#c67139">
+    <span class="circ" style="width:34px;height:34px;border-color:#c67139;color:#c67139">W</span>
+    <div style="flex:1"><span style="font-size:14px">WhatsApp</span><br><span class="note">Recommandé · instantané</span></div>
+    <span class="circ" style="width:20px;height:20px;background:#c67139;border-color:#c67139"></span>
+  </div>
+  <div class="box" style="padding:12px;display:flex;gap:10px;align-items:center">
+    <span class="circ" style="width:34px;height:34px">S</span>
+    <div style="flex:1"><span style="font-size:14px">SMS</span><br><span class="note">Fonctionne sans internet</span></div>
+    <span class="circ" style="width:20px;height:20px"></span>
+  </div>
+  <span class="pill fill" style="justify-content:center;padding:10px">Envoyer le code</span>
+  <div style="flex:1"></div>
+  <div class="box" style="padding:9px;background:#faf8f4"><span class="note">Après la commande, les notifications suivent le même canal : le client n'a rien à installer de plus.</span></div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="9e">
+<div class="dv-olabel"><a class="dv-oid" href="#9e">9e</a>Un seul écran — numéro et code sans changer de page</div>
+<div class="dv-card" style="width:300px">
+<div class="chrome" style="padding:6px 10px"><div class="bar" style="flex:1;max-width:80px"></div></div>
+<div class="wf" style="gap:11px;min-height:330px">
+  <span style="font-family:'Architects Daughter',cursive;font-size:22px;align-self:center">servis<span style="color:#c67139">yakro</span></span>
+  <div style="display:flex;flex-direction:column;gap:5px">
+    <span class="note">Numéro</span>
+    <div class="row" style="gap:6px">
+      <div class="box" style="padding:9px 10px"><span style="font-size:13px">+225</span></div>
+      <div class="box" style="flex:1;padding:9px 12px;display:flex;align-items:center"><span style="font-size:13px">07 58 42 19 03</span><span class="note" style="margin-left:auto">modifier</span></div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:5px">
+    <span class="note">Code reçu par SMS</span>
+    <div class="row" style="gap:6px">
+      <div class="solid" style="flex:1;height:42px;display:grid;place-items:center;font-size:17px">4</div>
+      <div class="solid" style="flex:1;height:42px;display:grid;place-items:center;font-size:17px">1</div>
+      <div class="solid" style="flex:1;height:42px;display:grid;place-items:center;border-color:#c67139"></div>
+      <div class="box" style="flex:1;height:42px"></div>
+      <div class="box" style="flex:1;height:42px"></div>
+      <div class="box" style="flex:1;height:42px"></div>
+    </div>
+    <span class="note">Renvoyer dans 0:38</span>
+  </div>
+  <span class="pill fill" style="justify-content:center;padding:10px">Entrer</span>
+  <div style="flex:1"></div>
+  <div style="border-top:1.4px dashed #ddd8ce;padding-top:9px"><span class="note">Le champ code apparaît sous le numéro une fois l'envoi fait. Aucun retour arrière possible, aucun écran perdu si le réseau coupe.</span></div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="9f">
+<div class="dv-olabel"><a class="dv-oid" href="#9f">9f</a>Desktop qui passe la main au téléphone — code QR</div>
+<div class="dv-card" style="width:460px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span><div class="bar" style="flex:1;margin-left:8px;max-width:150px"></div></div>
+<div class="wf" style="flex-direction:row;gap:0;padding:0;min-height:250px">
+  <div style="flex:1;padding:20px;display:flex;flex-direction:column;gap:11px;justify-content:center">
+    <span style="font-family:'Architects Daughter',cursive;font-size:19px">servis<span style="color:#c67139">yakro</span></span>
+    <h2 style="font-size:21px;line-height:1.15">Connectez-vous avec votre téléphone</h2>
+    <span class="note">Le compte vit sur le mobile. Sur ordinateur, on scanne : pas de mot de passe à taper sur une machine partagée au cyber.</span>
+    <div class="row" style="gap:7px"><span class="pill" style="font-size:12px">Utiliser mon numéro à la place</span></div>
+  </div>
+  <div style="flex:.8;background:#faf8f4;border-left:1.6px dashed #ddd8ce;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
+    <div class="solid" style="width:110px;height:110px;display:grid;place-items:center;background:#fff">
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;width:76px">
+        <span style="aspect-ratio:1;background:#45403a"></span><span style="aspect-ratio:1;background:#45403a"></span><span style="aspect-ratio:1"></span><span style="aspect-ratio:1;background:#45403a"></span><span style="aspect-ratio:1;background:#45403a"></span>
+        <span style="aspect-ratio:1;background:#45403a"></span><span style="aspect-ratio:1"></span><span style="aspect-ratio:1;background:#c67139"></span><span style="aspect-ratio:1"></span><span style="aspect-ratio:1;background:#45403a"></span>
+        <span style="aspect-ratio:1"></span><span style="aspect-ratio:1;background:#c67139"></span><span style="aspect-ratio:1;background:#45403a"></span><span style="aspect-ratio:1;background:#c67139"></span><span style="aspect-ratio:1"></span>
+        <span style="aspect-ratio:1;background:#45403a"></span><span style="aspect-ratio:1"></span><span style="aspect-ratio:1;background:#c67139"></span><span style="aspect-ratio:1"></span><span style="aspect-ratio:1;background:#45403a"></span>
+        <span style="aspect-ratio:1;background:#45403a"></span><span style="aspect-ratio:1;background:#45403a"></span><span style="aspect-ratio:1"></span><span style="aspect-ratio:1;background:#45403a"></span><span style="aspect-ratio:1;background:#45403a"></span>
+      </div>
+    </div>
+    <span class="note" style="text-align:center">Application Servis Yakro → Profil → Scanner</span>
+    <span class="note">Expire dans 1:20</span>
+  </div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Essayer ensuite : « combine <a class="dv-oid" href="#9b">9b</a> et <a class="dv-oid" href="#9c">9c</a> » · « garde <a class="dv-oid" href="#9d">9d</a> et passe-le en haute fidélité » · « ajoute l'inscription prestataire »</p>
+</section>
+
+<section class="dv-turn" id="t8">
+<div class="dv-thd"><a class="dv-tid" href="#t8">8</a><span class="dv-tname">Inscription &amp; connexion client — numéro de téléphone d'abord, pas de mot de passe</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="8a">
+<div class="dv-olabel"><a class="dv-oid" href="#8a">8a</a>Le mur n'arrive jamais en premier — on demande le compte au moment d'agir</div>
+<div class="dv-card" style="width:300px">
+<div class="chrome" style="padding:6px 10px"><div class="bar" style="flex:1;max-width:80px"></div></div>
+<div class="wf" style="gap:11px">
+  <div class="row"><span class="note">←</span><span style="font-size:14px;margin-left:4px">Koffi Tanoh · plombier</span></div>
+  <div class="box" style="padding:10px;display:flex;gap:10px;align-items:center;opacity:.5">
+    <span class="circ" style="width:38px;height:38px">KT</span>
+    <div style="flex:1"><div class="bar" style="width:70%"></div><div class="bar" style="width:45%;margin-top:5px"></div></div>
+  </div>
+  <div class="solid" style="padding:14px;display:flex;flex-direction:column;gap:9px;border-color:#c67139">
+    <h3 style="font-size:18px">Votre numéro, et c'est parti</h3>
+    <span class="note">Pour envoyer un message à Koffi, il nous faut un numéro où il peut vous rappeler.</span>
+    <div class="row" style="gap:6px">
+      <div class="box" style="padding:9px 10px"><span style="font-size:13px">+225</span></div>
+      <div class="solid" style="flex:1;padding:9px 12px"><span class="note">07 00 00 00 00</span></div>
+    </div>
+    <span class="pill fill" style="justify-content:center;padding:9px">Recevoir mon code</span>
+    <span class="note" style="text-align:center">Aucun mot de passe à retenir.</span>
+  </div>
+  <span class="note">Le catalogue, la carte et la Box restent ouverts sans compte. Le mur ne tombe qu'à l'action : contacter, demander un devis, suivre une commande.</span>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="8b">
+<div class="dv-olabel"><a class="dv-oid" href="#8b">8b</a>Code SMS à 6 chiffres — saisie auto, renvoi compté</div>
+<div class="dv-card" style="width:300px">
+<div class="chrome" style="padding:6px 10px"><div class="bar" style="flex:1;max-width:80px"></div></div>
+<div class="wf" style="gap:12px;min-height:330px">
+  <div class="row"><span class="note">←</span></div>
+  <h2 style="font-size:24px">Entrez le code</h2>
+  <span class="note">Envoyé par SMS au <b>07 58 42 19 03</b> · <span style="text-decoration:underline">modifier</span></span>
+  <div class="row" style="gap:6px">
+    <div class="solid" style="flex:1;height:46px;display:grid;place-items:center;font-size:19px">4</div>
+    <div class="solid" style="flex:1;height:46px;display:grid;place-items:center;font-size:19px">1</div>
+    <div class="solid" style="flex:1;height:46px;display:grid;place-items:center;font-size:19px">7</div>
+    <div class="solid" style="flex:1;height:46px;display:grid;place-items:center;border-color:#c67139"></div>
+    <div class="box" style="flex:1;height:46px"></div>
+    <div class="box" style="flex:1;height:46px"></div>
+  </div>
+  <div class="box" style="padding:8px 10px;display:flex;gap:8px;align-items:center;background:#faf8f4">
+    <span class="circ" style="width:24px;height:24px;font-size:11px">SY</span>
+    <span class="note">Servis Yakro : votre code est <b>417 8••</b> — appuyer pour remplir</span>
+  </div>
+  <span class="note">Renvoyer le code dans 0:42</span>
+  <div style="flex:1"></div>
+  <span class="pill fill" style="justify-content:center;padding:10px">Valider</span>
+  <span class="note" style="text-align:center">Pas reçu ? <span style="text-decoration:underline">Recevoir un appel à la place</span></span>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="8c">
+<div class="dv-olabel"><a class="dv-oid" href="#8c">8c</a>Profil minimal — deux champs, le reste plus tard</div>
+<div class="dv-card" style="width:300px">
+<div class="chrome" style="padding:6px 10px"><div class="bar" style="flex:1;max-width:80px"></div></div>
+<div class="wf" style="gap:12px">
+  <div class="row" style="gap:5px"><div style="flex:1;height:5px;border-radius:99px;background:#c67139"></div><div style="flex:1;height:5px;border-radius:99px;background:#c67139"></div><div style="flex:1;height:5px;border-radius:99px;background:#e6e1d8"></div></div>
+  <h2 style="font-size:24px">Comment on vous appelle ?</h2>
+  <span class="note">Le prestataire verra ce nom quand vous le contactez.</span>
+  <div style="display:flex;flex-direction:column;gap:5px">
+    <span class="note">Prénom et nom</span>
+    <div class="solid" style="padding:11px 12px"><span class="note">Aya Konan</span></div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:5px">
+    <span class="note">Votre quartier</span>
+    <div class="solid" style="padding:11px 12px;display:flex;align-items:center;gap:7px"><span class="circ" style="width:20px;height:20px;font-size:10px">◎</span><span style="font-size:13px">Habitat</span><span class="note" style="margin-left:auto">Détecté</span></div>
+    <div class="row" style="flex-wrap:wrap;gap:5px;margin-top:2px"><span class="pill-soft" style="font-size:11px">Kokrenou</span><span class="pill-soft" style="font-size:11px">Millionnaire</span><span class="pill-soft" style="font-size:11px">Assabou</span><span class="pill-soft" style="font-size:11px">Autre</span></div>
+  </div>
+  <span class="pill fill" style="justify-content:center;padding:10px">Terminer</span>
+  <span class="note" style="text-align:center">Photo, email et adresse : plus tard, dans le profil.</span>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="8d">
+<div class="dv-olabel"><a class="dv-oid" href="#8d">8d</a>Retour d'un client connu — un seul geste</div>
+<div class="dv-card" style="width:300px">
+<div class="chrome" style="padding:6px 10px"><div class="bar" style="flex:1;max-width:80px"></div></div>
+<div class="wf" style="gap:12px;min-height:300px">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:16px">
+    <span style="font-family:'Architects Daughter',cursive;font-size:26px">servis<span style="color:#c67139">yakro</span></span>
+    <span class="circ" style="width:64px;height:64px;font-size:20px">AK</span>
+    <span style="font-size:17px">Bon retour, Aya</span>
+    <span class="note">07 58 42 19 03</span>
+  </div>
+  <span class="pill fill" style="justify-content:center;padding:11px">Continuer</span>
+  <span class="note" style="text-align:center">Un code SMS confirmera si le téléphone a changé.</span>
+  <div style="flex:1"></div>
+  <div class="box" style="padding:9px;display:flex;flex-direction:column;gap:6px">
+    <span class="note">Ce n'est pas vous ?</span>
+    <div class="row"><span class="pill" style="flex:1;justify-content:center;font-size:12px">Autre numéro</span><span class="pill" style="flex:1;justify-content:center;font-size:12px">Se déconnecter</span></div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="8e">
+<div class="dv-olabel"><a class="dv-oid" href="#8e">8e</a>Desktop — page en deux volets, même logique</div>
+<div class="dv-card" style="width:520px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span><div class="bar" style="flex:1;margin-left:8px;max-width:160px"></div></div>
+<div class="wf" style="padding:0;gap:0;flex-direction:row;min-height:290px">
+  <div style="flex:1;padding:20px;display:flex;flex-direction:column;gap:12px;justify-content:center">
+    <span style="font-family:'Architects Daughter',cursive;font-size:20px">servis<span style="color:#c67139">yakro</span></span>
+    <h2 style="font-size:23px;line-height:1.15">Créer mon compte ou me connecter</h2>
+    <span class="note">Le même numéro sert aux deux. Pas de mot de passe.</span>
+    <div class="row" style="gap:6px">
+      <div class="box" style="padding:9px 10px"><span style="font-size:13px">+225 ▾</span></div>
+      <div class="solid" style="flex:1;padding:9px 12px"><span class="note">07 00 00 00 00</span></div>
+    </div>
+    <span class="pill fill" style="justify-content:center;padding:9px">Recevoir mon code</span>
+    <div class="row" style="gap:8px;align-items:center"><div class="bar" style="flex:1;height:1px"></div><span class="note">ou</span><div class="bar" style="flex:1;height:1px"></div></div>
+    <div class="row" style="gap:7px"><span class="pill" style="flex:1;justify-content:center;font-size:12px">Google</span><span class="pill" style="flex:1;justify-content:center;font-size:12px">Adresse email</span></div>
+    <span class="note">En continuant, vous acceptez les conditions et la politique de confidentialité.</span>
+  </div>
+  <div style="flex:.85;background:#faf8f4;border-left:1.6px dashed #ddd8ce;padding:20px;display:flex;flex-direction:column;gap:11px;justify-content:center">
+    <span class="note" style="text-transform:uppercase;letter-spacing:.1em;color:#c67139">Pourquoi un compte</span>
+    <div class="row" style="align-items:flex-start;gap:8px"><span class="circ" style="width:22px;height:22px"></span><span style="font-size:12.5px;line-height:1.4">Suivre vos échanges avec les prestataires</span></div>
+    <div class="row" style="align-items:flex-start;gap:8px"><span class="circ" style="width:22px;height:22px"></span><span style="font-size:12.5px;line-height:1.4">Retrouver vos commandes et l'argent bloqué</span></div>
+    <div class="row" style="align-items:flex-start;gap:8px"><span class="circ" style="width:22px;height:22px"></span><span style="font-size:12.5px;line-height:1.4">Recevoir les réponses même hors de l'application</span></div>
+    <div class="box" style="padding:9px;margin-top:6px"><span class="note">Vous êtes prestataire ? <span style="text-decoration:underline">Inscription professionnelle</span> — CNI et zone d'intervention demandées.</span></div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="8f">
+<div class="dv-olabel"><a class="dv-oid" href="#8f">8f</a>Cas limites — erreur, numéro changé, pas de réseau</div>
+<div class="dv-card" style="width:300px">
+<div class="chrome" style="padding:6px 10px"><div class="bar" style="flex:1;max-width:80px"></div></div>
+<div class="wf" style="gap:14px">
+  <span class="note" style="text-transform:uppercase;letter-spacing:.1em;color:#c67139">Code faux</span>
+  <div class="row" style="gap:6px">
+    <div class="solid" style="flex:1;height:40px;display:grid;place-items:center;border-color:#b4453a;color:#b4453a">4</div>
+    <div class="solid" style="flex:1;height:40px;display:grid;place-items:center;border-color:#b4453a;color:#b4453a">1</div>
+    <div class="solid" style="flex:1;height:40px;display:grid;place-items:center;border-color:#b4453a;color:#b4453a">7</div>
+    <div class="solid" style="flex:1;height:40px;display:grid;place-items:center;border-color:#b4453a;color:#b4453a">9</div>
+    <div class="solid" style="flex:1;height:40px;display:grid;place-items:center;border-color:#b4453a;color:#b4453a">0</div>
+    <div class="solid" style="flex:1;height:40px;display:grid;place-items:center;border-color:#b4453a;color:#b4453a">2</div>
+  </div>
+  <span class="note" style="color:#b4453a">Code incorrect. Il reste 2 essais.</span>
+
+  <div style="border-top:1.4px dashed #ddd8ce;padding-top:12px;display:flex;flex-direction:column;gap:8px">
+    <span class="note" style="text-transform:uppercase;letter-spacing:.1em;color:#c67139">Numéro déjà utilisé</span>
+    <div class="box" style="padding:10px;display:flex;flex-direction:column;gap:7px">
+      <span style="font-size:13px">Ce numéro a déjà un compte au nom d'Aya K.</span>
+      <div class="row"><span class="pill fill" style="flex:1;justify-content:center;font-size:12px">Me connecter</span><span class="pill" style="flex:1;justify-content:center;font-size:12px">Autre numéro</span></div>
+    </div>
+  </div>
+
+  <div style="border-top:1.4px dashed #ddd8ce;padding-top:12px;display:flex;flex-direction:column;gap:8px">
+    <span class="note" style="text-transform:uppercase;letter-spacing:.1em;color:#c67139">SMS qui n'arrive pas</span>
+    <div class="box" style="padding:10px;display:flex;flex-direction:column;gap:7px">
+      <span style="font-size:13px">Trois envois sans succès</span>
+      <span class="note">Réseau lent ou numéro mal saisi.</span>
+      <div class="row"><span class="pill fill" style="flex:1;justify-content:center;font-size:12px">Recevoir un appel</span><span class="pill" style="flex:1;justify-content:center;font-size:12px">Corriger</span></div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Essayer ensuite : « passe <a class="dv-oid" href="#8a">8a</a> et <a class="dv-oid" href="#8b">8b</a> en haute fidélité » · « fais l'inscription prestataire avec vérification CNI » · « ajoute l'écran de profil client »</p>
+</section>
+
+<section class="dv-turn" id="t7">
+<div class="dv-thd"><a class="dv-tid" href="#t7">7</a><span class="dv-tname">Landing page — chaque section aux trois largeurs (desktop 1440 · tablette 820 · mobile 390)</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="7a">
+<div class="dv-olabel"><a class="dv-oid" href="#7a">7a</a>Accueil · mode Recherche</div>
+<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="note">Desktop 1440</span>
+    <div class="dv-card" style="width:520px">
+      <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      <div class="wf">
+        <div class="row" style="gap:6px"><span class="circ" style="width:26px;height:26px"></span><span style="font-family:'Architects Daughter',cursive;font-size:16px">servisyakro</span><span class="pill-soft" style="font-size:11px;white-space:nowrap">Départements</span><span class="pill-soft" style="font-size:11px;white-space:nowrap">Yakro</span><span class="pill" style="margin-left:auto;font-size:11px;padding:3px 9px;white-space:nowrap">Se connecter</span><span class="pill fill" style="font-size:11px;padding:3px 9px;white-space:nowrap">S'inscrire</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:9px;padding:18px 0 4px">
+          <span style="font-family:'Architects Daughter',cursive;font-size:34px">servis<span style="color:#c67139">yakro</span></span>
+          <span class="note">Les prestataires vérifiés de votre ville, en une recherche.</span>
+          <div class="row" style="width:88%"><span class="pill-soft">Départements ▾</span><span class="pill-soft">Yakro</span><div class="solid" style="flex:1;padding:8px 14px;border-radius:999px"><span class="note">Que cherchez-vous ?</span></div><span class="pill fill">Rechercher</span></div>
+          <div class="row" style="gap:0"><span class="pill fill">Recherche</span><span class="pill">Autour de moi</span><span class="pill">Box intelligente</span></div>
+          <span class="note">Recherché en ce moment</span>
+          <div class="row" style="justify-content:center;flex-wrap:wrap;gap:5px"><span class="pill-soft">Plombier</span><span class="pill-soft">Mécanicien</span><span class="pill-soft">Cyber</span><span class="pill-soft">Point Wave</span><span class="pill-soft">Maquis</span></div>
+        </div>
+        <h3 style="font-size:17px">Prestataires à la une</h3>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <div class="cell" style="min-height:70px"><div class="row"><span class="circ"></span><div class="bar" style="flex:1"></div></div><div class="bar" style="width:70%"></div><div class="row"><span class="pill fill" style="flex:1;justify-content:center;font-size:11px">Chat</span><span class="pill" style="flex:1;justify-content:center;font-size:11px">Appeler</span></div></div>
+          <div class="cell" style="min-height:70px"><div class="row"><span class="circ"></span><div class="bar" style="flex:1"></div></div><div class="bar" style="width:70%"></div><div class="row"><span class="pill fill" style="flex:1;justify-content:center;font-size:11px">Chat</span><span class="pill" style="flex:1;justify-content:center;font-size:11px">Appeler</span></div></div>
+          <div class="cell" style="min-height:70px"><div class="row"><span class="circ"></span><div class="bar" style="flex:1"></div></div><div class="bar" style="width:70%"></div><div class="row"><span class="pill fill" style="flex:1;justify-content:center;font-size:11px">Chat</span><span class="pill" style="flex:1;justify-content:center;font-size:11px">Appeler</span></div></div>
+        </div>
+        <span class="note">Grille des 12 départements en 4 colonnes plus bas</span>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="note">Tablette 820</span>
+    <div class="dv-card" style="width:300px">
+      <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      <div class="wf">
+        <div class="row"><span class="circ" style="width:24px;height:24px"></span><span style="font-family:'Architects Daughter',cursive;font-size:15px">servisyakro</span><span class="pill fill" style="margin-left:auto;font-size:11px">S'inscrire</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 0 2px">
+          <span style="font-family:'Architects Daughter',cursive;font-size:26px">servis<span style="color:#c67139">yakro</span></span>
+          <div class="row" style="width:100%"><div class="solid" style="flex:1;padding:8px 12px;border-radius:999px"><span class="note">Que cherchez-vous ?</span></div><span class="pill fill">Chercher</span></div>
+          <div class="row" style="width:100%;gap:5px"><span class="pill-soft" style="flex:1;justify-content:center">Départements ▾</span><span class="pill-soft" style="flex:1;justify-content:center">Yakro</span></div>
+          <div class="row" style="gap:0"><span class="pill fill">Recherche</span><span class="pill">Carte</span><span class="pill">Box</span></div>
+        </div>
+        <h3 style="font-size:16px">Prestataires à la une</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="cell" style="min-height:64px"><div class="row"><span class="circ"></span><div class="bar" style="flex:1"></div></div><div class="bar" style="width:70%"></div></div>
+          <div class="cell" style="min-height:64px"><div class="row"><span class="circ"></span><div class="bar" style="flex:1"></div></div><div class="bar" style="width:70%"></div></div>
+        </div>
+        <span class="note">Départements : 2 colonnes</span>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="note">Mobile 390</span>
+    <div class="dv-card" style="width:196px">
+      <div class="chrome" style="padding:6px 10px"><div class="bar" style="flex:1;max-width:70px"></div></div>
+      <div class="wf" style="padding:12px;gap:10px">
+        <div class="row"><span class="circ" style="width:22px;height:22px"></span><span style="font-family:'Architects Daughter',cursive;font-size:14px">servisyakro</span><span class="pill-soft" style="margin-left:auto;font-size:11px">☰</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+          <span style="font-family:'Architects Daughter',cursive;font-size:22px">servis<span style="color:#c67139">yakro</span></span>
+          <div class="solid" style="width:100%;padding:9px 12px;border-radius:999px"><span class="note">Que cherchez-vous ?</span></div>
+          <span class="pill fill" style="width:100%;justify-content:center">Rechercher</span>
+          <div class="row" style="width:100%;gap:4px"><span class="pill fill" style="flex:1;justify-content:center;font-size:11px">Rech.</span><span class="pill" style="flex:1;justify-content:center;font-size:11px">Carte</span><span class="pill" style="flex:1;justify-content:center;font-size:11px">Box</span></div>
+        </div>
+        <div class="box" style="padding:8px;display:flex;flex-direction:column;gap:6px"><div class="row"><span class="circ"></span><div class="bar" style="flex:1"></div></div><div class="bar" style="width:75%"></div><span class="pill fill" style="justify-content:center">Chat</span></div>
+        <span class="note">1 colonne · cibles 44 px</span>
+        <div class="row" style="gap:0;border-top:1.4px dashed #ddd8ce;padding-top:8px;justify-content:space-around"><span class="note">Accueil</span><span class="note">Carte</span><span class="note">Box</span><span class="note">Chat</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="dv-opt" id="7b">
+<div class="dv-olabel"><a class="dv-oid" href="#7b">7b</a>Accueil · mode Autour de moi (carte)</div>
+<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="note">Desktop — carte et liste côte à côte</span>
+    <div class="dv-card" style="width:460px">
+      <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      <div class="wf">
+        <div class="row" style="justify-content:center"><div class="solid" style="flex:1;max-width:70%;padding:8px 14px;border-radius:999px"><span class="note">Que cherchez-vous ?</span></div><span class="pill fill">Rechercher</span></div>
+        <div class="row" style="justify-content:center;gap:0"><span class="pill">Recherche</span><span class="pill fill">Autour de moi</span><span class="pill">Box</span></div>
+        <div class="row"><h3 style="font-size:17px">Autour de moi</h3><span class="note">5 pros ouverts près de Yakro</span></div>
+        <div class="row" style="gap:5px"><span class="pill fill">Tout</span><span class="pill-soft">Ouvert</span><span class="pill-soft">Urgence</span><span class="pill-soft">Bien noté</span></div>
+        <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:10px">
+          <div class="box" style="height:170px;position:relative;background:#faf8f4;overflow:hidden">
+            <div style="position:absolute;left:-8%;top:38%;width:120%;height:11px;background:#eae5db;transform:rotate(-6deg)"></div>
+            <div style="position:absolute;left:44%;top:-8%;width:10px;height:120%;background:#eae5db;transform:rotate(5deg)"></div>
+            <div style="position:absolute;left:20%;top:24%;width:26px;height:26px;border-radius:999px;background:#c67139;color:#fff;display:grid;place-items:center;font-size:12px">1</div>
+            <div style="position:absolute;left:56%;top:52%;width:26px;height:26px;border-radius:999px;background:#c67139;color:#fff;display:grid;place-items:center;font-size:12px">2</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <div class="box" style="padding:8px;display:flex;flex-direction:column;gap:5px"><div class="row"><span class="circ">1</span><span style="font-size:13px">Koffi T.</span></div><span class="note">1,2 km · ouvert</span><div class="row"><span class="pill fill" style="flex:1;justify-content:center;font-size:11px">Chat</span><span class="pill" style="flex:1;justify-content:center;font-size:11px">Appel</span></div></div>
+            <div class="box" style="padding:8px;display:flex;flex-direction:column;gap:5px"><div class="row"><span class="circ">2</span><span style="font-size:13px">Garage Bamba</span></div><span class="note">2,0 km</span></div>
+          </div>
+        </div>
+        <span class="note">Prestataires à la une et « Payer sans risque » masqués dans ce mode</span>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="note">Tablette — carte au-dessus</span>
+    <div class="dv-card" style="width:270px">
+      <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      <div class="wf">
+        <div class="row"><div class="solid" style="flex:1;padding:8px 12px;border-radius:999px"><span class="note">Rechercher</span></div><span class="pill fill">OK</span></div>
+        <div class="row" style="justify-content:center;gap:0"><span class="pill">Rech.</span><span class="pill fill">Carte</span><span class="pill">Box</span></div>
+        <div class="box" style="height:130px;position:relative;background:#faf8f4;overflow:hidden">
+          <div style="position:absolute;left:-8%;top:42%;width:120%;height:10px;background:#eae5db;transform:rotate(-6deg)"></div>
+          <div style="position:absolute;left:26%;top:30%;width:24px;height:24px;border-radius:999px;background:#c67139;color:#fff;display:grid;place-items:center;font-size:12px">1</div>
+        </div>
+        <div class="box" style="padding:8px;display:flex;flex-direction:column;gap:5px"><div class="row"><span class="circ">1</span><span style="font-size:13px">Koffi T.</span></div><div class="row"><span class="pill fill" style="flex:1;justify-content:center;font-size:11px">Chat</span><span class="pill" style="flex:1;justify-content:center;font-size:11px">Appel</span></div></div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="note">Mobile — carte plein écran, fiche en feuille</span>
+    <div class="dv-card" style="width:196px">
+      <div class="chrome" style="padding:6px 10px"><div class="bar" style="flex:1;max-width:70px"></div></div>
+      <div class="wf" style="padding:12px;gap:9px">
+        <div class="solid" style="padding:8px 12px;border-radius:999px"><span class="note">Rechercher · Yakro</span></div>
+        <div class="row" style="gap:4px"><span class="pill" style="flex:1;justify-content:center;font-size:11px">Rech.</span><span class="pill fill" style="flex:1;justify-content:center;font-size:11px">Carte</span><span class="pill" style="flex:1;justify-content:center;font-size:11px">Box</span></div>
+        <div class="box" style="height:150px;position:relative;background:#faf8f4;overflow:hidden">
+          <div style="position:absolute;left:-8%;top:34%;width:120%;height:9px;background:#eae5db;transform:rotate(-6deg)"></div>
+          <div style="position:absolute;left:30%;top:22%;width:24px;height:24px;border-radius:999px;background:#c67139;color:#fff;display:grid;place-items:center;font-size:12px">1</div>
+          <div style="position:absolute;left:8px;right:8px;bottom:8px" class="solid"><div style="padding:7px 9px;background:#fff;border-radius:10px"><span style="font-size:12px">Koffi T. · 1,2 km</span><div class="row" style="margin-top:5px"><span class="pill fill" style="flex:1;justify-content:center;font-size:11px">Chat</span><span class="pill" style="flex:1;justify-content:center;font-size:11px">Appel</span></div></div></div>
+        </div>
+        <span class="note">Filtres en feuille basse</span>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="dv-opt" id="7c">
+<div class="dv-olabel"><a class="dv-oid" href="#7c">7c</a>Accueil · mode Box intelligente</div>
+<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="note">Desktop — conversation + panneau latéral</span>
+    <div class="dv-card" style="width:440px">
+      <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      <div class="wf">
+        <div class="row"><span class="circ" style="width:28px;height:28px"></span><h3 style="font-size:17px">Box intelligente</h3><span class="pill-soft">Assistant</span></div>
+        <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:10px">
+          <div class="box" style="padding:10px;display:flex;flex-direction:column;gap:7px">
+            <div class="box" style="align-self:flex-start;max-width:80%;padding:7px 10px;border-radius:12px 12px 12px 4px"><span style="font-size:12px">Décrivez votre besoin.</span></div>
+            <div style="align-self:flex-end;max-width:80%;padding:7px 10px;border-radius:12px 12px 4px 12px;background:#c67139;color:#fff;font-size:12px">Ma pompe à eau ne démarre plus.</div>
+            <div class="box" style="align-self:flex-start;width:90%;padding:8px 10px;display:flex;flex-direction:column;gap:5px">
+              <span class="note">Ce que nous comprenons</span><div class="bar" style="width:90%"></div>
+              <span class="note">Métier · fourchette · niveau d'enjeu</span><div class="bar" style="width:70%"></div>
+              <span class="pill fill" style="align-self:flex-start">Voir les 4 plombiers</span>
+            </div>
+            <div class="row" style="border-top:1.4px dashed #ddd8ce;padding-top:7px"><div class="solid" style="flex:1;padding:7px 10px"><span class="note">Décrivez en une phrase…</span></div><span class="pill fill">Envoyer</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="box" style="padding:9px;display:flex;flex-direction:column;gap:6px"><span style="font-size:13px">Ce que la Box sait faire</span><div class="bar" style="width:90%"></div><div class="bar" style="width:80%"></div><div class="bar" style="width:85%"></div></div>
+            <div class="box" style="padding:9px;display:flex;flex-direction:column;gap:6px"><span style="font-size:13px">Besoin en plusieurs étapes ?</span><span class="pill">Suivi avancé</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="note">Tablette — panneau sous la conversation</span>
+    <div class="dv-card" style="width:270px">
+      <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      <div class="wf">
+        <div class="row"><span class="circ" style="width:26px;height:26px"></span><h3 style="font-size:16px">Box intelligente</h3></div>
+        <div class="box" style="padding:9px;display:flex;flex-direction:column;gap:6px">
+          <div class="box" style="align-self:flex-start;max-width:85%;padding:6px 9px;border-radius:12px 12px 12px 4px"><span style="font-size:12px">Décrivez votre besoin.</span></div>
+          <div style="align-self:flex-end;max-width:85%;padding:6px 9px;border-radius:12px 12px 4px 12px;background:#c67139;color:#fff;font-size:12px">Pompe à eau en panne</div>
+          <div class="row"><div class="solid" style="flex:1;padding:7px 9px"><span class="note">Écrire…</span></div><span class="pill fill">OK</span></div>
+        </div>
+        <div class="box" style="padding:9px;display:flex;flex-direction:column;gap:5px"><span style="font-size:13px">Ce que la Box sait faire</span><div class="bar" style="width:85%"></div><div class="bar" style="width:70%"></div></div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="note">Mobile — conversation plein écran</span>
+    <div class="dv-card" style="width:196px">
+      <div class="chrome" style="padding:6px 10px"><div class="bar" style="flex:1;max-width:70px"></div></div>
+      <div class="wf" style="padding:12px;gap:9px;min-height:280px">
+        <div class="row"><span class="circ" style="width:24px;height:24px"></span><span style="font-size:14px">Box intelligente</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:7px">
+          <div class="box" style="align-self:flex-start;max-width:88%;padding:6px 9px;border-radius:12px 12px 12px 4px"><span style="font-size:12px">Décrivez votre besoin.</span></div>
+          <div style="align-self:flex-end;max-width:88%;padding:6px 9px;border-radius:12px 12px 4px 12px;background:#c67139;color:#fff;font-size:12px">Pompe en panne, Habitat</div>
+          <div class="box" style="padding:8px;display:flex;flex-direction:column;gap:5px"><div class="bar" style="width:90%"></div><div class="bar" style="width:65%"></div><span class="pill fill" style="justify-content:center">Voir les plombiers</span></div>
+        </div>
+        <div class="row" style="border-top:1.4px dashed #ddd8ce;padding-top:8px"><div class="solid" style="flex:1;padding:8px 10px"><span class="note">Message…</span></div><span class="pill fill">↑</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="dv-opt" id="7d">
+<div class="dv-olabel"><a class="dv-oid" href="#7d">7d</a>Départements + « Ce qui vous protège »</div>
+<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="note">Desktop — 4 colonnes</span>
+    <div class="dv-card" style="width:440px">
+      <div class="wf">
+        <span class="note" style="text-transform:uppercase;letter-spacing:.1em;color:#c67139">Ce qui vous protège</span>
+        <h3 style="font-size:19px">Payer sans risque, suivre sans stress</h3>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+          <div class="cell" style="min-height:78px"><span class="circ"></span><div class="bar" style="width:85%"></div><div class="bar" style="width:60%"></div></div>
+          <div class="cell" style="min-height:78px"><span class="circ"></span><div class="bar" style="width:85%"></div><div class="bar" style="width:60%"></div></div>
+          <div class="cell" style="min-height:78px"><span class="circ"></span><div class="bar" style="width:85%"></div><div class="bar" style="width:60%"></div></div>
+          <div class="cell" style="min-height:78px"><span class="circ"></span><div class="bar" style="width:85%"></div><div class="bar" style="width:60%"></div></div>
+        </div>
+        <div class="row" style="gap:8px"><div class="box" style="flex:1;padding:10px"><span style="font-size:13px">Un chantier ? Plusieurs devis.</span><div class="row" style="margin-top:6px"><span class="pill fill">Demander un devis</span></div></div><div class="box" style="flex:1;padding:10px"><span style="font-size:13px">Vous êtes prestataire ?</span><div class="row" style="margin-top:6px"><span class="pill">Créer ma fiche</span></div></div></div>
+        <h3 style="font-size:17px">Les 12 départements</h3>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">
+          <div class="cell" style="min-height:56px"><span class="circ"></span><div class="bar" style="width:80%"></div></div>
+          <div class="cell" style="min-height:56px"><span class="circ"></span><div class="bar" style="width:80%"></div></div>
+          <div class="cell" style="min-height:56px"><span class="circ"></span><div class="bar" style="width:80%"></div></div>
+          <div class="cell" style="min-height:56px"><span class="circ"></span><div class="bar" style="width:80%"></div></div>
+          <div class="cell" style="min-height:56px"><span class="circ"></span><div class="bar" style="width:80%"></div></div>
+          <div class="cell" style="min-height:56px"><span class="circ"></span><div class="bar" style="width:80%"></div></div>
+          <div class="cell" style="min-height:56px"><span class="circ"></span><div class="bar" style="width:80%"></div></div>
+          <div class="cell" style="min-height:56px"><span class="circ"></span><div class="bar" style="width:80%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="note">Tablette — 2 colonnes</span>
+    <div class="dv-card" style="width:270px">
+      <div class="wf">
+        <h3 style="font-size:17px">Payer sans risque</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="cell" style="min-height:72px"><span class="circ"></span><div class="bar" style="width:85%"></div><div class="bar" style="width:60%"></div></div>
+          <div class="cell" style="min-height:72px"><span class="circ"></span><div class="bar" style="width:85%"></div><div class="bar" style="width:60%"></div></div>
+          <div class="cell" style="min-height:72px"><span class="circ"></span><div class="bar" style="width:85%"></div><div class="bar" style="width:60%"></div></div>
+          <div class="cell" style="min-height:72px"><span class="circ"></span><div class="bar" style="width:85%"></div><div class="bar" style="width:60%"></div></div>
+        </div>
+        <h3 style="font-size:16px">Les 12 départements</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+          <div class="cell" style="min-height:54px"><span class="circ"></span><div class="bar" style="width:80%"></div></div>
+          <div class="cell" style="min-height:54px"><span class="circ"></span><div class="bar" style="width:80%"></div></div>
+          <div class="cell" style="min-height:54px"><span class="circ"></span><div class="bar" style="width:80%"></div></div>
+          <div class="cell" style="min-height:54px"><span class="circ"></span><div class="bar" style="width:80%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="note">Mobile — 1 colonne</span>
+    <div class="dv-card" style="width:196px">
+      <div class="wf" style="padding:12px;gap:9px">
+        <h3 style="font-size:15px">Payer sans risque</h3>
+        <div class="cell" style="min-height:64px"><span class="circ"></span><div class="bar" style="width:88%"></div><div class="bar" style="width:64%"></div></div>
+        <div class="cell" style="min-height:64px"><span class="circ"></span><div class="bar" style="width:88%"></div><div class="bar" style="width:64%"></div></div>
+        <h3 style="font-size:15px">Départements</h3>
+        <div class="cell" style="min-height:48px"><div class="row"><span class="circ"></span><div class="bar" style="flex:1"></div></div></div>
+        <div class="cell" style="min-height:48px"><div class="row"><span class="circ"></span><div class="bar" style="flex:1"></div></div></div>
+        <span class="note">Empilé, pleine largeur</span>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="dv-opt" id="7e">
+<div class="dv-olabel"><a class="dv-oid" href="#7e">7e</a>Bandeau suivi avancé + pied de page</div>
+<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="note">Desktop — bandeau sur une ligne, pied 4 colonnes</span>
+    <div class="dv-card" style="width:440px">
+      <div class="wf">
+        <div class="solid" style="padding:10px 12px;display:flex;gap:10px;align-items:center;border-color:#c67139">
+          <span class="circ" style="border-color:#c67139;color:#c67139">IA</span>
+          <div style="flex:1"><span style="font-size:13px">Suivi avancé recommandé pour ce besoin</span><br><span class="note">Analyse Servis Yakro · montant, durée, corps de métier</span></div>
+          <span class="pill fill">Voir le suivi</span><span class="note">Plus tard</span>
+        </div>
+        <div class="row" style="align-items:flex-start;gap:12px;border-top:1.4px dashed #ddd8ce;padding-top:10px">
+          <div style="flex:1.4;display:flex;flex-direction:column;gap:5px"><span style="font-family:'Architects Daughter',cursive;font-size:15px">servisyakro</span><div class="bar" style="width:85%"></div><div class="bar" style="width:60%"></div></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:5px"><span class="note">Services</span><div class="bar" style="width:70%"></div><div class="bar" style="width:60%"></div></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:5px"><span class="note">Prestataires</span><div class="bar" style="width:70%"></div><div class="bar" style="width:55%"></div></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:5px"><span class="note">Aide</span><div class="bar" style="width:65%"></div><div class="bar" style="width:50%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="note">Tablette — pied 2 colonnes, marque pleine largeur</span>
+    <div class="dv-card" style="width:270px">
+      <div class="wf">
+        <div class="solid" style="padding:9px 10px;display:flex;flex-direction:column;gap:6px;border-color:#c67139">
+          <span style="font-size:13px">Suivi avancé recommandé</span>
+          <span class="note">Analyse Servis Yakro</span>
+          <div class="row"><span class="pill fill" style="flex:1;justify-content:center">Voir le suivi</span><span class="pill" style="flex:1;justify-content:center">Plus tard</span></div>
+        </div>
+        <div style="border-top:1.4px dashed #ddd8ce;padding-top:9px;display:grid;grid-template-columns:1fr 1fr;gap:9px">
+          <div style="grid-column:1 / -1;display:flex;flex-direction:column;gap:5px"><span style="font-family:'Architects Daughter',cursive;font-size:14px">servisyakro</span><div class="bar" style="width:80%"></div></div>
+          <div style="display:flex;flex-direction:column;gap:5px"><span class="note">Services</span><div class="bar" style="width:70%"></div></div>
+          <div style="display:flex;flex-direction:column;gap:5px"><span class="note">Aide</span><div class="bar" style="width:65%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="note">Mobile — empilé, barre d'onglets au-dessus</span>
+    <div class="dv-card" style="width:196px">
+      <div class="wf" style="padding:12px;gap:9px">
+        <div class="solid" style="padding:9px;display:flex;flex-direction:column;gap:6px;border-color:#c67139">
+          <span style="font-size:12px">Suivi avancé recommandé</span>
+          <span class="pill fill" style="justify-content:center">Voir le suivi</span>
+          <span class="note" style="text-align:center">Plus tard</span>
+        </div>
+        <div style="border-top:1.4px dashed #ddd8ce;padding-top:9px;display:flex;flex-direction:column;gap:6px">
+          <span style="font-family:'Architects Daughter',cursive;font-size:14px">servisyakro</span>
+          <div class="bar" style="width:85%"></div>
+          <div class="row" style="gap:5px;flex-wrap:wrap"><span class="pill-soft" style="font-size:11px">Services</span><span class="pill-soft" style="font-size:11px">Prestataires</span><span class="pill-soft" style="font-size:11px">Aide</span></div>
+        </div>
+        <div class="row" style="gap:0;border-top:1.4px dashed #ddd8ce;padding-top:8px;justify-content:space-around"><span class="note">Accueil</span><span class="note">Carte</span><span class="note">Box</span><span class="note">Projets</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Essayer ensuite : « détaille le comportement du menu Départements en mobile » · « ajoute les états vides et de chargement » · « passe <a class="dv-oid" href="#7b">7b</a> en haute fidélité »</p>
+</section>
+
+<section class="dv-turn" id="t6">
+<div class="dv-thd"><a class="dv-tid" href="#t6">6</a><span class="dv-tname">Suivi de projet — les cas tranchés dans vos réponses</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="6a">
+<div class="dv-olabel"><a class="dv-oid" href="#6a">6a</a>Déclencheur : la sous-catégorie décide, pas le montant</div>
+<div class="dv-card" style="width:400px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="wf">
+  <span class="note">Résultats · Construction de maison</span>
+  <div class="solid" style="padding:13px;display:flex;flex-direction:column;gap:9px;border-width:2.4px">
+    <div class="row"><span class="circ"></span><h3 style="font-size:18px">Ce besoin se suit en projet</h3></div>
+    <span class="note">La construction se fait en plusieurs étapes, avec plusieurs corps de métier. On te propose un suivi pas à pas plutôt qu'un simple appel.</span>
+    <div class="row" style="gap:6px;flex-wrap:wrap"><span class="pill-soft" style="font-size:11.5px">8 étapes types</span><span class="pill-soft" style="font-size:11.5px">Argent bloqué par étape</span><span class="pill-soft" style="font-size:11.5px">Agent vérificateur</span></div>
+    <div class="row" style="gap:7px"><span class="pill fill" style="flex:1;justify-content:center">Créer le projet</span><span class="pill">Juste appeler un pro</span></div>
+  </div>
+  <div class="note">Sous-catégories concernées : construction, achat de terrain, location de maison, gros événementiel, rénovation.</div>
+  <div class="box" style="padding:11px;display:flex;flex-direction:column;gap:7px">
+    <span class="note" style="text-transform:uppercase;letter-spacing:.1em;font-size:10.5px">Ailleurs (achat d'un objet)</span>
+    <span style="font-size:13.5px">Parcours court : questions → offres → séquestre → réception</span>
+    <div class="row" style="gap:6px"><span class="pill-soft" style="font-size:11px">4 écrans</span><span class="pill-soft" style="font-size:11px">Pas d'étapes</span></div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="6b">
+<div class="dv-olabel"><a class="dv-oid" href="#6b">6b</a>Validation d'offre — le client choisit la pénalité de retard</div>
+<div class="dv-card" style="width:400px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="wf">
+  <span class="note">← Offre de Ent. Bakayoko</span>
+  <h2 style="font-size:21px">Valider l'offre</h2>
+  <div class="box" style="padding:11px;display:flex;flex-direction:column;gap:6px">
+    <div class="row"><span style="font-size:14px">Fondation &amp; gros œuvre</span><span class="pill fill" style="margin-left:auto;font-size:11.5px">1 200 000 F</span></div>
+    <span class="note">Délai annoncé : 6 semaines · fin prévue le 12 octobre</span>
+  </div>
+  <h3 style="font-size:17px;margin-top:2px">Si le prestataire est en retard</h3>
+  <div class="solid" style="padding:11px;display:flex;flex-direction:column;gap:7px;border-width:2.4px">
+    <div class="row"><span class="circ fill" style="width:20px;height:20px;font-size:10px">✓</span><span style="font-size:13.5px">2 % du montant par jour de retard</span></div>
+    <span class="note">Retenu sur le séquestre, reversé au client. Plafond 20 %.</span>
+  </div>
+  <div class="box" style="padding:11px;display:flex;flex-direction:column;gap:5px"><div class="row"><span class="circ" style="width:20px;height:20px"></span><span style="font-size:13.5px">Annulation sans frais après 7 jours de retard</span></div></div>
+  <div class="box" style="padding:11px;display:flex;flex-direction:column;gap:5px"><div class="row"><span class="circ" style="width:20px;height:20px"></span><span style="font-size:13.5px">Aucune pénalité, simple alerte</span></div></div>
+  <div class="box" style="padding:10px;display:flex;gap:9px;align-items:flex-start"><span class="circ" style="width:24px;height:24px">i</span><span class="note">Le prestataire doit accepter la clause. S'il refuse, il peut proposer autre chose.</span></div>
+  <div class="row"><span class="pill">Retour</span><span class="pill fill" style="flex:1;justify-content:center">Valider et bloquer 1 200 000 F</span></div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="6c">
+<div class="dv-olabel"><a class="dv-oid" href="#6c">6c</a>Changement en cours d'étape — avenant signé dans le chat</div>
+<div class="dv-card" style="width:400px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="wf" style="min-height:440px">
+  <div class="row" style="padding-bottom:9px;border-bottom:1.4px dashed #ddd8ce"><span class="note">←</span><span class="circ" style="width:32px;height:32px">EB</span><div><h3 style="font-size:16px">Ent. Bakayoko</h3><span class="note">Étape 3 · en cours</span></div></div>
+  <div style="flex:1;display:flex;flex-direction:column;gap:9px">
+    <div style="align-self:flex-start;max-width:78%"><div class="box" style="padding:9px 12px;border-radius:14px 14px 14px 4px"><span style="font-size:13.5px">Je veux allonger le mur de 3 m côté cour</span></div></div>
+    <div style="align-self:flex-end;max-width:78%"><div style="padding:9px 12px;border-radius:14px 14px 4px 14px;background:#c67139;color:#fff;font-size:13.5px">Ça fait 180 000 F de plus et 5 jours de délai</div></div>
+    <div class="solid" style="padding:11px;display:flex;flex-direction:column;gap:8px;border-width:2.4px">
+      <span class="note" style="text-transform:uppercase;letter-spacing:.1em;font-size:10.5px">Avenant à l'étape 3</span>
+      <div class="row"><span class="note" style="flex:1">Montant</span><span style="font-size:13px">1 200 000 → 1 380 000 F</span></div>
+      <div class="row"><span class="note" style="flex:1">Fin prévue</span><span style="font-size:13px">12 oct → 17 oct</span></div>
+      <div class="row" style="gap:7px;padding-top:6px;border-top:1.4px dashed #ddd8ce"><span class="pill fill" style="flex:1;justify-content:center">Signer et compléter 180 000 F</span></div>
+      <span class="note">Signé par le prestataire · en attente de ta signature</span>
+    </div>
+  </div>
+  <div class="row" style="padding-top:9px;border-top:1.4px dashed #ddd8ce"><div class="box" style="flex:1;padding:8px 12px;border-radius:999px"><span class="note">Message…</span></div><span class="pill fill" style="padding:8px 14px">→</span></div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="6d">
+<div class="dv-olabel"><a class="dv-oid" href="#6d">6d</a>Projet familial — un décideur, plusieurs payeurs</div>
+<div class="dv-card" style="width:400px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="wf">
+  <span class="note">← Construction maison · Habitat</span>
+  <h2 style="font-size:21px">Qui participe</h2>
+  <div class="solid" style="padding:11px;display:flex;gap:10px;align-items:center;border-width:2.4px">
+    <span class="circ" style="width:34px;height:34px">KY</span>
+    <div style="flex:1"><span style="font-size:14.5px">Konan Yao (toi)</span><br><span class="note">Décideur · valide les offres et la réception</span></div>
+    <span class="pill fill" style="font-size:11px">Décideur</span>
+  </div>
+  <div class="box" style="padding:11px;display:flex;gap:10px;align-items:center">
+    <span class="circ" style="width:34px;height:34px">AK</span>
+    <div style="flex:1"><span style="font-size:14.5px">Aya Konan</span><br><span class="note">Suit le projet · a payé 400 000 F</span></div>
+    <span class="pill-soft" style="font-size:11px">Payeur</span>
+  </div>
+  <div class="box" style="padding:11px;display:flex;gap:10px;align-items:center">
+    <span class="circ" style="width:34px;height:34px">MK</span>
+    <div style="flex:1"><span style="font-size:14.5px">Moussa K.</span><br><span class="note">Suit le projet · part non versée</span></div>
+    <span class="pill-soft acc" style="font-size:11px">Relancer</span>
+  </div>
+  <span class="pill" style="align-self:flex-start">+ Inviter un proche</span>
+  <h3 style="font-size:17px;margin-top:4px">Séquestre de l'étape 3</h3>
+  <div class="box" style="padding:12px;display:flex;flex-direction:column;gap:9px">
+    <div class="row"><span class="note" style="flex:1">1 200 000 F à réunir</span><span style="font-size:13px">800 000 F bloqués</span></div>
+    <div style="height:9px;border-radius:99px;background:#e6e1d8;overflow:hidden"><div style="width:66%;height:100%;background:#c67139"></div></div>
+    <div class="row" style="gap:6px;flex-wrap:wrap"><span class="pill-soft" style="font-size:11px">Toi 400 000 ✓</span><span class="pill-soft" style="font-size:11px">Aya 400 000 ✓</span><span class="pill-soft acc" style="font-size:11px">Moussa 400 000 ⏳</span></div>
+    <span class="note">L'étape démarre quand le séquestre est complet. Chacun paie par Wave, OM ou MTN.</span>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="6e">
+<div class="dv-olabel"><a class="dv-oid" href="#6e">6e</a>Client sans smartphone — validation par codes SMS</div>
+<div class="dv-card" style="width:430px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="wf">
+  <h2 style="font-size:21px">Suivi par SMS</h2>
+  <span class="note">Le projet vit dans l'app, le client valide par SMS depuis un téléphone simple.</span>
+  <div class="row" style="gap:14px;align-items:flex-start">
+    <div style="width:190px;flex:none;display:flex;flex-direction:column;gap:8px">
+      <span class="note" style="text-transform:uppercase;letter-spacing:.1em;font-size:10.5px">Téléphone du client</span>
+      <div class="solid" style="border-radius:16px;padding:11px;display:flex;flex-direction:column;gap:8px;background:#faf8f4">
+        <div class="box" style="padding:8px;border-radius:9px"><span style="font-size:11.5px">SERVIS YAKRO : Étape 3 Fondation, offre Bakayoko 1 200 000 F, 6 sem. Répondez OUI pour valider.</span></div>
+        <div class="box" style="padding:8px;border-radius:9px"><span style="font-size:11.5px">Agent Traoré a vérifié la marchandise. Code de remise : 4821. Donnez-le à la livraison.</span></div>
+        <div class="box" style="padding:8px;border-radius:9px"><span style="font-size:11.5px">Paiement débloqué. Étape 4 ouverte.</span></div>
+      </div>
+      <span class="note" style="font-size:11.5px">Pas d'internet requis.</span>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:9px">
+      <span class="note" style="text-transform:uppercase;letter-spacing:.1em;font-size:10.5px">Côté app (agent ou proche)</span>
+      <div class="box" style="padding:11px;display:flex;flex-direction:column;gap:7px">
+        <div class="row"><span class="circ" style="width:26px;height:26px">TR</span><div style="flex:1"><span style="font-size:13.5px">Agent Traoré</span><br><span class="note">Pilote le projet pour le client</span></div></div>
+        <div class="row" style="gap:6px;flex-wrap:wrap"><span class="pill-soft" style="font-size:11px">Crée les étapes</span><span class="pill-soft" style="font-size:11px">Envoie les SMS</span><span class="pill-soft" style="font-size:11px">Encaisse le séquestre</span></div>
+      </div>
+      <div class="solid" style="padding:11px;display:flex;flex-direction:column;gap:8px;border-width:2.4px">
+        <span style="font-size:14px">Code de remise</span>
+        <div class="row" style="gap:6px"><div class="box" style="width:34px;height:40px"></div><div class="box" style="width:34px;height:40px"></div><div class="box" style="width:34px;height:40px"></div><div class="box" style="width:34px;height:40px"></div></div>
+        <span class="note">Le client dicte son code : ça vaut sa confirmation de réception et débloque le paiement.</span>
+      </div>
+      <div class="box" style="padding:10px;display:flex;gap:9px;align-items:flex-start"><span class="circ" style="width:24px;height:24px">i</span><span class="note">Chaque SMS est tracé dans le projet, avec l'heure et la réponse du client.</span></div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Essayer ensuite : « ajoute la vue prestataire de l'avenant » · « passe <a class="dv-oid" href="#5c">5c</a> en haute fidélité »</p>
+</section>
+
+<section class="dv-turn" id="t5">
+<div class="dv-thd"><a class="dv-tid" href="#t5">5</a><span class="dv-tname">Module Suivi de projet — du besoin à la réception, argent bloqué</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="5a">
+<div class="dv-olabel"><a class="dv-oid" href="#5a">5a</a>Choix du mode : je me débrouille / on le fait pour moi</div>
+<div class="dv-card" style="width:430px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="wf">
+  <span class="note">← Nouveau projet</span>
+  <h2 style="font-size:23px">Comment tu veux avancer ?</h2>
+  <span class="note">Projet : construction d'une maison · Yamoussoukro</span>
+  <div class="solid" style="padding:13px;display:flex;flex-direction:column;gap:8px">
+    <div class="row"><span class="circ"></span><h3 style="font-size:17px">Mode guidé</h3><span class="pill-soft" style="margin-left:auto;font-size:11.5px">Gratuit</span></div>
+    <span class="note">On te montre les étapes une par une. Tu gères la partie technique toi-même, on te dit quoi faire et qui appeler.</span>
+    <div class="row" style="gap:6px;flex-wrap:wrap"><span class="pill-soft" style="font-size:11.5px">Checklist</span><span class="pill-soft" style="font-size:11.5px">Documents à fournir</span><span class="pill-soft" style="font-size:11.5px">Prestataires suggérés</span></div>
+    <span class="pill" style="align-self:flex-start">Choisir le mode guidé</span>
+  </div>
+  <div class="solid" style="padding:13px;display:flex;flex-direction:column;gap:8px;border-width:2.4px">
+    <div class="row"><span class="circ"></span><h3 style="font-size:17px">Clé en main</h3><span class="pill fill" style="margin-left:auto;font-size:11.5px">Recommandé</span></div>
+    <span class="note">On fait le travail pour toi. Tu ajoutes juste les infos manquantes et tu valides les offres.</span>
+    <div class="row" style="gap:6px;flex-wrap:wrap"><span class="pill-soft" style="font-size:11.5px">Prestataires sélectionnés</span><span class="pill-soft" style="font-size:11.5px">Offres à comparer</span><span class="pill-soft" style="font-size:11.5px">Agent vérificateur</span></div>
+    <span class="pill fill" style="align-self:flex-start">Choisir clé en main</span>
+  </div>
+  <div class="note">Le mode est modifiable à tout moment depuis le projet.</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="5b">
+<div class="dv-olabel"><a class="dv-oid" href="#5b">5b</a>Questionnaire dynamique (par sous-catégorie)</div>
+<div class="dv-card" style="width:400px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="wf">
+  <div class="row"><span class="note">←</span><h2 style="font-size:20px;margin-left:4px">Ton besoin : ordinateur</h2></div>
+  <div class="row" style="gap:6px"><div style="flex:1;height:6px;border-radius:99px;background:#c67139"></div><div style="flex:1;height:6px;border-radius:99px;background:#c67139"></div><div style="flex:1;height:6px;border-radius:99px;background:#e6e1d8"></div><div style="flex:1;height:6px;border-radius:99px;background:#e6e1d8"></div></div>
+  <span class="note">Question 2 sur 4 · les questions changent selon la sous-catégorie</span>
+  <div class="box" style="padding:12px;display:flex;flex-direction:column;gap:10px">
+    <h3 style="font-size:17px">Tu vas t'en servir pour quoi ?</h3>
+    <div class="row" style="flex-wrap:wrap;gap:7px"><span class="pill fill">Bureautique</span><span class="pill-soft">Graphisme</span><span class="pill-soft">Jeux</span><span class="pill-soft">Développement</span></div>
+    <span class="note" style="border-top:1.4px dashed #ddd8ce;padding-top:9px">Mémoire souhaitée</span>
+    <div class="row" style="flex-wrap:wrap;gap:7px"><span class="pill-soft">8 Go</span><span class="pill fill">16 Go</span><span class="pill-soft">32 Go</span></div>
+    <span class="note">Budget</span>
+    <div class="box" style="padding:9px 12px;border-radius:999px"><span style="font-size:13.5px;color:#a9a297">250 000 – 400 000 F</span></div>
+  </div>
+  <div class="box" style="padding:11px;display:flex;gap:9px;align-items:flex-start">
+    <span class="circ" style="width:28px;height:28px">?</span>
+    <span class="note">Tu peux aussi répondre par chat : « je veux un PC pour du montage vidéo, budget 400 000 ». On remplit le formulaire pour toi.</span>
+  </div>
+  <div class="row"><span class="pill">Précédent</span><span class="pill fill" style="flex:1;justify-content:center">Voir les équipements qui correspondent</span></div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="5c">
+<div class="dv-olabel"><a class="dv-oid" href="#5c">5c</a>Tableau de bord du projet — étapes séquentielles</div>
+<div class="dv-card" style="width:470px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="wf">
+  <div class="row"><span class="note">←</span><h2 style="font-size:21px;margin-left:4px">Construction maison · Habitat</h2><span class="pill-soft" style="margin-left:auto;font-size:11.5px">Clé en main</span></div>
+  <div class="row" style="gap:9px;align-items:center">
+    <div style="flex:1;height:8px;border-radius:99px;background:#e6e1d8;overflow:hidden"><div style="width:38%;height:100%;background:#c67139"></div></div>
+    <span class="note">3 / 8 étapes</span>
+  </div>
+  <div class="solid" style="padding:11px;display:flex;gap:11px;align-items:flex-start;background:#faf8f4">
+    <span class="circ acc" style="width:24px;height:24px;font-size:11px">1</span>
+    <div style="flex:1"><span style="font-size:14.5px">Terrain &amp; documents</span><br><span class="note">Terminé · ACD vérifié par l'agent</span></div>
+    <span class="pill-soft" style="font-size:11px">✓</span>
+  </div>
+  <div class="solid" style="padding:11px;display:flex;gap:11px;align-items:flex-start;background:#faf8f4">
+    <span class="circ acc" style="width:24px;height:24px;font-size:11px">2</span>
+    <div style="flex:1"><span style="font-size:14.5px">Plan &amp; devis architecte</span><br><span class="note">Terminé · 3 offres reçues, 1 validée</span></div>
+    <span class="pill-soft" style="font-size:11px">✓</span>
+  </div>
+  <div class="solid" style="padding:12px;display:flex;flex-direction:column;gap:9px;border-width:2.4px">
+    <div class="row"><span class="circ fill" style="width:24px;height:24px;font-size:11px">3</span><span style="font-size:15px">Fondation &amp; gros œuvre</span><span class="pill fill" style="margin-left:auto;font-size:11px">En cours</span></div>
+    <span class="note">Ce qu'on attend de toi : valider une des 3 offres de maçonnerie.</span>
+    <div class="row" style="gap:7px"><span class="pill fill">Comparer les offres</span><span class="pill">Voir le chat</span></div>
+    <div class="row" style="gap:8px;padding-top:8px;border-top:1.4px dashed #ddd8ce">
+      <span class="note" style="flex:1">Argent bloqué pour cette étape</span>
+      <span class="pill-soft acc" style="font-size:11.5px">1 200 000 F en séquestre 🔒</span>
+    </div>
+  </div>
+  <div class="box" style="padding:11px;display:flex;gap:11px;align-items:center;opacity:.6"><span class="circ" style="width:24px;height:24px;font-size:11px">4</span><span style="font-size:14px">Élévation des murs</span><span class="note" style="margin-left:auto">Bloquée</span></div>
+  <div class="box" style="padding:11px;display:flex;gap:11px;align-items:center;opacity:.6"><span class="circ" style="width:24px;height:24px;font-size:11px">5</span><span style="font-size:14px">Toiture</span><span class="note" style="margin-left:auto">Bloquée</span></div>
+  <div class="note">Une étape ne s'ouvre que si la précédente est validée par le client et l'agent.</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="5d">
+<div class="dv-olabel"><a class="dv-oid" href="#5d">5d</a>Confronter les offres des prestataires</div>
+<div class="dv-card" style="width:470px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="wf">
+  <span class="note">← Étape 3 · Fondation &amp; gros œuvre</span>
+  <h2 style="font-size:21px">3 offres reçues</h2>
+  <div class="row" style="gap:6px"><span class="pill fill" style="font-size:12px">Prix</span><span class="pill-soft" style="font-size:12px">Délai</span><span class="pill-soft" style="font-size:12px">Note</span><span class="pill-soft" style="font-size:12px">Vérifiés</span></div>
+  <div class="solid" style="padding:12px;display:flex;flex-direction:column;gap:8px;border-width:2.4px">
+    <div class="row"><span class="circ" style="width:32px;height:32px">EB</span><div style="flex:1"><span style="font-size:15px">Ent. Bakayoko</span><br><span class="note">★ 4,8 · 34 chantiers · CNI ✓</span></div><span class="pill fill" style="font-size:12px">1 200 000 F</span></div>
+    <div class="row" style="gap:6px;flex-wrap:wrap"><span class="pill-soft" style="font-size:11.5px">6 semaines</span><span class="pill-soft" style="font-size:11.5px">Matériaux inclus</span><span class="pill-soft acc" style="font-size:11.5px">Garantie 1 an</span></div>
+    <div class="row" style="gap:7px"><span class="pill fill" style="flex:1;justify-content:center">Valider cette offre</span><span class="pill">Chat</span><span class="pill">Détail</span></div>
+  </div>
+  <div class="box" style="padding:12px;display:flex;flex-direction:column;gap:8px">
+    <div class="row"><span class="circ" style="width:32px;height:32px">KM</span><div style="flex:1"><span style="font-size:15px">Kone Maçonnerie</span><br><span class="note">★ 4,5 · 18 chantiers · CNI ✓</span></div><span class="pill-soft" style="font-size:12px">980 000 F</span></div>
+    <div class="row" style="gap:6px;flex-wrap:wrap"><span class="pill-soft" style="font-size:11.5px">9 semaines</span><span class="pill-soft" style="font-size:11.5px">Matériaux non inclus</span></div>
+    <div class="row" style="gap:7px"><span class="pill" style="flex:1;justify-content:center">Valider</span><span class="pill">Chat</span></div>
+  </div>
+  <div class="box" style="padding:12px;display:flex;gap:10px;align-items:center;opacity:.6"><span class="circ" style="width:32px;height:32px"></span><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="bar" style="width:55%;height:11px"></div><div class="bar" style="width:80%"></div></div><div class="bar" style="width:70px;height:22px;border-radius:999px"></div></div>
+  <div class="box" style="padding:11px;display:flex;gap:9px;align-items:flex-start"><span class="circ" style="width:26px;height:26px">i</span><span class="note">En validant, l'argent part en séquestre. Il n'est versé au prestataire qu'après vérification de l'agent et ta confirmation.</span></div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="5e">
+<div class="dv-olabel"><a class="dv-oid" href="#5e">5e</a>Séquestre, agent vérificateur &amp; réception</div>
+<div class="dv-card" style="width:400px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="wf">
+  <span class="note">← Commande #A-2841 · Ordinateur 16 Go</span>
+  <div class="solid" style="padding:13px;display:flex;flex-direction:column;gap:8px;background:#faf8f4">
+    <div class="row"><span style="font-size:13px">Montant bloqué</span><span class="pill fill" style="margin-left:auto">340 000 F 🔒</span></div>
+    <div class="row" style="gap:6px"><span class="pill-soft" style="font-size:11px">Wave ✓</span><span class="pill-soft" style="font-size:11px">Orange Money</span><span class="pill-soft" style="font-size:11px">MTN</span></div>
+    <span class="note">Payé depuis Wave · ni toi ni le prestataire n'y touchez avant ta confirmation.</span>
+  </div>
+  <h3 style="font-size:18px;margin-top:2px">Suivi</h3>
+  <div class="row" style="align-items:flex-start;gap:10px"><span class="circ acc" style="width:22px;height:22px;font-size:10px">✓</span><div style="flex:1"><span style="font-size:14px">Commande validée</span><br><span class="note">Hier 14:20 · caractéristiques confirmées</span></div></div>
+  <div class="row" style="align-items:flex-start;gap:10px"><span class="circ acc" style="width:22px;height:22px;font-size:10px">✓</span><div style="flex:1"><span style="font-size:14px">Paiement bloqué en séquestre</span><br><span class="note">Hier 14:22</span></div></div>
+  <div class="row" style="align-items:flex-start;gap:10px"><span class="circ fill" style="width:22px;height:22px;font-size:10px">3</span><div style="flex:1"><span style="font-size:14px">Vérification par l'agent</span><br><span class="note">Aujourd'hui · agent Traoré à Adjamé</span><div class="box" style="margin-top:7px;padding:9px;display:flex;flex-direction:column;gap:6px"><span class="note">Checklist : modèle · 16 Go · état neuf · n° de série</span><div class="row" style="gap:6px;flex-wrap:wrap"><span class="pill-soft" style="font-size:11px">3 photos</span><span class="pill-soft" style="font-size:11px">Vidéo 20 s</span><span class="pill-soft" style="font-size:11px">Facture scannée</span></div></div></div></div>
+  <div class="row" style="align-items:flex-start;gap:10px;opacity:.6"><span class="circ" style="width:22px;height:22px;font-size:10px">4</span><div style="flex:1"><span style="font-size:14px">Livraison Abidjan → Yamoussoukro</span><br><span class="note">Prévue demain</span></div></div>
+  <div class="row" style="align-items:flex-start;gap:10px;opacity:.6"><span class="circ" style="width:22px;height:22px;font-size:10px">5</span><div style="flex:1"><span style="font-size:14px">Ta confirmation de réception</span><br><span class="note">Débloque le paiement</span></div></div>
+  <div class="solid" style="padding:12px;display:flex;flex-direction:column;gap:8px;border-width:2.4px">
+    <span style="font-size:14.5px">À la remise</span>
+    <div class="box" style="padding:9px 11px;display:flex;align-items:center;gap:9px"><span class="note" style="flex:1">Ta signature sur l'écran de l'agent</span><div class="bar" style="width:74px;height:22px"></div></div>
+    <div class="row" style="gap:7px"><span class="pill fill" style="flex:1;justify-content:center">J'ai bien reçu</span><span class="pill" style="flex:1;justify-content:center">Signaler un écart</span></div>
+    <span class="note">Un écart ouvre d'abord une négociation avec le prestataire ; l'argent reste bloqué.</span>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="5f">
+<div class="dv-olabel"><a class="dv-oid" href="#5f">5f</a>Écart signalé — négociation d'abord, arbitrage ensuite</div>
+<div class="dv-card" style="width:400px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="wf">
+  <span class="note">← Commande #A-2841</span>
+  <div class="row" style="padding:10px 12px;border-radius:14px;background:#45403a;color:#fff"><span style="font-family:'Architects Daughter',cursive;font-size:18px">Écart signalé</span><span style="margin-left:auto;font-size:12.5px">340 000 F toujours bloqués 🔒</span></div>
+  <div class="box" style="padding:11px;display:flex;flex-direction:column;gap:7px">
+    <span class="note" style="text-transform:uppercase;letter-spacing:.1em;font-size:10.5px">Ce que tu as commandé</span>
+    <span style="font-size:13.5px">PC 16 Go · état neuf · 340 000 F</span>
+    <span class="note" style="text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;border-top:1.4px dashed #ddd8ce;padding-top:8px">Ce que l'agent a constaté</span>
+    <span style="font-size:13.5px">PC 8 Go · reconditionné</span>
+    <div class="row" style="gap:6px"><span class="pill-soft" style="font-size:11px">Photos agent</span><span class="pill-soft" style="font-size:11px">Vidéo</span></div>
+  </div>
+  <div class="row" style="gap:9px;align-items:center">
+    <span class="circ fill" style="width:22px;height:22px;font-size:10px">1</span><span style="font-size:13.5px">Négociation · 48 h</span><span class="pill fill" style="margin-left:auto;font-size:11px">En cours</span>
+  </div>
+  <div class="box" style="padding:11px;display:flex;flex-direction:column;gap:8px">
+    <span class="note">Propositions du prestataire</span>
+    <div class="row" style="gap:7px"><span class="pill" style="flex:1;justify-content:center;font-size:12.5px">Échange contre 16 Go</span></div>
+    <div class="row" style="gap:7px"><span class="pill" style="flex:1;justify-content:center;font-size:12.5px">Remise de 90 000 F</span></div>
+    <div class="row" style="gap:7px"><span class="pill fill" style="flex:1;justify-content:center;font-size:12.5px">Annuler et me rembourser</span></div>
+    <span class="note">Ouvre le chat pour discuter avant d'accepter.</span>
+  </div>
+  <div class="row" style="gap:9px;align-items:center;opacity:.6"><span class="circ" style="width:22px;height:22px;font-size:10px">2</span><span style="font-size:13.5px">Arbitrage Servis Yakro</span><span class="note" style="margin-left:auto">si pas d'accord</span></div>
+  <div class="note">Sans accord sous 48 h, le support tranche sur la base du rapport de l'agent.</div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Essayer ensuite : « ajoute l'écran Événements (rentrée, fêtes) » · « la vue prestataire et la vue agent » · « passe <a class="dv-oid" href="#5c">5c</a> en haute fidélité »</p>
+</section>
+
+<section class="dv-turn" id="t4">
+<div class="dv-thd"><a class="dv-tid" href="#t4">4</a><span class="dv-tname">Responsive — mobile 390 px et tablette 820 px</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="4a">
+<div class="dv-olabel"><a class="dv-oid" href="#4a">4a</a>Accueil mobile — nav réduite, recherche empilée</div>
+<div class="dv-card" style="width:340px">
+<div class="chrome"><div class="bar" style="flex:1;max-width:120px"></div><span class="note" style="margin-left:auto;font-size:11px">390 px</span></div>
+<div class="wf" style="gap:12px">
+  <div class="row"><span class="circ" style="width:26px;height:26px"></span><span style="font-family:'Architects Daughter',cursive;font-size:17px">Servis Yakro</span><span class="pill-soft" style="margin-left:auto;font-size:12px">📍 Yakro ▾</span><span class="pill" style="padding:4px 9px">☰</span></div>
+  <h1 style="font-size:24px;line-height:1.12">Tout ce dont tu as besoin, juste à côté.</h1>
+  <span class="note">Les pros vérifiés de ta ville.</span>
+  <div class="solid" style="border-radius:999px;padding:5px;display:flex;align-items:center;gap:6px">
+    <span class="pill fill" style="padding:6px 11px;font-size:12px;flex:none">☰</span>
+    <span style="font-size:13px;color:#a9a297;flex:1;padding-left:2px">Que cherches-tu ?</span>
+    <span class="pill fill" style="padding:7px 12px;flex:none">🔍</span>
+  </div>
+  <div class="note">Une seule barre, comme sur desktop : ☰ ouvre les départements, la ville passe dans l'en-tête.</div>
+  <div class="row" style="gap:6px;overflow:hidden"><span class="pill-soft">Plombier</span><span class="pill-soft">Mécano</span><span class="pill-soft">Cyber</span><span class="pill-soft">Wave</span></div>
+  <div class="row" style="padding:9px 12px;border-radius:999px;background:#45403a;color:#fff"><span style="font-size:13px">Urgence · 24/24</span><span class="pill" style="margin-left:auto;border-color:#fff;color:#fff;font-size:11px">Voir</span></div>
+  <h3 style="font-size:17px;margin-top:2px">Recherches populaires</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+    <div class="cell" style="min-height:74px;align-items:center;text-align:center"><span class="circ"></span><span style="font-size:13px">Mécanicien</span></div>
+    <div class="cell" style="min-height:74px;align-items:center;text-align:center"><span class="circ"></span><span style="font-size:13px">Climatisation</span></div>
+    <div class="cell" style="min-height:74px;align-items:center;text-align:center"><span class="circ"></span><span style="font-size:13px">Solaire</span></div>
+    <div class="cell" style="min-height:74px;align-items:center;text-align:center"><span class="circ"></span><span style="font-size:13px">Plomberie</span></div>
+  </div>
+  <div class="note">Une seule colonne partout sous 560 px ; grilles auto-fit au-dessus.</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="4b">
+<div class="dv-olabel"><a class="dv-oid" href="#4b">4b</a>Menu Départements plein écran (mobile)</div>
+<div class="dv-card" style="width:340px">
+<div class="chrome"><div class="bar" style="flex:1;max-width:120px"></div><span class="note" style="margin-left:auto;font-size:11px">390 px</span></div>
+<div class="wf" style="gap:11px">
+  <div class="row"><h2 style="font-size:20px">Départements</h2><span class="pill" style="margin-left:auto;padding:4px 10px">✕</span></div>
+  <div class="row" style="gap:6px;overflow:hidden;padding-bottom:4px">
+    <span class="pill fill" style="font-size:12px">Maison</span><span class="pill-soft" style="font-size:12px">Auto</span><span class="pill-soft" style="font-size:12px">Alimentation</span><span class="pill-soft" style="font-size:12px">Santé</span>
+  </div>
+  <div class="note">Colonne gauche du méga-menu → rail horizontal défilant</div>
+  <div class="box" style="padding:12px;display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;flex-direction:column;gap:5px"><span class="note" style="text-transform:uppercase;letter-spacing:.1em;font-size:10.5px">Immobilier</span><span style="font-size:13.5px">Maisons à louer</span><span style="font-size:13.5px">Terrains</span><span style="font-size:13.5px">Agences, notaires</span></div>
+    <div style="display:flex;flex-direction:column;gap:5px"><span class="note" style="text-transform:uppercase;letter-spacing:.1em;font-size:10.5px">Construction</span><span style="font-size:13.5px">Plombier, électricien</span><span style="font-size:13.5px">Menuisier, carreleur</span><span style="font-size:13.5px">Quincailleries</span></div>
+    <div style="display:flex;flex-direction:column;gap:5px"><span class="note" style="text-transform:uppercase;letter-spacing:.1em;font-size:10.5px">Entretien</span><span style="font-size:13.5px">Femme de ménage</span><span style="font-size:13.5px">Jardinier, pisciniste</span></div>
+  </div>
+  <span class="pill fill" style="justify-content:center;padding:9px">Tout voir dans Maison &amp; Bâtiment</span>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="4c">
+<div class="dv-olabel"><a class="dv-oid" href="#4c">4c</a>Résultats mobile — carte empilée, actions pleine largeur</div>
+<div class="dv-card" style="width:340px">
+<div class="chrome"><div class="bar" style="flex:1;max-width:120px"></div><span class="note" style="margin-left:auto;font-size:11px">390 px</span></div>
+<div class="wf" style="gap:11px">
+  <span class="note">← Retour</span>
+  <div class="row"><h2 style="font-size:21px">Plombiers</h2><span class="row" style="gap:0;margin-left:auto"><span class="pill fill" style="border-radius:999px 0 0 999px;font-size:12px">Liste</span><span class="pill" style="border-radius:0 999px 999px 0;font-size:12px">Carte</span></span></div>
+  <span class="note">38 pros · Yamoussoukro</span>
+  <div class="row" style="gap:6px;overflow:hidden;padding-bottom:2px"><span class="pill fill" style="font-size:12px">Tous</span><span class="pill-soft" style="font-size:12px">Habitat</span><span class="pill-soft" style="font-size:12px">Kokrenou</span><span class="pill-soft" style="font-size:12px">Assabou</span></div>
+  <div class="box" style="padding:12px;display:flex;flex-direction:column;gap:9px">
+    <div class="row"><span class="circ" style="width:38px;height:38px">KT</span><div style="flex:1"><h3 style="font-size:16px">Koffi Tanoh</h3><span class="note">Plombier · Habitat · 1,2 km</span></div></div>
+    <span class="note" style="margin-left:auto">★ 4,8 · 63 avis</span>
+    <div class="row" style="flex-wrap:wrap;gap:5px"><span class="pill-soft" style="font-size:11.5px">5–15 000 F</span><span class="pill-soft acc" style="font-size:11.5px">Répond en 10 min</span><span class="pill-soft" style="font-size:11.5px">CNI ✓</span></div>
+    <div class="row" style="gap:7px"><span class="pill fill" style="flex:1;justify-content:center">Chat</span><span class="pill" style="flex:1;justify-content:center">Appeler</span></div>
+    <span class="note" style="text-align:center">Demander un devis</span>
+  </div>
+  <div class="box" style="padding:12px;display:flex;flex-direction:column;gap:9px;opacity:.6">
+    <div class="row"><span class="circ" style="width:38px;height:38px"></span><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="bar" style="width:60%;height:11px"></div><div class="bar" style="width:85%"></div></div></div>
+    <div class="row" style="gap:7px"><div class="bar" style="flex:1;height:26px;border-radius:999px"></div><div class="bar" style="flex:1;height:26px;border-radius:999px"></div></div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="4d">
+<div class="dv-olabel"><a class="dv-oid" href="#4d">4d</a>Chat &amp; devis mobile — clavier, actions collées en bas</div>
+<div class="dv-card" style="width:340px">
+<div class="chrome"><div class="bar" style="flex:1;max-width:120px"></div><span class="note" style="margin-left:auto;font-size:11px">390 px</span></div>
+<div class="wf" style="gap:10px;min-height:430px">
+  <div class="row" style="padding-bottom:9px;border-bottom:1.4px dashed #ddd8ce"><span class="note">←</span><span class="circ" style="width:32px;height:32px">KT</span><div><h3 style="font-size:15px">Koffi Tanoh</h3><span class="note">en ligne</span></div><span class="pill" style="margin-left:auto;padding:4px 10px">📞</span></div>
+  <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+    <div style="align-self:flex-start;max-width:80%"><div class="box" style="padding:8px 11px;border-radius:14px 14px 14px 4px"><span style="font-size:13.5px">Ma douche fuit à Habitat</span></div></div>
+    <div style="align-self:flex-end;max-width:80%"><div style="padding:8px 11px;border-radius:14px 14px 4px 14px;background:#c67139;color:#fff;font-size:13.5px">Je passe à 17h, 12 000 F</div></div>
+  </div>
+  <div class="row" style="gap:6px;overflow:hidden"><span class="pill-soft" style="font-size:11.5px">C'est combien ?</span><span class="pill-soft" style="font-size:11.5px">Tu es dispo ?</span></div>
+  <div class="row" style="padding-top:9px;border-top:1.4px dashed #ddd8ce"><div class="box" style="flex:1;padding:8px 12px;border-radius:999px"><span class="note">Message…</span></div><span class="pill fill" style="padding:8px 14px">→</span></div>
+  <div class="note" style="text-align:center">Barre d'envoi fixée au-dessus du clavier ; hauteur en dvh, pas vh.</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="4e">
+<div class="dv-olabel"><a class="dv-oid" href="#4e">4e</a>Tablette 820 px — 2 colonnes, nav complète</div>
+<div class="dv-card" style="width:470px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="note" style="margin-left:auto;font-size:11px">820 px</span></div>
+<div class="wf" style="gap:12px">
+  <div class="row"><span class="circ" style="width:26px;height:26px"></span><span style="font-family:'Architects Daughter',cursive;font-size:17px">Servis Yakro</span><span class="note" style="margin-left:12px">Départements · Devis · Urgence</span><span class="pill fill" style="margin-left:auto;font-size:12px">S'inscrire</span></div>
+  <h1 style="font-size:28px;line-height:1.1;max-width:20ch">Tout ce dont tu as besoin, juste à côté de toi.</h1>
+  <div class="row" style="gap:6px">
+    <span class="pill fill" style="font-size:12.5px">Départements ▾</span>
+    <span class="pill-soft" style="font-size:12.5px">📍 Yakro</span>
+    <div class="solid" style="flex:1;padding:9px 14px;border-radius:999px"><span style="font-size:13px;color:#a9a297">Que cherches-tu ?</span></div>
+    <span class="pill fill" style="font-size:12.5px">Chercher</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px">
+    <div class="cell" style="min-height:70px;align-items:center;text-align:center"><span class="circ"></span><span style="font-size:12.5px">Mécanicien</span></div>
+    <div class="cell" style="min-height:70px;align-items:center;text-align:center"><span class="circ"></span><span style="font-size:12.5px">Climatisation</span></div>
+    <div class="cell" style="min-height:70px;align-items:center;text-align:center"><span class="circ"></span><span style="font-size:12.5px">Solaire</span></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="box" style="padding:11px;display:flex;gap:9px"><span class="circ" style="width:36px;height:36px">AS</span><div style="flex:1;display:flex;flex-direction:column;gap:5px"><span style="font-size:14px">Auto Service Yakro</span><span class="note">Mécanicien · 4,8</span><div class="row" style="gap:5px"><span class="pill fill" style="font-size:11px;flex:1;justify-content:center">Chat</span><span class="pill" style="font-size:11px;flex:1;justify-content:center">Appeler</span></div></div></div>
+    <div class="box" style="padding:11px;display:flex;gap:9px"><span class="circ" style="width:36px;height:36px">CC</span><div style="flex:1;display:flex;flex-direction:column;gap:5px"><span style="font-size:14px">ClimaCool CI</span><span class="note">Climatisation · 4,9</span><div class="row" style="gap:5px"><span class="pill fill" style="font-size:11px;flex:1;justify-content:center">Chat</span><span class="pill" style="font-size:11px;flex:1;justify-content:center">Appeler</span></div></div></div>
+  </div>
+  <div class="note">Rupture à 900 px : nav secondaire masquée, pied de page 4 → 2 colonnes.</div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Essayer ensuite : « ajoute une barre d'onglets fixe en bas sur mobile » · « décline <a class="dv-oid" href="#4c">4c</a> en vue carte mobile » · « applique <a class="dv-oid" href="#4a">4a</a> à la maquette HF »</p>
+</section>
+
+<section class="dv-turn" id="t3">
+<div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Logos — cinq pistes, sur la charte Organic (terracotta + sauge, Caprasimo)</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="3a">
+<div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>Épingle-goutte — « le service est ici »</div>
+<div class="dv-card" style="width:300px;background:var(--color-bg)">
+<div style="padding:22px;display:flex;flex-direction:column;gap:18px;font-family:var(--font-body)">
+  <div style="display:grid;place-items:center;height:128px">
+    <svg width="96" height="96" viewBox="0 0 96 96" aria-label="Logo épingle">
+      <path d="M48 8c-17.7 0-32 14.3-32 32 0 22 32 48 32 48s32-26 32-48c0-17.7-14.3-32-32-32z" fill="#c67139"></path>
+      <circle cx="48" cy="39" r="13" fill="#f5ead8"></circle>
+      <circle cx="48" cy="39" r="5.5" fill="#7a8a5e"></circle>
+    </svg>
+  </div>
+  <div style="display:flex;align-items:center;gap:11px">
+    <svg width="36" height="36" viewBox="0 0 96 96"><path d="M48 8c-17.7 0-32 14.3-32 32 0 22 32 48 32 48s32-26 32-48c0-17.7-14.3-32-32-32z" fill="#c67139"></path><circle cx="48" cy="39" r="13" fill="#f5ead8"></circle><circle cx="48" cy="39" r="5.5" fill="#7a8a5e"></circle></svg>
+    <span style="font-family:var(--font-heading);font-size:23px;line-height:1;letter-spacing:-0.01em">Servis Yakro</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;background:var(--color-neutral-900);border-radius:999px;padding:9px 14px">
+    <svg width="22" height="22" viewBox="0 0 96 96"><path d="M48 8c-17.7 0-32 14.3-32 32 0 22 32 48 32 48s32-26 32-48c0-17.7-14.3-32-32-32z" fill="#f6a06b"></path><circle cx="48" cy="39" r="13" fill="#2e2b25"></circle><circle cx="48" cy="39" r="5.5" fill="#aebf92"></circle></svg>
+    <span style="font-family:var(--font-heading);font-size:15px;color:var(--color-neutral-100)">Servis Yakro</span>
+  </div>
+  <p class="note" style="margin:0">Lisible en favicon, se décline par catégorie (le point central change de couleur).</p>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="3b">
+<div class="dv-olabel"><a class="dv-oid" href="#3b">3b</a>Monogramme SY — cercle plein, très solide</div>
+<div class="dv-card" style="width:300px;background:var(--color-bg)">
+<div style="padding:22px;display:flex;flex-direction:column;gap:18px;font-family:var(--font-body)">
+  <div style="display:grid;place-items:center;height:128px">
+    <div style="width:104px;height:104px;border-radius:999px;background:var(--color-accent);display:grid;place-items:center;box-shadow:var(--shadow-md)">
+      <span style="font-family:var(--font-heading);font-size:40px;color:var(--color-bg);letter-spacing:-0.02em">SY</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:11px">
+    <div style="width:38px;height:38px;border-radius:999px;background:var(--color-accent);display:grid;place-items:center"><span style="font-family:var(--font-heading);font-size:15px;color:var(--color-bg)">SY</span></div>
+    <div style="line-height:1.05">
+      <div style="font-family:var(--font-heading);font-size:21px">Servis Yakro</div>
+      <div class="note" style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase">Tout Yakro, un clic</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <div style="width:34px;height:34px;border-radius:999px;background:var(--color-accent-2);display:grid;place-items:center"><span style="font-family:var(--font-heading);font-size:13px;color:var(--color-bg)">SY</span></div>
+    <div style="width:34px;height:34px;border-radius:999px;background:var(--color-neutral-900);display:grid;place-items:center"><span style="font-family:var(--font-heading);font-size:13px;color:var(--color-accent-400)">SY</span></div>
+    <div style="width:34px;height:34px;border-radius:999px;border:2px solid var(--color-accent);display:grid;place-items:center"><span style="font-family:var(--font-heading);font-size:13px;color:var(--color-accent-700)">SY</span></div>
+  </div>
+  <p class="note" style="margin:0">Le plus simple à imprimer (bâche, t-shirt, tampon).</p>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="3c">
+<div class="dv-olabel"><a class="dv-oid" href="#3c">3c</a>Bulle + épingle — chercher et parler dans un même signe</div>
+<div class="dv-card" style="width:300px;background:var(--color-bg)">
+<div style="padding:22px;display:flex;flex-direction:column;gap:18px;font-family:var(--font-body)">
+  <div style="display:grid;place-items:center;height:128px">
+    <svg width="104" height="104" viewBox="0 0 104 104" aria-label="Logo bulle">
+      <path d="M52 12c-22 0-40 14.6-40 32.6 0 10.4 6 19.6 15.4 25.6L24 92l24-13.6c1.3.1 2.6.2 4 .2 22 0 40-14.6 40-32.6S74 12 52 12z" fill="#c67139"></path>
+      <circle cx="38" cy="45" r="6" fill="#f5ead8"></circle>
+      <circle cx="52" cy="45" r="6" fill="#f5ead8"></circle>
+      <circle cx="66" cy="45" r="6" fill="#7a8a5e"></circle>
+    </svg>
+  </div>
+  <div style="display:flex;align-items:center;gap:11px">
+    <svg width="38" height="38" viewBox="0 0 104 104"><path d="M52 12c-22 0-40 14.6-40 32.6 0 10.4 6 19.6 15.4 25.6L24 92l24-13.6c1.3.1 2.6.2 4 .2 22 0 40-14.6 40-32.6S74 12 52 12z" fill="#c67139"></path><circle cx="38" cy="45" r="6" fill="#f5ead8"></circle><circle cx="52" cy="45" r="6" fill="#f5ead8"></circle><circle cx="66" cy="45" r="6" fill="#7a8a5e"></circle></svg>
+    <span style="font-family:var(--font-heading);font-size:23px">Servis Yakro</span>
+  </div>
+  <p class="note" style="margin:0">Dit « on te met en relation » plutôt que « annuaire ». Colle au chat interne.</p>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="3d">
+<div class="dv-olabel"><a class="dv-oid" href="#3d">3d</a>Le Y-carrefour — trois routes qui se rejoignent</div>
+<div class="dv-card" style="width:300px;background:var(--color-bg)">
+<div style="padding:22px;display:flex;flex-direction:column;gap:18px;font-family:var(--font-body)">
+  <div style="display:grid;place-items:center;height:128px">
+    <svg width="104" height="104" viewBox="0 0 104 104" aria-label="Logo Y">
+      <circle cx="52" cy="52" r="46" fill="#ffe1d0"></circle>
+      <path d="M52 54v30" stroke="#c67139" stroke-width="11" stroke-linecap="round"></path>
+      <path d="M52 54 30 30" stroke="#c67139" stroke-width="11" stroke-linecap="round"></path>
+      <path d="M52 54 74 30" stroke="#7a8a5e" stroke-width="11" stroke-linecap="round"></path>
+      <circle cx="52" cy="54" r="8" fill="#f5ead8"></circle>
+    </svg>
+  </div>
+  <div style="display:flex;align-items:center;gap:11px">
+    <svg width="38" height="38" viewBox="0 0 104 104"><circle cx="52" cy="52" r="46" fill="#ffe1d0"></circle><path d="M52 54v30" stroke="#c67139" stroke-width="11" stroke-linecap="round"></path><path d="M52 54 30 30" stroke="#c67139" stroke-width="11" stroke-linecap="round"></path><path d="M52 54 74 30" stroke="#7a8a5e" stroke-width="11" stroke-linecap="round"></path><circle cx="52" cy="54" r="8" fill="#f5ead8"></circle></svg>
+    <span style="font-family:var(--font-heading);font-size:23px">Servis Yakro</span>
+  </div>
+  <p class="note" style="margin:0">Y de Yakro + carrefour de la ville. Le plus « local » des cinq.</p>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="3e">
+<div class="dv-olabel"><a class="dv-oid" href="#3e">3e</a>Wordmark seul — pastille sur le « Y »</div>
+<div class="dv-card" style="width:300px;background:var(--color-bg)">
+<div style="padding:22px;display:flex;flex-direction:column;gap:18px;font-family:var(--font-body)">
+  <div style="display:grid;place-items:center;height:128px;text-align:center">
+    <div>
+      <div style="font-family:var(--font-heading);font-size:30px;line-height:1;letter-spacing:-0.02em">servis</div>
+      <div style="font-family:var(--font-heading);font-size:30px;line-height:1.05;letter-spacing:-0.02em;color:var(--color-accent-700)">yakro<span style="display:inline-block;width:9px;height:9px;border-radius:999px;background:var(--color-accent-2);margin-left:4px;vertical-align:super"></span></div>
+    </div>
+  </div>
+  <div style="display:inline-flex;align-items:center;align-self:flex-start;padding:8px 16px;border-radius:999px;background:var(--color-accent);color:var(--color-bg)">
+    <span style="font-family:var(--font-heading);font-size:17px">servis yakro</span>
+  </div>
+  <p class="note" style="margin:0">Pas d'icône à dessiner : le nom fait le logo. Il faudra un pictogramme séparé pour l'icône d'app.</p>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Essayer ensuite : « garde <a class="dv-oid" href="#3a">3a</a> mais en sauge » · « décline <a class="dv-oid" href="#3d">3d</a> en icône d'app + favicon » · « mets le logo choisi dans les maquettes »</p>
+</section>
+
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Le parcours complet — écrans qui suivent l'accueil</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="2a">
+<div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Résultats + filtres quartier, bascule liste/carte</div>
+<div class="dv-card" style="width:540px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span><div class="bar" style="flex:1;margin-left:8px;max-width:200px"></div></div>
+<div class="wf">
+  <div class="row"><span class="note">← retour</span><h2 style="font-size:22px;margin-left:4px">Plombiers · Yamoussoukro</h2></div>
+  <div class="note">38 pros · triés par distance</div>
+  <div class="row" style="flex-wrap:wrap;gap:6px">
+    <span class="pill fill">Tous</span><span class="pill-soft">Habitat</span><span class="pill-soft">Kokrenou</span><span class="pill-soft">Millionnaire</span><span class="pill-soft">Dioulakro</span><span class="pill-soft">N'Zuessy</span><span class="pill-soft">Assabou</span><span class="pill-soft">Morofe</span>
+  </div>
+  <div class="row" style="justify-content:space-between">
+    <span class="note">Ouvert maintenant · Prix · Délai de réponse</span>
+    <span class="row" style="gap:0"><span class="pill fill" style="border-radius:999px 0 0 999px">Liste</span><span class="pill" style="border-radius:0 999px 999px 0">Carte</span></span>
+  </div>
+  <div class="box" style="padding:12px;display:flex;gap:12px">
+    <span class="circ" style="width:44px;height:44px;font-size:14px">KT</span>
+    <div style="flex:1;display:flex;flex-direction:column;gap:7px">
+      <div class="row"><h3 style="font-size:18px">Koffi Tanoh</h3><span class="note" style="margin-left:auto;white-space:nowrap">★ 4,8 · 63 avis</span></div>
+      <div class="row" style="flex-wrap:wrap;gap:5px"><span class="pill-soft">5 000 – 15 000 F</span><span class="pill-soft acc">Répond en 10 min</span><span class="pill-soft">CNI vérifiée ✓</span><span class="pill-soft">Habitat · 1,2 km</span></div>
+      <div class="bar" style="width:92%"></div><div class="bar" style="width:64%"></div>
+      <div class="row" style="margin-top:2px"><span class="pill fill">Chat</span><span class="pill">Appeler</span><span class="note" style="margin-left:auto;white-space:nowrap">Demander un devis</span></div>
+    </div>
+  </div>
+  <div class="box" style="padding:12px;display:flex;gap:12px">
+    <span class="circ" style="width:44px;height:44px;font-size:14px">AD</span>
+    <div style="flex:1;display:flex;flex-direction:column;gap:7px">
+      <div class="row"><h3 style="font-size:18px">Ali Diomandé</h3><span class="note" style="margin-left:auto">★ 4,5 · 21 avis</span></div>
+      <div class="row" style="flex-wrap:wrap;gap:5px"><span class="pill-soft">8 000 – 20 000 F</span><span class="pill-soft acc">Répond en 1 h</span><span class="pill-soft">CNI vérifiée ✓</span><span class="pill-soft">Assabou · 3 km</span></div>
+      <div class="bar" style="width:88%"></div>
+      <div class="row" style="margin-top:2px"><span class="pill fill">Chat</span><span class="pill">Appeler</span></div>
+    </div>
+  </div>
+  <div class="box" style="padding:12px;display:flex;gap:12px;opacity:.65">
+    <span class="circ" style="width:44px;height:44px"></span>
+    <div style="flex:1;display:flex;flex-direction:column;gap:7px"><div class="bar" style="width:45%;height:12px"></div><div class="bar" style="width:80%"></div><div class="bar" style="width:60%"></div></div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="2b">
+<div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Même écran, vue carte</div>
+<div class="dv-card" style="width:420px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="wf">
+  <div class="row"><span class="note">← retour</span><h2 style="font-size:20px;margin-left:4px">Plombiers</h2><span class="row" style="gap:0;margin-left:auto"><span class="pill" style="border-radius:999px 0 0 999px">Liste</span><span class="pill fill" style="border-radius:0 999px 999px 0">Carte</span></span></div>
+  <div class="box" style="height:260px;position:relative;background:#faf8f4;overflow:hidden">
+    <div style="position:absolute;left:-8%;top:38%;width:120%;height:12px;background:#eae5db;transform:rotate(-6deg)"></div>
+    <div style="position:absolute;left:42%;top:-8%;width:11px;height:120%;background:#eae5db;transform:rotate(5deg)"></div>
+    <div style="position:absolute;left:16%;top:22%;width:30px;height:30px;border-radius:999px;background:#c67139;color:#fff;display:grid;place-items:center;font-size:13px">1</div>
+    <div style="position:absolute;left:56%;top:40%;width:30px;height:30px;border-radius:999px;background:#c67139;color:#fff;display:grid;place-items:center;font-size:13px">2</div>
+    <div style="position:absolute;left:34%;top:66%;width:30px;height:30px;border-radius:999px;border:1.6px solid #45403a;display:grid;place-items:center;font-size:13px">3</div>
+    <div style="position:absolute;right:12px;bottom:12px" class="pill">Me localiser</div>
+  </div>
+  <div class="solid" style="padding:11px;display:flex;gap:10px;align-items:center">
+    <span class="circ">1</span>
+    <div style="flex:1"><h3 style="font-size:17px">Koffi Tanoh</h3><span class="note">Habitat · 1,2 km · répond en 10 min</span></div>
+    <span class="pill fill">Chat</span>
+  </div>
+  <div class="note">Glisser la fiche vers le haut pour voir la liste complète</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="2c">
+<div class="dv-olabel"><a class="dv-oid" href="#2c">2c</a>Chat interne (WhatsApp en secours)</div>
+<div class="dv-card" style="width:400px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="wf" style="min-height:470px">
+  <div class="row" style="padding-bottom:10px;border-bottom:1.4px dashed #ddd8ce">
+    <span class="note">←</span><span class="circ" style="width:36px;height:36px">KT</span>
+    <div><h3 style="font-size:17px">Koffi Tanoh</h3><span class="note">en ligne · plombier</span></div>
+    <span class="pill" style="margin-left:auto">Appeler</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:9px;flex:1">
+    <div style="align-self:flex-start;max-width:75%">
+      <div class="box" style="padding:9px 12px;border-radius:14px 14px 14px 4px"><span style="font-size:14px">Bonjour, ma douche fuit depuis hier à Habitat</span></div>
+    </div>
+    <div style="align-self:flex-end;max-width:75%">
+      <div style="padding:9px 12px;border-radius:14px 14px 4px 14px;background:#c67139;color:#fff;font-size:14px">Je passe ce soir 17h. Ça fera 12 000 F la réparation.</div>
+    </div>
+    <div style="align-self:flex-start;width:60%">
+      <div class="box" style="padding:9px 12px;border-radius:14px 14px 14px 4px;display:flex;flex-direction:column;gap:6px;min-width:180px"><div class="bar" style="width:90%"></div><div class="bar" style="width:55%"></div></div>
+    </div>
+    <div class="note" style="align-self:center">— photo du problème envoyée —</div>
+  </div>
+  <div class="row" style="flex-wrap:wrap;gap:6px"><span class="pill-soft">C'est combien ?</span><span class="pill-soft">Tu es dispo quand ?</span><span class="pill-soft">Envoyer photo</span></div>
+  <div class="row" style="padding-top:10px;border-top:1.4px dashed #ddd8ce">
+    <div class="box" style="flex:1;padding:9px 12px"><span class="note">Écris ton message…</span></div>
+    <span class="pill fill">Envoyer</span>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="2d">
+<div class="dv-olabel"><a class="dv-oid" href="#2d">2d</a>Demande de devis — 3 étapes</div>
+<div class="dv-card" style="width:400px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="wf">
+  <span class="note">← retour</span>
+  <h2 style="font-size:24px">Dis-nous ton problème</h2>
+  <div class="row" style="gap:6px"><div style="flex:1;height:6px;border-radius:99px;background:#c67139"></div><div style="flex:1;height:6px;border-radius:99px;background:#e6e1d8"></div><div style="flex:1;height:6px;border-radius:99px;background:#e6e1d8"></div></div>
+  <div class="note">Étape 1 sur 3</div>
+  <div class="box" style="padding:12px;display:flex;flex-direction:column;gap:9px">
+    <span class="note">Ton besoin</span>
+    <div class="box" style="height:80px;padding:9px"><span style="font-size:14px;color:#a9a297">Ex. la douche fuit, l'eau coule dans le couloir</span></div>
+    <div class="row" style="flex-wrap:wrap;gap:6px"><span class="pill fill">Plomberie</span><span class="pill-soft">Électricité</span><span class="pill-soft">Clim</span><span class="pill-soft">Menuiserie</span></div>
+    <div class="row"><span class="pill-soft">+ Ajouter une photo</span></div>
+  </div>
+  <div class="row"><span class="pill">Précédent</span><span class="pill fill" style="flex:1;justify-content:center">Suivant : le lieu</span></div>
+  <div class="note">Étape 2 : quartier + quand · Étape 3 : budget indicatif. Les pros vérifiés du quartier répondent dans le chat.</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="2e">
+<div class="dv-olabel"><a class="dv-oid" href="#2e">2e</a>Urgence 24/24</div>
+<div class="dv-card" style="width:400px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="wf">
+  <div class="row" style="padding:10px 12px;border-radius:14px;background:#45403a;color:#fff"><span style="font-family:'Architects Daughter',cursive;font-size:19px">Urgence · 24/24</span><span style="margin-left:auto;font-size:13px">Yamoussoukro</span></div>
+  <div class="note">Un appui = un appel. Pas de recherche, pas de formulaire.</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="solid" style="padding:12px;display:flex;flex-direction:column;gap:6px;min-height:88px"><span class="circ"></span><span style="font-size:15px">Pompiers</span><span class="note">180</span></div>
+    <div class="solid" style="padding:12px;display:flex;flex-direction:column;gap:6px;min-height:88px"><span class="circ"></span><span style="font-size:15px">Police / Gendarmerie</span><span class="note">170</span></div>
+    <div class="solid" style="padding:12px;display:flex;flex-direction:column;gap:6px;min-height:88px"><span class="circ"></span><span style="font-size:15px">SAMU / Clinique</span><span class="note">185</span></div>
+    <div class="solid" style="padding:12px;display:flex;flex-direction:column;gap:6px;min-height:88px"><span class="circ"></span><span style="font-size:15px">Pharmacie de garde</span><span class="note">3 ouvertes</span></div>
+  </div>
+  <h3 style="font-size:18px;margin-top:4px">Dépannage 24/24</h3>
+  <div class="box" style="padding:11px;display:flex;gap:10px;align-items:center"><span class="circ" style="width:38px;height:38px">EL</span><div style="flex:1"><span style="font-size:15px">Électricien de nuit</span><br><span class="note">Kokrenou · 2,4 km · répond en 5 min</span></div><span class="pill fill">Appeler</span></div>
+  <div class="box" style="padding:11px;display:flex;gap:10px;align-items:center"><span class="circ" style="width:38px;height:38px">RM</span><div style="flex:1"><span style="font-size:15px">Remorquage auto</span><br><span class="note">Centre-ville · 1,1 km</span></div><span class="pill fill">Appeler</span></div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Essayer ensuite : « garde <a class="dv-oid" href="#2a">2a</a> mais mets la carte à côté en permanence » · « ajoute la fiche prestataire complète » · « version mobile de <a class="dv-oid" href="#2c">2c</a> »</p>
+</section>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Accueil &amp; recherche — trois entrées différentes</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Barre d'abord — une seule question à l'écran</div>
+<div class="dv-card" style="width:620px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span><div class="bar" style="flex:1;margin-left:8px;max-width:220px"></div></div>
+<div class="wf" style="min-height:430px">
+  <div class="row">
+    <span class="circ" style="width:30px;height:30px"></span>
+    <span style="font-family:'Architects Daughter',cursive;font-size:19px">Servis Yakro</span>
+    <span class="pill-soft">📍 Yamoussoukro ▾</span>
+    <span class="pill" style="margin-left:auto">Se connecter</span>
+    <span class="pill fill">Urgence 24/24</span>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:40px 0 20px;text-align:center">
+    <h1 style="font-size:38px;line-height:1.1;max-width:14ch">Tu cherches quoi à Yakro ?</h1>
+    <span class="note" style="font-size:14px">Dis-le en deux mots, on te connecte au bon pro.</span>
+    <div class="row" style="width:min(460px,100%)">
+      <div class="solid" style="flex:1;padding:13px 18px;border-radius:999px"><span style="font-size:15px;color:#a9a297">Ex. plombier fuite douche, Habitat</span></div>
+      <span class="pill fill" style="padding:13px 22px;font-size:15px">Chercher</span>
+    </div>
+    <div class="row" style="flex-wrap:wrap;justify-content:center;gap:6px;max-width:440px">
+      <span class="pill-soft">Plombier</span><span class="pill-soft">Mécano</span><span class="pill-soft">Cyber</span><span class="pill-soft">Point Wave</span><span class="pill-soft">Maquis</span><span class="pill-soft">Coiffure</span><span class="pill-soft">Taxi</span>
+    </div>
+  </div>
+  <div class="row" style="justify-content:center"><span class="note">12 départements · 480 pros vérifiés · voir toutes les catégories ↓</span></div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1b">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Grille des 12 départements — l'annuaire visible d'emblée</div>
+<div class="dv-card" style="width:620px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span><div class="bar" style="flex:1;margin-left:8px;max-width:220px"></div></div><div class="wf">
+  <div class="row">
+    <span class="circ" style="width:30px;height:30px"></span>
+    <span style="font-family:'Architects Daughter',cursive;font-size:19px">Servis Yakro</span>
+    <span class="pill-soft">📍 Yamoussoukro ▾</span>
+    <span class="pill fill" style="margin-left:auto">Urgence 24/24</span>
+  </div>
+  <h1 style="font-size:30px;line-height:1.1;max-width:18ch;margin-top:6px">Yakro au complet, dans ta poche.</h1>
+  <div class="row" style="max-width:460px">
+    <div class="solid" style="flex:1;padding:11px 16px;border-radius:999px"><span style="font-size:14px;color:#a9a297">Plombier, mécano, cyber, Wave…</span></div>
+    <span class="pill fill" style="padding:11px 20px">Chercher</span>
+  </div>
+  <div class="row" style="padding:10px 14px;border-radius:999px;background:#45403a;color:#fff"><span style="font-size:14px">Ça presse ? Pompiers · dépannage · pharmacie de garde</span><span class="pill" style="margin-left:auto;border-color:#fff;color:#fff;font-size:12px">Voir</span></div>
+  <div class="note">Les 12 départements passent dans un menu déroulant collé à la barre de recherche ↓</div>
+  <div style="position:relative;padding-bottom:510px">
+    <div class="row" style="max-width:100%">
+      <span class="pill fill" style="gap:7px">Départements ▾</span>
+      <div class="solid" style="flex:1;padding:10px 16px;border-radius:999px"><span style="font-size:14px;color:#a9a297">Plombier, mécano, cyber, Wave…</span></div>
+      <span class="pill fill" style="padding:10px 20px">Chercher</span>
+    </div>
+    <div class="solid" style="position:absolute;left:0;top:52px;width:100%;background:#fff;padding:14px;display:flex;gap:14px;box-shadow:0 6px 18px rgba(0,0,0,.09)">
+      <div style="width:190px;display:flex;flex-direction:column;gap:2px;border-right:1.4px dashed #ddd8ce;padding-right:12px">
+        <div class="row" style="padding:6px 9px;border-radius:9px;background:#f6ece2"><span class="circ" style="width:20px;height:20px"></span><span style="font-size:13.5px">Maison &amp; Bâtiment</span><span style="margin-left:auto;font-size:13px">›</span></div>
+        <div class="row" style="padding:6px 9px"><span class="circ" style="width:20px;height:20px"></span><span style="font-size:13.5px">Auto &amp; Transport</span></div>
+        <div class="row" style="padding:6px 9px"><span class="circ" style="width:20px;height:20px"></span><span style="font-size:13.5px">Alimentation &amp; Marché</span></div>
+        <div class="row" style="padding:6px 9px"><span class="circ" style="width:20px;height:20px"></span><span style="font-size:13.5px">Éducation &amp; Services</span></div>
+        <div class="row" style="padding:6px 9px"><span class="circ" style="width:20px;height:20px"></span><span style="font-size:13.5px">Santé &amp; Bien-être</span></div>
+        <div class="row" style="padding:6px 9px"><span class="circ" style="width:20px;height:20px"></span><span style="font-size:13.5px">Hôtellerie &amp; Tourisme</span></div>
+        <div class="row" style="padding:6px 9px"><span class="circ" style="width:20px;height:20px"></span><span style="font-size:13.5px">Entreprise &amp; Pro</span></div>
+        <div class="row" style="padding:6px 9px"><span class="circ" style="width:20px;height:20px"></span><span style="font-size:13.5px">Technologie &amp; Énergie</span></div>
+        <div class="row" style="padding:6px 9px"><span class="circ" style="width:20px;height:20px"></span><span style="font-size:13.5px">Mode &amp; Commerce</span></div>
+        <div class="row" style="padding:6px 9px"><span class="circ" style="width:20px;height:20px"></span><span style="font-size:13.5px">Finance &amp; Assurance</span></div>
+        <div class="row" style="padding:6px 9px"><span class="circ" style="width:20px;height:20px"></span><span style="font-size:13.5px">Religion &amp; Association</span></div>
+        <div class="row" style="padding:6px 9px"><span class="circ" style="width:20px;height:20px"></span><span style="font-size:13.5px">Administration &amp; Urgence</span></div>
+      </div>
+      <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:start">
+        <div style="display:flex;flex-direction:column;gap:5px"><span class="note" style="text-transform:uppercase;letter-spacing:.1em;font-size:11px">Immobilier</span><span style="font-size:13px">Maisons à louer</span><span style="font-size:13px">Terrains</span><span style="font-size:13px">Agences, notaires</span></div>
+        <div style="display:flex;flex-direction:column;gap:5px"><span class="note" style="text-transform:uppercase;letter-spacing:.1em;font-size:11px">Construction</span><span style="font-size:13px">Plombier, électricien</span><span style="font-size:13px">Menuisier, carreleur</span><span style="font-size:13px">Quincailleries</span></div>
+        <div style="display:flex;flex-direction:column;gap:5px"><span class="note" style="text-transform:uppercase;letter-spacing:.1em;font-size:11px">Équipement maison</span><span style="font-size:13px">Climatisation</span><span style="font-size:13px">Panneaux solaires</span><span style="font-size:13px">Groupe électrogène</span></div>
+        <div style="display:flex;flex-direction:column;gap:5px"><span class="note" style="text-transform:uppercase;letter-spacing:.1em;font-size:11px">Entretien</span><span style="font-size:13px">Femme de ménage</span><span style="font-size:13px">Jardinier, pisciniste</span><span style="font-size:13px">Désinsectisation</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="row" style="gap:10px;margin-top:2px">
+    <div class="box" style="flex:1;padding:12px"><h3 style="font-size:17px">Un chantier ? Plusieurs devis</h3><span class="note">3 étapes, les pros du quartier répondent</span></div>
+    <div class="box" style="flex:1;padding:12px"><h3 style="font-size:17px">Tu es prestataire ?</h3><span class="note">Crée ta fiche, reçois les demandes</span></div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<div class="dv-opt" id="1c">
+<div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Carte d'abord — qui est près de moi maintenant</div>
+<div class="dv-card" style="width:620px">
+<div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span><div class="bar" style="flex:1;margin-left:8px;max-width:220px"></div></div>
+<div class="wf">
+  <div class="row">
+    <span class="circ" style="width:30px;height:30px"></span>
+    <span style="font-family:'Architects Daughter',cursive;font-size:19px">Servis Yakro</span>
+    <span class="pill-soft">📍 Habitat, Yakro ▾</span>
+    <span class="pill fill" style="margin-left:auto">Urgence 24/24</span>
+  </div>
+  <div class="row" style="max-width:100%">
+    <div class="solid" style="flex:1;padding:11px 16px;border-radius:999px"><span style="font-size:14px;color:#a9a297">Quel service près de moi ?</span></div>
+    <span class="pill fill" style="padding:11px 20px">Chercher</span>
+  </div>
+  <div class="row" style="flex-wrap:wrap;gap:6px"><span class="pill fill">Tout</span><span class="pill-soft">Ouvert maintenant</span><span class="pill-soft">Urgence</span><span class="pill-soft">Bien noté</span></div>
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:12px">
+    <div class="box" style="height:300px;position:relative;background:#faf8f4;overflow:hidden">
+      <div style="position:absolute;left:-8%;top:34%;width:120%;height:14px;background:#eae5db;transform:rotate(-7deg)"></div>
+      <div style="position:absolute;left:-8%;top:68%;width:120%;height:10px;background:#eae5db;transform:rotate(4deg)"></div>
+      <div style="position:absolute;left:40%;top:-8%;width:12px;height:120%;background:#eae5db;transform:rotate(6deg)"></div>
+      <div style="position:absolute;left:58%;top:14%;width:120px;height:120px;border-radius:999px;border:1.4px dashed #ddd8ce"></div>
+      <span style="position:absolute;left:62%;top:44%;font-size:12px;color:#a9a297">Basilique</span>
+      <div style="position:absolute;left:20%;top:24%;width:28px;height:28px;border-radius:999px;background:#c67139;color:#fff;display:grid;place-items:center;font-size:13px">1</div>
+      <div style="position:absolute;left:46%;top:52%;width:28px;height:28px;border-radius:999px;background:#c67139;color:#fff;display:grid;place-items:center;font-size:13px">2</div>
+      <div style="position:absolute;left:28%;top:74%;width:28px;height:28px;border-radius:999px;border:1.6px solid #45403a;display:grid;place-items:center;font-size:13px">3</div>
+      <div style="position:absolute;right:10px;bottom:10px" class="pill">Me localiser</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div class="box" style="padding:10px;display:flex;flex-direction:column;gap:6px"><div class="row"><span class="circ">1</span><span style="font-size:14px">Koffi T. · plombier</span></div><span class="note">1,2 km · répond en 10 min</span><div class="row"><span class="pill fill" style="flex:1;justify-content:center;font-size:12px">Chat</span><span class="pill" style="flex:1;justify-content:center;font-size:12px">Appeler</span></div></div>
+      <div class="box" style="padding:10px;display:flex;flex-direction:column;gap:6px"><div class="row"><span class="circ">2</span><span style="font-size:14px">Garage Bamba</span></div><span class="note">2,0 km · ouvert</span><div class="row"><span class="pill fill" style="flex:1;justify-content:center;font-size:12px">Chat</span><span class="pill" style="flex:1;justify-content:center;font-size:12px">Appeler</span></div></div>
+      <div class="box" style="padding:10px;display:flex;flex-direction:column;gap:6px;opacity:.6"><div class="row"><span class="circ">3</span><div class="bar" style="width:70%"></div></div><div class="bar" style="width:50%"></div></div>
+      <div class="note">Les 12 départements plus bas ↓</div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Essayer ensuite : « pars sur <a class="dv-oid" href="#1b">1b</a> mais avec la grosse barre de <a class="dv-oid" href="#1a">1a</a> » · « version mobile des trois » · « passe <a class="dv-oid" href="#1b">1b</a> en maquette haute fidélité »</p>
+</section>
+
+<section class="dv-turn" id="t0" style="border-bottom:none">
+<div class="dv-thd"><span class="dv-tid" style="background:#8d867b">note</span><span class="dv-tname">Points à trancher (incohérences relevées dans vos réponses)</span></div>
+<div class="dv-card" style="width:620px;padding:18px 20px">
+<div class="wf" style="padding:4px 0;gap:9px">
+  <div class="note" style="font-size:13.5px">— Le nom dit <b>Yakro</b> mais le périmètre annoncé était « Abidjan + grandes villes » : les maquettes partent sur Yamoussoukro par défaut, avec un sélecteur de ville dans l'en-tête. Les quartiers filtrés sont ceux de Yakro.</div>
+  <div class="note" style="font-size:13.5px">— « Mode léger / faible connexion » et « aucune contrainte » étaient cochés ensemble : je retiens le mode léger (peu d'images, listes avant carte).</div>
+  <div class="note" style="font-size:13.5px">— Le devis n'a pas été tranché : j'ai mis le formulaire court en 3 étapes (<a class="dv-oid" href="#2d">2d</a>). Dites-moi si vous préférez un message libre + photo.</div>
+  <div class="note" style="font-size:13.5px">— Manque encore : la <b>fiche prestataire</b> complète, l'<b>inscription pro</b> (avec CNI vérifiée), les <b>avis</b>, et le paiement — écartés de la V1 par vos réponses mais nécessaires si les pros doivent s'inscrire eux-mêmes.</div>
+</div>
+</div>
+</section>
+</x-dc>
+</body>
+</html>

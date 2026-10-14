@@ -1,0 +1,69 @@
+:root{
+  /* ---- Base palette ---------------------------------------------------- */
+  /* Kola — primary. Terracotta orange, taken from Ivorian earth + kola nut. */
+  --kola-50:#FEF4EE; --kola-100:#FDE5D5; --kola-200:#FAC6A6; --kola-300:#F5A271;
+  --kola-400:#EE7C3F; --kola-500:#E25B1A; --kola-600:#C24713; --kola-700:#9A3712;
+  --kola-800:#7A2E14; --kola-900:#5E2512;
+
+  /* Lagune — secondary. Deep green of the Ébrié lagoon; trust + validation. */
+  --lagune-50:#EDF6F1; --lagune-100:#D2EADD; --lagune-200:#A5D5BC; --lagune-300:#6EB896;
+  --lagune-400:#3E9873; --lagune-500:#1F7A57; --lagune-600:#176145; --lagune-700:#144E38;
+  --lagune-800:#113E2D; --lagune-900:#0D2E22;
+
+  /* Soleil — accent. Reserved for highlights, ratings, "nouveau" flags. */
+  --soleil-100:#FFF4CC; --soleil-300:#FFD965; --soleil-500:#F2B705; --soleil-700:#B88700;
+
+  /* Argile — warm neutrals. Never use pure grey; everything leans warm. */
+  --argile-0:#FFFFFF;  --argile-25:#FDFBF8; --argile-50:#F8F4EF; --argile-100:#EFE9E1;
+  --argile-200:#E0D8CD; --argile-300:#C6BCAE; --argile-400:#9E9384; --argile-500:#7A6F61;
+  --argile-600:#5C5348; --argile-700:#423B33; --argile-800:#2B2620; --argile-900:#1A1613;
+
+  /* Raw semantics */
+  --green-solid:#1F7A57; --amber-solid:#C87A00; --red-solid:#C0362C; --blue-solid:#1E6E8C;
+  --green-soft:#E5F3EC;  --amber-soft:#FBF0DA;  --red-soft:#FBEAE8;  --blue-soft:#E6F1F5;
+
+  /* ---- Semantic aliases ------------------------------------------------ */
+  --brand:var(--kola-500);
+  --brand-hover:var(--kola-600);
+  --brand-press:var(--kola-700);
+  --brand-soft:var(--kola-50);
+  --brand-border:var(--kola-200);
+  --brand-on:var(--argile-0);
+
+  --secondary:var(--lagune-500);
+  --secondary-hover:var(--lagune-600);
+  --secondary-soft:var(--lagune-50);
+
+  --text-strong:var(--argile-900);
+  --text-body:var(--argile-800);
+  --text-muted:var(--argile-500);
+  --text-subtle:var(--argile-400);
+  --text-inverse:var(--argile-0);
+  --text-brand:var(--kola-700);
+  --text-link:var(--kola-700);
+
+  --surface-page:var(--argile-25);
+  --surface-card:var(--argile-0);
+  --surface-sunken:var(--argile-50);
+  --surface-raised:var(--argile-0);
+  --surface-inverse:var(--argile-900);
+  --surface-brand:var(--kola-500);
+  --surface-brand-soft:var(--kola-50);
+
+  --border-subtle:var(--argile-100);
+  --border-default:var(--argile-200);
+  --border-strong:var(--argile-300);
+  --border-focus:var(--kola-500);
+
+  --state-success:var(--green-solid); --state-success-soft:var(--green-soft);
+  --state-warning:var(--amber-solid); --state-warning-soft:var(--amber-soft);
+  --state-danger:var(--red-solid);    --state-danger-soft:var(--red-soft);
+  --state-info:var(--blue-solid);     --state-info-soft:var(--blue-soft);
+
+  --rating:var(--soleil-500);
+  --focus-ring:0 0 0 3px rgba(226,91,26,.28);
+
+  /* Woven texture — the one decorative background of the brand. */
+    --weave:repeating-linear-gradient(135deg,rgba(226,91,26,.05) 0 1.5px,transparent 1.5px 11px),
+          repeating-linear-gradient(45deg,rgba(31,122,87,.04) 0 1.5px,transparent 1.5px 11px); /* @kind other */
+}

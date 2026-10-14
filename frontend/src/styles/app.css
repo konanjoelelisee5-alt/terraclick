@@ -1,0 +1,285 @@
+/* Styles applicatifs Servis Yakro.
+   Repris du prototype haute fidélité : le système responsive à 4 paliers
+   (desktop ≥1120 · laptop 900–1119 · tablette 620–899 · mobile <620)
+   s'ancre sur les attributs [data-r] posés dans les composants. */
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+}
+
+a {
+  color: var(--color-accent-700);
+}
+
+a:hover {
+  color: var(--color-accent-600);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+h1 {
+  line-height: 1.04;
+}
+
+button {
+  font-family: inherit;
+}
+
+.sy-rating {
+  font-size: 13px;
+}
+
+.text-muted {
+  color: var(--color-neutral-700);
+}
+
+/* Rails d'étapes et d'onglets : balayables au doigt, sans barre native. */
+[data-r="steprail"] {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+[data-r="steprail"]::-webkit-scrollbar {
+  display: none;
+}
+
+/* Bascule des trois modes d'accueil : les libellés restent sur une seule ligne,
+   le groupe se balaye au doigt quand l'écran est trop étroit pour les trois. */
+[data-r="modes"] {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+[data-r="modes"]::-webkit-scrollbar {
+  display: none;
+}
+
+[data-r="modes"] > div {
+  flex: none;
+}
+
+/* ---- Conteneur et grilles ---- */
+[data-r="container"],
+[data-r="footer container"] {
+  width: 100%;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+[data-grid="421"] {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+[data-r="tabbar"] {
+  display: none;
+}
+
+img,
+svg,
+.sy-slot {
+  max-width: 100%;
+}
+
+/* ---- Palier laptop ---- */
+@media (max-width: 1119px) {
+  [data-grid="421"] {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  [data-sec="hero"] {
+    padding-top: 46px !important;
+    padding-bottom: 40px !important;
+  }
+}
+
+/* ---- En-tête compact : nav masquée, barre d'onglets basse ---- */
+@media (max-width: 1079px) {
+  [data-r="nav-links"],
+  [data-r="nav-auth"] {
+    display: none !important;
+  }
+
+  [data-r="nav-ville"] {
+    display: flex !important;
+  }
+
+  [data-r="tabbar"] {
+    display: flex;
+  }
+
+  [data-r="page"] {
+    padding-bottom: 76px;
+  }
+
+  [data-r="fiche-bar"] {
+    bottom: 64px !important;
+  }
+}
+
+/* ---- Palier tablette ---- */
+@media (max-width: 899px) {
+  /* La barre de recherche se réduit à une seule pilule : départements, champ,
+     loupe. La ville n'y figure plus — elle est remontée dans l'en-tête. */
+  [data-r="search-depts"] span,
+  [data-r="search-go"] span {
+    display: none;
+  }
+
+  [data-r="search-ville"],
+  [data-r="search-sep"] {
+    display: none !important;
+  }
+
+  [data-r="search-depts"] {
+    padding: 10px 12px !important;
+  }
+
+  [data-r="search-go"] {
+    padding: 10px 14px !important;
+  }
+
+  [data-r="searchbar"] input {
+    padding: 10px 8px !important;
+  }
+
+  [data-r="megamenu"] {
+    flex-direction: column;
+    max-height: 70vh;
+    overflow: auto;
+  }
+
+  [data-r="megamenu"] > div:first-child {
+    width: 100% !important;
+    border-right: 0 !important;
+    flex-direction: row !important;
+    overflow-x: auto;
+    max-height: none !important;
+  }
+
+  [data-r="megamenu"] > div:first-child button {
+    white-space: nowrap;
+  }
+
+  [data-r="footer container"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  [data-r="promo"],
+  [data-r="map-split"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  [data-r="results-head"] > div:last-child {
+    margin-left: 0 !important;
+  }
+
+  [data-r="pro-card"] {
+    flex-wrap: wrap;
+  }
+
+  [data-sec] {
+    padding-top: 36px !important;
+  }
+}
+
+/* ---- Palier mobile ---- */
+@media (max-width: 619px) {
+  [data-r="container"],
+  [data-r="footer container"] {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  [data-grid="421"] {
+    grid-template-columns: 1fr;
+  }
+
+  [data-r="footer"] {
+    display: var(--sy-footer-mobile, block) !important;
+  }
+
+  [data-r="footer container"] {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 24px 18px !important;
+  }
+
+  [data-r="footer-brand"] {
+    grid-column: 1 / -1;
+  }
+
+  [data-r="chat-actions"] {
+    flex-wrap: wrap;
+  }
+
+  [data-r="chat-actions"] button {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  [data-sec="hero"] {
+    padding-top: 34px !important;
+    padding-bottom: 30px !important;
+  }
+
+  [data-r="pro-card"] {
+    padding: 16px !important;
+    gap: 12px !important;
+  }
+
+  [data-r="pro-card"] > span:first-child {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 16px !important;
+  }
+
+  [data-r="map-canvas"] {
+    height: 300px !important;
+  }
+
+  [data-r="map-list"] {
+    max-height: none !important;
+  }
+
+  [data-r="chat-main"] {
+    height: auto !important;
+    min-height: calc(100dvh - 140px);
+  }
+
+  [data-r="devis-nav"] {
+    flex-wrap: wrap;
+  }
+
+  [data-r="devis-nav"] button {
+    flex: 1 1 100% !important;
+  }
+
+  [data-r="comp"] {
+    min-width: 520px;
+  }
+}
+
+/* ---- Emplacement d'image (photographie non fournie par le design system) ---- */
+.sy-slot {
+  display: grid;
+  place-items: center;
+  background: var(--argile-50);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-subtle);
+  font: var(--text-caption);
+  text-align: center;
+  padding: 8px;
+  overflow: hidden;
+}

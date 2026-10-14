@@ -1,0 +1,12 @@
+:root{
+  /* Shadows are warm-tinted (brown, never blue-black) and very soft. */
+  --shadow-none:none;
+  --shadow-xs:0 1px 2px rgba(66,59,51,.06);
+  --shadow-sm:0 1px 2px rgba(66,59,51,.05), 0 2px 6px rgba(66,59,51,.05);
+  --shadow-md:0 2px 4px rgba(66,59,51,.05), 0 8px 20px rgba(66,59,51,.07);
+  --shadow-lg:0 8px 16px rgba(66,59,51,.07), 0 24px 48px rgba(66,59,51,.10);
+  --shadow-brand:0 8px 22px rgba(226,91,26,.24);
+  --shadow-inset:inset 0 1px 0 rgba(255,255,255,.6);
+    --scrim:rgba(26,22,19,.52); /* @kind color */
+    --blur-sheet:saturate(140%) blur(12px); /* @kind other */
+}

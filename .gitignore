@@ -1,0 +1,6 @@
+# Fichiers système et d'éditeur. Chaque application (frontend/, backend/) a ses propres règles.
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

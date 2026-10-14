@@ -1,0 +1,11 @@
+/* Servis Yakro webfonts.
+   SUBSTITUTION NOTE: no brand font files were provided, so the system uses
+   Google Fonts (served from fonts.gstatic.com). Swap the src urls here if
+   licensed binaries are added to assets/fonts/. */
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap");
+
+:root{
+  --font-display:"Bricolage Grotesque","Manrope",system-ui,sans-serif;
+  --font-text:"Manrope",system-ui,-apple-system,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,monospace;
+}

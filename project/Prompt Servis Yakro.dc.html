@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/servis-yakro-design-system-b6c27b14-3d55-4c9d-875e-bf0eb0f89f50/styles.css">
+<script src="_ds/servis-yakro-design-system-b6c27b14-3d55-4c9d-875e-bf0eb0f89f50/_ds_bundle.js"></script>
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+<style>
+  body { margin: 0; background: var(--surface-page); }
+  a { color: var(--text-link); }
+  a:hover { color: var(--kola-600); }
+</style>
+</helmet>
+
+<div style="max-width:900px;margin:0 auto;padding:44px 24px 90px;font-family:var(--font-text);color:var(--text-body)">
+  <p style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-brand);margin:0 0 10px">Servis Yakro · document de référence</p>
+  <h1 style="font-family:var(--font-display);font-weight:800;letter-spacing:-0.028em;font-size:clamp(28px,5vw,42px);line-height:1.05;margin:0 0 12px;color:var(--text-strong)">Le prompt qui régit la maquette</h1>
+  <p style="font-size:16px;line-height:1.6;margin:0 0 30px;max-width:66ch;color:var(--text-muted)">Tout ce qui a été décidé et construit, en un seul texte. À copier-coller pour briefer un développeur, une IA ou un nouveau membre de l'équipe.</p>
+
+  <pre style="margin:0;padding:26px 28px;background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--radius-card);box-shadow:var(--shadow-sm);font-family:var(--font-mono, ui-monospace, Menlo, monospace);font-size:12.5px;line-height:1.8;white-space:pre-wrap;color:var(--text-strong)">RÔLE
+Tu conçois et construis « Servis Yakro », une place de marché de services
+locaux pour la Côte d'Ivoire, centrée d'abord sur Yamoussoukro (« Yakro »).
+Application web unique, responsive, utilisée surtout sur téléphone Android.
+
+PROMESSE
+Le citoyen décrit un besoin, l'application le relie à un prestataire vérifié
+de son quartier. Sur les besoins lourds, elle encadre l'argent et le chantier.
+
+RÈGLE STRUCTURANTE
+Le moteur de recherche reste la fonction principale. Le suivi de chantier est
+un parcours OPTIONNEL, jamais imposé, jamais étalé sur l'accueil.
+
+──────────────────────────────────────────────
+1 · LANGUE ET TON
+──────────────────────────────────────────────
+Français ivoirien, registre simple et direct. Vouvoiement systématique,
+jamais de tutoiement. Casse phrase partout, pas de capitales entières
+sauf l'overline de 11 px. Boutons = verbes (« Rechercher », « Contacter »,
+« Publier mon projet »), jamais « OK » ni « Soumettre ».
+Montants en FCFA avec espace milliers et F final : 38 500 000 F.
+Téléphones par paires : 07 58 42 19 03. Distances : 2,3 km.
+Aucun emoji. Aucun glyphe unicode en guise d'icône (pas de ★ ✓ →) :
+tout passe par Lucide ou par un composant du design system.
+Langage de confiance factuel : « Vérifié », « 128 avis », jamais « Le meilleur ».
+Erreurs = un problème + une solution, sans excuses théâtrales.
+
+──────────────────────────────────────────────
+2 · IDENTITÉ VISUELLE
+──────────────────────────────────────────────
+Design system Servis Yakro, lié au projet. Ne rien inventer hors de lui.
+Kola #E25B1A pour les actions principales, environ un élément par vue.
+Lagune (vert) pour la validation, jamais comme couleur primaire.
+Soleil (jaune) réservé aux étoiles de notation.
+Neutres chauds Argile — le gris froid est un bug.
+États sémantiques par jetons : --state-success / -warning / -danger / -info
+et leurs teintes -soft. Tout état non cartographié dégrade en neutre,
+jamais en info (sinon il usurpe « En cours »).
+Bricolage Grotesque 800 pour les titres, tracking serré. Manrope pour la
+lecture. JetBrains Mono pour les références et les montants en tableau.
+Cartes blanches, rayon 16, filet 1 px, ombre chaude basse. Boutons en pilule.
+Texture tissée (--weave) derrière les héros et les bandes d'appel à l'action,
+jamais sous du texte courant.
+Mouvement : 140 ms pour un état, 220 ms pour une entrée, 360 ms pour une
+feuille. Pas de rebond, pas de parallaxe.
+
+──────────────────────────────────────────────
+3 · RESPONSIVE
+──────────────────────────────────────────────
+Quatre paliers : desktop ≥ 1120 · laptop 900–1119 · tablette 620–899 ·
+mobile &lt; 620.
+À 1080 px l'en-tête passe en mode compact : liens masqués, sélecteur de
+ville visible, barre d'onglets basse de 64 px.
+Grilles en 4 / 2 / 1 colonnes. Cibles tactiles ≥ 44 px.
+Les tableaux larges deviennent balayables, jamais compressés.
+Deux barres fixes ne se superposent jamais : la barre d'action d'une fiche
+se cale au-dessus de la barre d'onglets.
+
+──────────────────────────────────────────────
+4 · ACCUEIL — TROIS MODES
+──────────────────────────────────────────────
+Wordmark « servisyakro » centré, barre de recherche large, bascule à trois
+modes. Un seul mode visible à la fois.
+  Recherche         · barre + suggestions + prestataires à la une + 12 départements
+  Autour de moi     · carte et liste côte à côte, empilées, puis plein écran
+  Box intelligente  · l'utilisateur décrit son problème en une phrase ;
+                      l'assistant répond par ce qu'il a compris, le métier
+                      identifié, la fourchette de prix et le niveau d'enjeu
+En mode carte et en mode Box, les sections promotionnelles sont masquées.
+Méga-menu « Départements » : 12 départements en rail, sous-catégories en
+colonnes. En bas de la colonne Construction, un séparateur puis un bloc
+« Projet de construction ? » avec « Créer un projet suivi ».
+
+──────────────────────────────────────────────
+5 · LES 12 DÉPARTEMENTS
+──────────────────────────────────────────────
+Maison &amp; Bâtiment · Auto &amp; Transport · Alimentation &amp; Marché ·
+Éducation &amp; Services · Santé &amp; Bien-être · Hôtellerie &amp; Tourisme ·
+Entreprise &amp; Pro · Technologie &amp; Énergie · Mode &amp; Commerce ·
+Finance &amp; Assurance · Religion &amp; Association · Administration.
+Quartiers de Yakro utilisés en filtres : Habitat, Kokrenou, Millionnaire,
+Dioulakro, N'Zuessy, Morofe, Assabou, Centre-ville, Kpangbassou.
+
+──────────────────────────────────────────────
+6 · RECHERCHE ET RÉSULTATS
+──────────────────────────────────────────────
+Bascule liste / carte. Filtres par quartier, prix, délai de réponse.
+Signaux de confiance affichés : fourchette de prix, délai de réponse,
+pièce d'identité vérifiée, distance.
+Chaque carte : « Voir le profil », « Chat », « Appeler ».
+Sur une recherche BTP, une bande « Accompagnement BTP » remplace le bandeau
+générique : trois avantages (comparer, paiement par étapes, suivi) et deux
+boutons — « Créer mon projet » et « Trouver un professionnel ».
+États vides et absence de résultat toujours prévus.
+
+──────────────────────────────────────────────
+7 · COMPTE — UN SEUL PARCOURS
+──────────────────────────────────────────────
+Pas de mot de passe. Le numéro de téléphone sert à s'inscrire ET à se
+connecter ; c'est le système qui sait s'il connaît déjà le numéro.
+Chercher, consulter, ouvrir la carte ou la Box reste libre. Le mur ne tombe
+qu'à l'ACTION : contacter, demander un devis, ouvrir un projet.
+Feuille basse : numéro, choix du canal (SMS ou WhatsApp), code à 6 chiffres
+avec pavé numérique et remplissage automatique depuis le SMS.
+Numéro inconnu → deux champs seulement, prénom et quartier pré-détecté.
+Numéro connu → connexion immédiate.
+Dans les deux cas, l'action interrompue reprend automatiquement.
+Replis : appel manqué (les 4 derniers chiffres font le code), appel vocal,
+QR depuis le téléphone sur un ordinateur partagé au cyber.
+
+──────────────────────────────────────────────
+8 · FICHE PRESTATAIRE
+──────────────────────────────────────────────
+En-tête : nom, métier, zones d'intervention, note (composant Rating du
+design system), badge « Profil vérifié », badge « Accepte les projets
+suivis », ancienneté.
+Corps : réalisations en galerie, prestations, tarifs indicatifs avec la
+mention que le devis suit la visite, avis clients notés.
+Rail : disponibilités par jour, garanties, documents professionnels vérifiés.
+Barre d'action fixe : « Contacter directement », « Ajouter à mon projet
+suivi » (seulement si le pro accepte les projets suivis), « Demander un devis ».
+
+──────────────────────────────────────────────
+9 · PAGE CONSTRUCTION &amp; TRAVAUX
+──────────────────────────────────────────────
+Deux grandes cartes, côte à côte puis empilées :
+  Trouver un professionnel  · carte neutre, recherche classique
+  Créer un projet avec suivi · bordure Kola, badge « Recommandé »,
+                               ombre plus marquée, bouton orange
+Elle reste atteignable au doigt : entrée dans le méga-menu, pas seulement
+dans la navigation desktop.
+
+──────────────────────────────────────────────
+10 · ASSISTANT DE PROJET — 7 ÉTAPES
+──────────────────────────────────────────────
+Rail d'étapes cliquable en arrière, jamais en avant. Barre de progression
+unique (pas de barre de défilement visible à côté).
+  1 Projet         · type de projet, type de bien, surface, pièces, description
+  2 Localisation   · ville, quartier, repère, carte, situation du terrain
+  3 Budget, délai  · fourchette FCFA, délai, début, niveau de finition
+  4 Documents      · glisser-déposer, liste des fichiers, « pas encore de plan »
+  5 Accompagnement · clé en main / artisans séparés / comparer / je ne sais pas
+                     + conducteur de travaux
+  6 Équipements    · équipement maison et entretien, jamais obligatoires,
+                     jamais ajoutés d'office au coût de construction
+  7 Confirmation   · récapitulatif, case de consentement obligatoire
+Chaque étape est validée avant la suivante ; « Continuer » est désactivé
+avec une ligne d'aide qui dit ce qui manque. Étapes 4 et 6 facultatives.
+Boutons : Retour · Enregistrer comme brouillon · Continuer · Publier.
+Après publication : référence PROJ-2026-00458, premières propositions
+annoncées sous 24 à 48 heures.
+
+C'EST LE CLIENT QUI DÉCIDE d'ouvrir un projet suivi. L'application le
+propose, ne l'impose pas.
+
+──────────────────────────────────────────────
+11 · MES PROJETS
+──────────────────────────────────────────────
+Filtres balayables sur sept états : brouillon, recherche de devis, devis
+reçus, en attente de choix, travaux en cours, terminé, garantie / SAV.
+Chaque carte : titre, référence en monospace, budget cible, délai, statut
+coloré par jeton sémantique, information utile du moment.
+Une seule liste de projets dans l'application — pas de seconde liste
+concurrente. Le projet cliqué transmet son identité à la page projet.
+
+──────────────────────────────────────────────
+12 · PAGE PROJET — DIX ONGLETS
+──────────────────────────────────────────────
+Vue d'ensemble  · 8 étapes, séquestre de l'étape en cours
+Propositions    · entreprises clé en main / artisans séparés par lot,
+                  prix, délai, inclus, exclu, garantie, modalité de paiement ;
+                  tableau de comparaison sur 8 critères, balayable en mobile
+Suivi chantier  · avancement, étape en cours, statut, action attendue,
+                  planning en 10 phases, photos, rapport hebdomadaire,
+                  validations du client
+Paiements       · 6 jalons (20/15/25/20/15/5 %), montant, condition de
+                  déblocage, « Valider l'étape », « Signaler un problème »
+Matériaux       · fournisseur, quantité, prix, bon de commande, facture, BL
+Équipements     · choisis et recommandés, avec le bon moment d'installation
+Messages · Documents · Incidents et SAV · Entretien
+Écart assumé : le brief demandait onze onglets dont « Artisans » ; il est
+construit comme sous-onglet de Propositions, à côté d'« Entreprises clé en
+main », pour que les deux modes se comparent au même endroit.
+
+──────────────────────────────────────────────
+13 · APRÈS LE CHOIX D'UNE OFFRE — 5 ÉTAPES
+──────────────────────────────────────────────
+  1 Validation du devis      · lignes par lot, total
+  2 Génération du contrat    · 10 clauses : parties, objet, cahier des
+                               charges, planning, budget, échéancier,
+                               garanties, retards, avenants, litiges ; PDF
+  3 Signature électronique   · code SMS, lien e-mail ou signature tracée ;
+                               historique horodaté des deux parties
+  4 Échéancier de paiement   · les 6 jalons, moyens de paiement
+  5 Suivi activé
+On ne peut pas atteindre l'étape 5 sans avoir signé. Aucun écran n'affirme
+qu'un contrat est signé si l'état dit le contraire.
+
+──────────────────────────────────────────────
+14 · ARGENT
+──────────────────────────────────────────────
+Séquestre par étape, jamais un pot global. Wave, Orange Money, MTN,
+virement bancaire. Plusieurs payeurs possibles (famille), un seul décideur.
+États de l'argent : EN ATTENTE → BLOQUÉ → LIBÉRÉ | REMBOURSÉ | RETENU.
+Un agent vérifie sur place avec la checklist issue de la fiche besoin —
+fiche besoin et checklist sont LE MÊME document.
+Remise : signature sur l'écran de l'agent, ou code SMS dicté par le client
+sans smartphone. Confirmation du client → libération.
+Écart signalé → l'argent reste bloqué : négociation 48 h, puis arbitrage
+Servis Yakro sur la base du rapport de l'agent.
+Pénalité de retard choisie par le client avant validation de l'offre,
+acceptée ou contre-proposée par le prestataire.
+Changement en cours de route → avenant signé dans la messagerie,
+séquestre complété.
+Tant que les partenariats de paiement ne sont pas en place, afficher
+« Paiement par étapes sécurisé — bientôt disponible » et valider chaque
+jalon manuellement.
+
+──────────────────────────────────────────────
+15 · APRÈS L'INTERVENTION
+──────────────────────────────────────────────
+Reçu détaillé : prestation, date, agent vérificateur, moyen de paiement,
+montant versé, téléchargement.
+Avis enchaîné depuis le reçu, donc impossible sans réception confirmée :
+trois critères en étoiles (ponctualité, qualité, prix tenu), commentaire,
+photo du travail fini.
+
+──────────────────────────────────────────────
+16 · ESPACE CLIENT ET NOTIFICATIONS
+──────────────────────────────────────────────
+Conversations, demandes de devis avec leur état, favoris, reçus et
+paiements, préférences de notification, coordonnées.
+Cloche avec pastille dans l'en-tête ; chaque notification indique par quel
+canal elle est partie.
+Cinq canaux réglables : dans l'application, SMS, WhatsApp, e-mail,
+notification navigateur.
+
+──────────────────────────────────────────────
+17 · RÈGLES UX NON NÉGOCIABLES
+──────────────────────────────────────────────
+· Jamais toutes les fonctions BTP sur l'accueil.
+· Chercher un prestataire ne demande jamais de créer un projet.
+· Un prestataire trouvé par recherche peut rejoindre un projet existant.
+· Indiquer clairement « Compatible projet suivi » ou non.
+· Ne jamais forcer équipements ni entretien.
+· L'entretien devient visible surtout après la livraison.
+· Prévoir vide, chargement, succès, erreur, brouillon, aucun résultat.
+· Priorité mobile : gros boutons, formulaires courts, navigation claire.
+· Composants réutilisables : cartes, badges, filtres, étapes, modales,
+  tableaux, frises, tickets, zones de dépôt.
+
+──────────────────────────────────────────────
+18 · POINTS ENCORE OUVERTS
+──────────────────────────────────────────────
+· Acompte libéré au démarrage (sinon aucun artisan n'achète le ciment).
+· Libération automatique après N jours sans réclamation.
+· Étapes parallèles tolérées sur un chantier réel.
+· Durée de la session avant redemande du code.
+· Côtés prestataire, entreprise, conducteur de travaux, administrateur :
+  aucun n'est maquetté à ce jour.
+· Pré-réception : checklist numérique, réserves photographiées, PV de
+  réserves en PDF — annoncés, pas encore construits.
+· « Mes équipements » et « Mes réservations entretien » dans l'espace client.</pre>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,7 @@
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--surface-page);color:var(--text-body);font:var(--text-body-default);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{margin:0;color:var(--text-strong);font-family:var(--font-display);letter-spacing:-.02em}
+p{margin:0}
+a{color:var(--text-link);text-decoration:none;border-bottom:1px solid var(--kola-200);transition:var(--transition-control)}
+a:hover{color:var(--kola-800);border-bottom-color:var(--kola-500)}
+::selection{background:var(--kola-200);color:var(--argile-900)}

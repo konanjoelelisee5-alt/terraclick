@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/organic-b7fe5ce4-607f-48d3-b8d4-226052e4c557/styles.css">
+<script src="_ds/organic-b7fe5ce4-607f-48d3-b8d4-226052e4c557/_ds_bundle.js"></script>
+<style>
+  body { margin: 0; background: var(--color-bg); }
+  a { color: var(--color-accent-700); }
+  a:hover { color: var(--color-accent-600); }
+</style>
+</helmet>
+
+<div style="max-width:940px;margin:0 auto;padding:48px 24px 90px;font-family:var(--font-body);color:var(--color-text)">
+
+  <p style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-accent-700);margin:0 0 10px">Servis Yakro · document de travail</p>
+  <h1 style="font-size:clamp(30px,5vw,46px);line-height:1.05;margin:0 0 12px">Algorithme de fonctionnement</h1>
+  <p style="font-size:17px;line-height:1.6;margin:0 0 8px;max-width:62ch;color:var(--color-neutral-800)">Ce document décrit, étape par étape, ce que fait l'application quand un client arrive avec un besoin — jusqu'au paiement libéré. Chaque bloc est numéroté pour qu'on puisse en discuter par son numéro.</p>
+  <p style="font-size:14px;margin:0 0 34px;color:var(--color-neutral-700)">Les blocs marqués <span style="padding:2px 9px;border-radius:999px;background:var(--color-accent-200);color:var(--color-accent-900);font-size:12.5px">à trancher</span> sont ceux où votre logique et le design actuel ne disent pas encore la même chose.</p>
+
+  <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:44px">
+    <div style="border:1px solid var(--color-divider);background:var(--color-neutral-100);border-radius:calc(var(--radius-lg) * 1.15);padding:20px 22px">
+      <h2 style="font-size:20px;margin:0 0 10px">Les 4 objets du système</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;font-size:14px;line-height:1.5">
+        <div><strong>Besoin</strong><br><span style="color:var(--color-neutral-700)">ce que le client cherche, avec ses caractéristiques</span></div>
+        <div><strong>Dossier</strong><br><span style="color:var(--color-neutral-700)">un projet à étapes, ou un achat court</span></div>
+        <div><strong>Engagement</strong><br><span style="color:var(--color-neutral-700)">une offre validée : prix, délai, pénalité</span></div>
+        <div><strong>Séquestre</strong><br><span style="color:var(--color-neutral-700)">l'argent bloqué, rattaché à un engagement</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h2 style="font-size:26px;margin:0 0 6px">1 · Entrée : du besoin au bon tuyau</h2>
+  <p style="font-size:15px;line-height:1.6;margin:0 0 14px;color:var(--color-neutral-800)">Tout commence par une recherche. L'application décide seule si le besoin se règle par un appel, ou s'il mérite un dossier suivi.</p>
+  <div style="background:var(--color-surface);border-radius:var(--radius-lg);padding:20px 22px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.85;margin-bottom:16px;white-space:pre-wrap">RECHERCHE(texte, ville, position)
+  → identifier la sous-catégorie (parmi les 12 départements)
+  SI sous-catégorie ∈ LISTE_PROJETS
+      (construction, terrain, location, rénovation, gros événementiel)
+      → afficher les prestataires ET proposer « ce besoin se suit en projet »
+  SINON SI sous-catégorie ∈ LISTE_ACHATS
+      (informatique, électroménager, fournitures, mobilier…)
+      → proposer l'achat suivi (questionnaire → offres → séquestre)
+  SINON
+      → annuaire simple : liste / carte, Chat + Appeler, pas de séquestre</div>
+  <div style="border-left:3px solid var(--color-accent);padding:12px 18px;margin-bottom:40px;font-size:14.5px;line-height:1.6">
+    <span style="padding:2px 9px;border-radius:999px;background:var(--color-accent-200);color:var(--color-accent-900);font-size:12.5px">à trancher</span>
+    <span style="margin-left:8px">Le design actuel propose le projet <em>seulement</em> sur les résultats. Faut-il aussi le proposer depuis une conversation déjà en cours avec un prestataire — « transformer ce chat en dossier suivi » ?</span>
+  </div>
+
+  <h2 style="font-size:26px;margin:0 0 6px">2 · Qualification : les bonnes questions</h2>
+  <p style="font-size:15px;line-height:1.6;margin:0 0 14px;color:var(--color-neutral-800)">C'est le cœur de la promesse : « recevoir exactement ce qu'on a demandé » suppose que le besoin soit écrit noir sur blanc avant toute offre.</p>
+  <div style="background:var(--color-surface);border-radius:var(--radius-lg);padding:20px 22px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.85;margin-bottom:16px;white-space:pre-wrap">QUALIFIER(sous-catégorie)
+  questions ← MODÈLE_QUESTIONS[sous-catégorie]   // propre à chaque sous-catégorie
+  POUR chaque question : réponse par formulaire OU par chat libre
+      (le chat remplit le formulaire, le client relit et corrige)
+  → produire une FICHE BESOIN figée : caractéristiques + budget + lieu + délai
+  → cette fiche devient la CHECKLIST de l'agent vérificateur</div>
+  <div style="border-left:3px solid var(--color-accent);padding:12px 18px;margin-bottom:40px;font-size:14.5px;line-height:1.6">
+    <span style="padding:2px 9px;border-radius:999px;background:var(--color-accent-200);color:var(--color-accent-900);font-size:12.5px">à trancher</span>
+    <span style="margin-left:8px">Point clé jamais dit explicitement dans le brief, mais qui fait tenir tout le reste : <strong>la fiche besoin et la checklist de l'agent sont le même document</strong>. Si on l'accepte, l'agent ne vérifie plus « au feeling » et le litige devient mécanique. À valider.</span>
+  </div>
+
+  <h2 style="font-size:26px;margin:0 0 6px">3 · Mode d'accompagnement</h2>
+  <div style="background:var(--color-surface);border-radius:var(--radius-lg);padding:20px 22px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.85;margin-bottom:16px;white-space:pre-wrap">SI mode = GUIDÉ
+      → afficher la marche à suivre, les documents, les pros suggérés
+      → le client agit lui-même · pas de séquestre obligatoire
+SI mode = CLÉ EN MAIN
+      → l'app lance les appels d'offres et pilote les étapes
+      → séquestre obligatoire · agent vérificateur à chaque remise
+Le mode est modifiable à tout moment (une étape en cours reste sous ses règles)</div>
+  <div style="border-left:3px solid var(--color-accent);padding:12px 18px;margin-bottom:40px;font-size:14.5px;line-height:1.6">
+    <span style="padding:2px 9px;border-radius:999px;background:var(--color-accent-200);color:var(--color-accent-900);font-size:12.5px">à trancher</span>
+    <span style="margin-left:8px">En mode guidé, si le client paie quand même un pro trouvé chez nous : séquestre proposé ou hors périmètre ? Aujourd'hui le design reste muet.</span>
+  </div>
+
+  <h2 style="font-size:26px;margin:0 0 6px">4 · Plan d'étapes (dossier projet)</h2>
+  <div style="background:var(--color-surface);border-radius:var(--radius-lg);padding:20px 22px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.85;margin-bottom:16px;white-space:pre-wrap">plan ← MODÈLE_ÉTAPES[sous-catégorie]        // ex. construction = 8 étapes
+client peut : renommer · supprimer · ajouter · réordonner une étape
+POUR chaque étape : un prestataire différent (maçon, plombier, électricien…)
+Une étape est OUVERTE seulement si l'étape précédente est REÇUE
+Étape = { besoin, offres, engagement, séquestre, vérification, réception }</div>
+  <div style="border-left:3px solid var(--color-accent);padding:12px 18px;margin-bottom:40px;font-size:14.5px;line-height:1.6">
+    <span style="padding:2px 9px;border-radius:999px;background:var(--color-accent-200);color:var(--color-accent-900);font-size:12.5px">à trancher</span>
+    <span style="margin-left:8px">Le séquentiel strict bloque la réalité d'un chantier : plomberie et électricité avancent souvent <em>pendant</em> les murs. Faut-il autoriser deux étapes ouvertes en parallèle, ou garder le verrou strict pour la V1 ?</span>
+  </div>
+
+  <h2 style="font-size:26px;margin:0 0 6px">5 · Appel d'offres et engagement</h2>
+  <div style="background:var(--color-surface);border-radius:var(--radius-lg);padding:20px 22px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.85;margin-bottom:16px;white-space:pre-wrap">DIFFUSER(fiche besoin) → aux prestataires vérifiés de la zone et du métier
+Chaque prestataire répond : prix · délai · ce qui est inclus
+Le client compare (prix, délai, note, vérification) et discute par chat
+VALIDER(offre) :
+  1. le client choisit la clause de retard (ex. 2 %/jour, plafond 20 %)
+  2. le prestataire accepte la clause  → sinon il contre-propose
+  3. ENGAGEMENT créé (fiche + prix + délai + clause) → séquestre exigé</div>
+  <div style="border-left:3px solid var(--color-accent);padding:12px 18px;margin-bottom:40px;font-size:14.5px;line-height:1.6">
+    <span style="padding:2px 9px;border-radius:999px;background:var(--color-accent-200);color:var(--color-accent-900);font-size:12.5px">à trancher</span>
+    <span style="margin-left:8px">Divergence réelle avec le design : l'écran de validation traite la clause comme acquise, alors que l'algorithme demande l'accord du prestataire. Il manque donc un écran « clause en attente d'acceptation ».</span>
+  </div>
+
+  <h2 style="font-size:26px;margin:0 0 6px">6 · Séquestre</h2>
+  <div style="background:var(--color-surface);border-radius:var(--radius-lg);padding:20px 22px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.85;margin-bottom:16px;white-space:pre-wrap">BLOQUER(montant) via Wave · Orange Money · MTN
+Un séquestre par étape (pas un pot global)
+Plusieurs payeurs possibles (famille) : parts nommées
+L'étape ne démarre que si séquestre = 100 % du montant engagé
+État de l'argent : EN ATTENTE → BLOQUÉ → LIBÉRÉ | REMBOURSÉ | RETENU (pénalité)</div>
+  <div style="border-left:3px solid var(--color-accent);padding:12px 18px;margin-bottom:40px;font-size:14.5px;line-height:1.6">
+    <span style="padding:2px 9px;border-radius:999px;background:var(--color-accent-200);color:var(--color-accent-900);font-size:12.5px">à trancher</span>
+    <span style="margin-left:8px">Un maçon accepte rarement d'attendre la fin de l'étape pour toucher quoi que ce soit : il achète le ciment avant. Faut-il un <strong>acompte libéré au démarrage</strong> (ex. 30 %) et le solde à la réception ? C'est, à mon sens, la modification la plus importante à apporter à votre logique.</span>
+  </div>
+
+  <h2 style="font-size:26px;margin:0 0 6px">7 · Exécution, changements, retards</h2>
+  <div style="background:var(--color-surface);border-radius:var(--radius-lg);padding:20px 22px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.85;margin-bottom:16px;white-space:pre-wrap">SI le besoin change en cours d'étape
+      → AVENANT dans le chat : nouveau prix, nouveau délai
+      → signé par les deux · séquestre complété · puis reprise
+SI date dépassée
+      → alerte aux deux parties
+      → appliquer la clause choisie (retenue par jour, ou annulation)</div>
+
+  <h2 style="font-size:26px;margin:0 0 6px">8 · Vérification, réception, libération</h2>
+  <div style="background:var(--color-surface);border-radius:var(--radius-lg);padding:20px 22px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.85;margin-bottom:16px;white-space:pre-wrap">AGENT_VÉRIFIE(checklist de la fiche besoin)
+  → photos · vidéo courte · facture scannée · checklist cochée
+  SI non conforme → la remise est suspendue, le client est prévenu
+REMISE au client
+  → signature sur l'écran de l'agent
+  → OU code SMS dicté par le client (téléphone simple, sans internet)
+CONFIRMATION du client → LIBÉRER le séquestre → étape suivante OUVERTE
+Sans confirmation ni écart signalé sous N jours → libération automatique</div>
+  <div style="border-left:3px solid var(--color-accent);padding:12px 18px;margin-bottom:40px;font-size:14.5px;line-height:1.6">
+    <span style="padding:2px 9px;border-radius:999px;background:var(--color-accent-200);color:var(--color-accent-900);font-size:12.5px">à trancher</span>
+    <span style="margin-left:8px">Le brief ne dit rien du client qui ne confirme jamais — l'argent resterait bloqué à vie et les prestataires fuiraient. Je propose une libération automatique après 7 jours sans réclamation, l'agent ayant déjà constaté la conformité. Délai à fixer.</span>
+  </div>
+
+  <h2 style="font-size:26px;margin:0 0 6px">9 · Écart et litige</h2>
+  <div style="background:var(--color-surface);border-radius:var(--radius-lg);padding:20px 22px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.85;margin-bottom:16px;white-space:pre-wrap">SIGNALER_ÉCART → l'argent reste BLOQUÉ
+  Phase 1 · négociation 48 h (échange, reprise, remise, annulation)
+      → accord → appliquer et libérer le montant convenu
+  Phase 2 · arbitrage Servis Yakro sur la base du rapport de l'agent
+      → conforme    : libération au prestataire
+      → non conforme: remboursement du client (+ sanction du prestataire)</div>
+
+  <h2 style="font-size:26px;margin:0 0 6px">10 · Événements</h2>
+  <div style="background:var(--color-surface);border-radius:var(--radius-lg);padding:20px 22px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.85;margin-bottom:40px;white-space:pre-wrap">Calendrier local (rentrée, fêtes, Ramadan, saison des pluies)
+  → à date, l'accueil propose un dossier pré-rempli
+      « Fournitures scolaires · 2 enfants · CE1 et 3e »
+  → même parcours ensuite : offres → séquestre → réception</div>
+
+  <div style="border:2px solid var(--color-accent);background:var(--color-neutral-100);border-radius:calc(var(--radius-lg) * 1.15);padding:24px 26px">
+    <h2 style="font-size:22px;margin:0 0 12px">Les 5 points où je pense que votre logique doit bouger</h2>
+    <ol style="margin:0;padding-left:22px;font-size:15px;line-height:1.75;color:var(--color-neutral-800)">
+      <li><strong>Acompte au démarrage</strong> — sinon aucun artisan ne prend le chantier (bloc 6).</li>
+      <li><strong>Libération automatique</strong> après un délai sans réclamation, sinon l'argent peut rester bloqué indéfiniment (bloc 8).</li>
+      <li><strong>Fiche besoin = checklist agent</strong> : un seul document, sinon la vérification reste subjective (bloc 2).</li>
+      <li><strong>Étapes parallèles</strong> tolérées sur un chantier réel, contre le verrou strictement séquentiel (bloc 4).</li>
+      <li><strong>Acceptation de la clause de retard par le prestataire</strong> : écran manquant aujourd'hui (bloc 5).</li>
+    </ol>
+    <p style="font-size:14px;margin:14px 0 0;color:var(--color-neutral-700)">Dites-moi lesquels vous acceptez, et je réécris l'algorithme puis les écrans concernés.</p>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

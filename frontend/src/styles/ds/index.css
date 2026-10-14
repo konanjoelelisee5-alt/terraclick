@@ -1,0 +1,13 @@
+/* Servis Yakro Design System — point d'entrée unique.
+   Fichiers repris tels quels depuis le bundle du design system
+   (project/_ds/servis-yakro-design-system-b6c27b14-.../tokens/).
+   L'ordre d'import est celui de `styles.css` du bundle. */
+@import "./fonts.css";
+@import "./colors.css";
+@import "./typography.css";
+@import "./spacing.css";
+@import "./radius.css";
+@import "./elevation.css";
+@import "./motion.css";
+@import "./base.css";
+@import "./components.css";
