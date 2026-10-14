@@ -59,7 +59,7 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
-        RateLimiter::for('otp-verification', fn (Request $request) => Limit::perMinute(10)->by('otp-verif:'.$request->ip())
+        RateLimiter::for('otp-verification', fn (Request $request) => Limit::perMinute(config('otp.verifications_par_ip_minute'))->by('otp-verif:'.$request->ip())
             ->response(fn () => $this->tropDeDemandes('Trop d\'essais. Patientez une minute.')));
     }
 

@@ -26,6 +26,13 @@ export type Ecran =
   | "avis"
   | "connexion"
   | "inscription"
+  /* Espace client (dans le site public) */
+  | "clientDashboard"
+  | "clientDemandes"
+  | "clientSuivi"
+  | "clientDevis"
+  | "clientNotifications"
+  | "clientProfil"
   /* Espace prestataire */
   | "proDashboard"
   | "proConsignes"

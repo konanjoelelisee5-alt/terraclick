@@ -24,13 +24,10 @@ class FicheProResource extends PrestataireResource
                 'depuis' => $this->annee_debut,
                 'annees' => now()->year - $this->annee_debut,
             ] : null,
-            // Le numéro n'est donné qu'aux personnes connectées : appeler, c'est agir.
-            // Tout le monde sait en revanche s'il existe, pour ne pas faire se connecter en vain.
+            // Un visiteur non inscrit peut appeler un technicien : seul l'envoi d'une
+            // demande (et les services comme la carte ou la Box) exige un compte client.
             'joignable_par_telephone' => $this->telephone !== null,
-            'telephone' => $this->when(
-                $request->user('sanctum') !== null && $this->telephone !== null,
-                fn () => Telephone::affichage($this->telephone),
-            ),
+            'telephone' => $this->telephone !== null ? Telephone::affichage($this->telephone) : null,
             'prestations' => $this->prestations ?? [],
             'tarifs' => collect($this->tarifs ?? [])->map(fn (array $tarif) => [
                 ...$tarif,

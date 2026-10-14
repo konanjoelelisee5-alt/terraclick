@@ -325,7 +325,8 @@ export function FichePro() {
           >
             Contacter directement
           </button>
-          {p.telephone ? (
+          {/* Un visiteur peut appeler sans compte ; seul l'envoi d'une demande en exige un. */}
+          {p.telephone && (
             <a
               href={`tel:+225${p.telephone.replace(/\D/g, "")}`}
               className="sy-btn sy-btn--outline sy-btn--md"
@@ -334,18 +335,6 @@ export function FichePro() {
               <Icon name="phone" size={16} strokeWidth={2.75} />
               {p.telephone}
             </a>
-          ) : (
-            p.joignable_par_telephone &&
-            !etat.auth && (
-              <button
-                onClick={() => exigerCompte(() => {})}
-                className="sy-btn sy-btn--ghost sy-btn--md"
-                style={{ minHeight: 48, gap: 7 }}
-              >
-                <Icon name="phone" size={16} strokeWidth={2.75} />
-                Voir le numéro
-              </button>
-            )
           )}
           {p.accepte_suivi && (
             <button

@@ -32,6 +32,9 @@ return [
     // souvent une IP entre beaucoup d'abonnés : ne pas descendre trop bas.
     'envois_par_ip_minute' => (int) env('OTP_ENVOIS_PAR_IP_MINUTE', 10),
 
+    // Vérifications de code depuis une même adresse IP (contre le test de codes en rafale).
+    'verifications_par_ip_minute' => (int) env('OTP_VERIFICATIONS_PAR_IP_MINUTE', 10),
+
     /*
     | Code imposé pour la démonstration (le frontend propose 417802). N'est pris
     | en compte qu'en environnement local ou de test, jamais en production.

@@ -331,6 +331,89 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
   await ctx.close();
 }
 
+// N · Visiteur : la Box intelligente et la carte sont réservées aux clients inscrits
+{
+  const { ctx, p } = await neuve();
+  await p.getByRole('button', { name: /Box intelligente/ }).click();
+  ok('visiteur : la Box intelligente demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
+  await p.getByRole('button', { name: 'Fermer' }).click();
+  ok('visiteur : la Box reste fermée sans compte', !(await p.getByText('Ce que la Box sait faire').isVisible().catch(() => false)));
+  await p.getByRole('button', { name: /Autour de moi/ }).click();
+  ok('visiteur : « Autour de moi » demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
+  await p.getByRole('button', { name: 'Fermer' }).click();
+  // Fenêtre refermée : l'action abandonnée ne doit pas se rejouer après une connexion ultérieure.
+  await p.getByRole('button', { name: 'Se connecter' }).click();
+  await p.getByLabel('Téléphone', { exact: true }).fill('07 58 42 19 03');
+  await p.getByRole('button', { name: 'Recevoir mon code' }).click();
+  await p.getByText(/appuyer pour remplir/).click();
+  await apparait(p.getByRole('heading', { name: 'Bonjour, Aya' }));
+  ok('action abandonnée non rejouée après une autre connexion',
+     !(await p.getByText('Ce que la Box sait faire').isVisible().catch(() => false)) &&
+       (await p.getByRole('heading', { name: 'Bonjour, Aya' }).isVisible()));
+  await p.getByRole('button', { name: 'Aya Konan' }).click();
+  await apparait(p.getByRole('button', { name: 'Se connecter' }));
+  await p.getByRole('button', { name: 'Servis Yakro, retour à l\'accueil' }).click();
+  await p.getByPlaceholder(/Que cherchez-vous/).fill('plomb');
+  await p.locator('[data-r="search-go"]').click();
+  await apparait(p.getByText('Koffi Tanoh').first());
+  await p.getByRole('button', { name: /^Carte/ }).click();
+  ok('visiteur : la vue carte des résultats demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
+  await connecter(p);
+  ok('après connexion : la carte s’ouvre', await apparait(p.locator('[data-r="map-canvas"]')));
+  await ctx.close();
+}
+
+// O · Espace client : tableau de bord, demandes, suivi, devis ciblé, profil enregistré
+{
+  const { ctx, p } = await neuve();
+  await p.getByRole('button', { name: 'Se connecter' }).click();
+  await p.getByLabel('Téléphone', { exact: true }).fill('07 58 42 19 03');
+  await p.getByRole('button', { name: 'Recevoir mon code' }).click();
+  await p.getByText(/appuyer pour remplir/).click();
+  ok('client : connexion ouvre le tableau de bord', await apparait(p.getByRole('heading', { name: 'Bonjour, Aya' })));
+  ok('client : actions à faire', await apparait(p.getByText('Confirmer une fin de prestation')));
+  ok('client : en-tête et pied de page du site conservés',
+     (await p.getByText('Tous droits réservés', { exact: false }).count()) === 1);
+
+  const onglets = p.getByRole('navigation', { name: 'Espace client' });
+  await onglets.getByRole('button', { name: /Mes demandes/ }).click();
+  await p.getByRole('button', { name: 'Terminées', exact: true }).click();
+  ok('client : filtre « Terminées »', (await p.getByRole('button', { name: 'Voir la demande' }).count()) === 1);
+  await p.getByRole('button', { name: 'Toutes', exact: true }).click();
+  await p.getByRole('button', { name: 'Voir la demande' }).first().click();
+  ok('client : suivi de la demande', await apparait(p.getByRole('heading', { name: /Fuite sous l'évier/ })));
+  await p.getByRole('button', { name: 'Signaler un problème' }).click();
+  ok('client : fenêtre de signalement avec motif', await apparait(p.getByLabel('Motif')));
+  await p.keyboard.press('Escape');
+  await p.getByRole('button', { name: 'Confirmer la fin de prestation' }).click();
+  await p.getByRole('dialog').getByRole('button', { name: 'Confirmer la fin de prestation' }).click();
+  ok('client : fin confirmée, « Laisser un avis » proposé', await apparait(p.getByRole('button', { name: 'Laisser un avis' })));
+
+  await onglets.getByRole('button', { name: /Mes demandes/ }).click();
+  await p.getByRole('button', { name: 'Nouvelle demande' }).click();
+  await apparait(p.getByRole('heading', { name: 'Demander un devis' }));
+  await p.getByLabel('Prestataire').selectOption({ label: 'Élec Yakro · Électricien' });
+  await p.getByLabel('Décrivez votre besoin').fill('Le disjoncteur saute dès que la clim démarre.');
+  await p.getByRole('button', { name: 'Envoyer ma demande' }).click();
+  ok('client : demande envoyée à Élec Yakro, visible en tête', await apparait(p.getByText('Demande envoyée')) &&
+     (await p.locator('.sy-card').filter({ hasText: 'Élec Yakro' }).filter({ hasText: 'En attente' }).count()) >= 1);
+
+  await onglets.getByRole('button', { name: /Mon profil/ }).click();
+  const email = `aya.${Date.now()}@exemple.ci`;
+  await p.getByLabel('E-mail (facultatif)').fill(email);
+  await p.getByRole('button', { name: 'Enregistrer', exact: true }).click();
+  await apparait(p.getByText('Profil enregistré'));
+  const moi = await p.evaluate(async () => {
+    const r = await fetch('/api/moi', { headers: { Accept: 'application/json', Authorization: 'Bearer ' + localStorage.getItem('sy.jeton') } });
+    return (await r.json()).data;
+  });
+  ok('client : profil réellement enregistré par l’API', moi?.email === email);
+
+  await onglets.getByRole('button', { name: /Mon compte/ }).click();
+  ok('client : « Mon compte » garde la page existante', await apparait(p.getByText('Mes équipements')));
+  await ctx.close();
+}
+
 await b.close();
 console.log(R.join('\n'));
 const reussies = R.filter((x) => x.startsWith('  OK')).length;

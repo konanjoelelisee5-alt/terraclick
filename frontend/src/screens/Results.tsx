@@ -155,8 +155,10 @@ export function Results() {
           <button onClick={() => set({ carte: false })} style={tab(!voirCarte)}>
             Liste
           </button>
-          <button onClick={() => set({ carte: true })} style={tab(voirCarte)}>
+          {/* La carte est réservée aux clients inscrits. */}
+          <button onClick={() => exigerCompte(() => set({ carte: true }))} style={tab(voirCarte)}>
             Carte
+            {!etat.auth && <Icon name="lock" size={12} style={{ marginLeft: 5, opacity: 0.6, verticalAlign: "-1px" }} />}
           </button>
         </div>
       </div>

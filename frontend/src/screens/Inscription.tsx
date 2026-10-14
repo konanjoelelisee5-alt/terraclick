@@ -62,7 +62,7 @@ export function Inscription() {
     );
     if (profil) {
       terminerAuth(profil);
-      go("compte");
+      go("clientDashboard");
     } else {
       // Numéro déjà prouvé : une correction du formulaire suffit, sans nouveau code.
       setCompte(u);
@@ -91,7 +91,7 @@ export function Inscription() {
     // Numéro déjà inscrit : on connecte sans écraser le profil existant.
     if (utilisateur.profil_complet) {
       terminerAuth(utilisateur);
-      go("compte");
+      go("clientDashboard");
       return;
     }
     await enregistrerProfil(utilisateur);

@@ -149,7 +149,7 @@ export function Header() {
                   3
                 </span>
               </button>
-              <button onClick={() => exigerCompte(() => go("compte"))} className="sy-btn sy-btn--outline sy-btn--md">
+              <button onClick={() => exigerCompte(() => go("clientDashboard"))} className="sy-btn sy-btn--outline sy-btn--md">
                 Mon espace
               </button>
               <button

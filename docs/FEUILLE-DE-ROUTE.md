@@ -66,7 +66,27 @@ mot de passe).
   - **Reste à faire côté backend** : un rôle prestataire relié au compte (aujourd'hui, tout
     compte connecté voit l'espace de démonstration de Koffi Tanoh), les demandes de devis,
     les abonnements, les factures et les mises en avant.
-- **À venir, sur demande** : client, manager, administrateur.
+- **Client — fait**, intégré au site public (en-tête et pied de page conservés) :
+  - Écrans créés :
+    - tableau de bord (actions à faire, raccourcis, demandes récentes) ;
+    - mes demandes (filtres, prochaine action) ;
+    - suivi d'une demande (étapes, réponse du prestataire, confirmer la fin, signaler un
+      problème, déclarer un paiement direct) ;
+    - demande de devis à un prestataire choisi ;
+    - notifications ;
+    - profil.
+  - Une rangée d'onglets est commune à ces écrans. L'ancienne page « Mon espace » devient
+    l'onglet « Mon compte », inchangée.
+  - « Mon espace » et l'onglet mobile « Compte » mènent au tableau de bord client.
+  - Le **profil est réellement enregistré** par l'API ; les demandes sont encore des
+    données de démonstration.
+- **Règles d'accès du site public**, qui est l'application des clients :
+  - Un **visiteur** peut chercher, voir les techniciens et leurs services, et les
+    **appeler** : le numéro est maintenant visible sans compte.
+  - **Envoyer une demande**, la **Box intelligente** et la **localisation** (« Autour de moi »
+    et vue carte) exigent un compte client. Le client inscrit figure dans la base de
+    l'administrateur et du manager.
+- **À venir, sur demande** : manager, administrateur.
 
 **API prête, pas encore branchée à l'écran**
 

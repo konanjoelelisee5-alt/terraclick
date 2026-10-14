@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Prestataire;
 use App\Models\Quartier;
-use App\Models\User;
 use Database\Seeders\CatalogueSeeder;
 use Database\Seeders\DemoSeeder;
 use Database\Seeders\PrestataireSeeder;
@@ -151,21 +150,23 @@ class AnnuaireTest extends TestCase
             ->assertJsonCount(4, 'data.realisations')
             ->assertJsonPath('data.avis_recents.0.auteur.nom', 'Aya K.')
             ->assertJsonPath('data.avis_recents.0.date_affichage', 'juillet 2026')
-            ->assertJsonMissingPath('data.telephone');
+            // Pas de numéro enregistré pour cette entreprise de démonstration.
+            ->assertJsonPath('data.telephone', null);
     }
 
-    public function test_le_numero_du_pro_n_est_donne_qu_aux_connectes(): void
+    public function test_un_visiteur_peut_appeler_le_pro(): void
     {
         $koffi = Prestataire::where('nom', 'Koffi Tanoh')->first();
         $koffi->update(['telephone' => '+2250700000001']);
 
         $this->getJson("/api/prestataires/{$koffi->id}")
             ->assertJsonPath('data.joignable_par_telephone', true)
-            ->assertJsonMissingPath('data.telephone');
-
-        $jeton = User::factory()->create()->createToken('test')->plainTextToken;
-        $this->withToken($jeton)->getJson("/api/prestataires/{$koffi->id}")
             ->assertJsonPath('data.telephone', '07 00 00 00 01');
+
+        $koffi->update(['telephone' => null]);
+        $this->getJson("/api/prestataires/{$koffi->id}")
+            ->assertJsonPath('data.joignable_par_telephone', false)
+            ->assertJsonPath('data.telephone', null);
     }
 
     public function test_une_fiche_inconnue(): void

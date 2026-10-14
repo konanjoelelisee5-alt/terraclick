@@ -17,7 +17,8 @@ export function TabBar() {
       nom: "Carte",
       icon: "map",
       actif: etat.screen === "home" && etat.modeAccueil === "carte",
-      go: () => go("home", { modeAccueil: "carte" }),
+      // La carte est réservée aux clients inscrits.
+      go: () => exigerCompte(() => go("home", { modeAccueil: "carte" })),
     },
     {
       nom: "Projets",
@@ -29,9 +30,9 @@ export function TabBar() {
     {
       nom: "Compte",
       icon: "user",
-      actif: etat.screen === "compte" || etat.screen === "connexion" || etat.screen === "inscription",
+      actif: /^(compte|connexion|inscription|client[A-Z])/.test(etat.screen),
       // Comme « Se connecter » sur ordinateur : la page de connexion, pas la feuille basse.
-      go: () => (etat.auth ? go("compte") : go("connexion", { telDraft: "" })),
+      go: () => (etat.auth ? go("clientDashboard") : go("connexion", { telDraft: "" })),
     },
   ];
 

@@ -41,6 +41,12 @@ import { ProProfil } from "./screens/pro/ProProfil";
 import { ProRealisations } from "./screens/pro/ProRealisations";
 import { ProVerification } from "./screens/pro/ProVerification";
 import { ToastProvider } from "./components/Toast";
+import { ClientDashboard } from "./screens/client/ClientDashboard";
+import { ClientDemandes } from "./screens/client/ClientDemandes";
+import { ClientDevis } from "./screens/client/ClientDevis";
+import { ClientNotifications } from "./screens/client/ClientNotifications";
+import { ClientProfil } from "./screens/client/ClientProfil";
+import { ClientSuivi } from "./screens/client/ClientSuivi";
 import type { Ecran } from "./state/types";
 
 const ECRANS: Record<Ecran, () => JSX.Element> = {
@@ -66,6 +72,12 @@ const ECRANS: Record<Ecran, () => JSX.Element> = {
   avis: Avis,
   connexion: Connexion,
   inscription: Inscription,
+  clientDashboard: ClientDashboard,
+  clientDemandes: ClientDemandes,
+  clientSuivi: ClientSuivi,
+  clientDevis: ClientDevis,
+  clientNotifications: ClientNotifications,
+  clientProfil: ClientProfil,
   proDashboard: ProDashboard,
   proConsignes: ProConsignes,
   proDemandes: ProDemandes,

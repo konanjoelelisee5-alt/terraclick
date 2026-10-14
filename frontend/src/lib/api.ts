@@ -57,8 +57,8 @@ export type FicheApi = PrestataireApi & {
   zone_intervention: string | null;
   experience: { depuis: number; annees: number } | null;
   joignable_par_telephone: boolean;
-  /** Présent seulement pour un utilisateur connecté. */
-  telephone?: string;
+  /** Visible par tous : un visiteur peut appeler un technicien. */
+  telephone: string | null;
   prestations: string[];
   tarifs: { libelle: string; montant: number | null; a_partir_de?: boolean; affichage: string | null }[];
   horaires: { jours: string; ouverture: string | null; fermeture: string | null }[];

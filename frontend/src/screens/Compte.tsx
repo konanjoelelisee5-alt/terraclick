@@ -3,6 +3,7 @@ import { PROS } from "../data/catalogue";
 import { useApp } from "../state/app";
 import { Icon } from "../components/Icon";
 import { TITRE_SECTION } from "../components/ui";
+import { OngletsClient } from "./client/EspaceClient";
 
 const LIGNE_CLIQUABLE: React.CSSProperties = {
   display: "flex",
@@ -59,7 +60,11 @@ export function Compte() {
     .slice(0, 2);
 
   return (
-    <main data-r="container" style={{ paddingTop: 30, paddingBottom: 70 }}>
+    <main data-r="container" style={{ paddingTop: 26, paddingBottom: 70 }}>
+      {/* Onglets de l'espace client : cette page en est l'onglet « Mon compte ». */}
+      <div style={{ marginBottom: 22 }}>
+        <OngletsClient />
+      </div>
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 26, flexWrap: "wrap" }}>
         <span style={{ ...PASTILLE, width: 56, height: 56, fontSize: "19px" }}>{initiales}</span>
         <div style={{ flex: 1, minWidth: 0 }}>

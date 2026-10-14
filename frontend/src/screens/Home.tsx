@@ -16,9 +16,13 @@ export function Home() {
   const { etat, set, go, rechercher, ouvrirChat, exigerCompte, ville, villeIdx } = useApp();
 
   const changerVille = () => set({ ville: (villeIdx + 1) % 4 });
+  // « Autour de moi » et la Box intelligente sont réservés aux clients inscrits.
+  const mode = etat.auth ? etat.modeAccueil : "recherche";
+  const ouvrirMode = (m: typeof etat.modeAccueil) =>
+    m === "recherche" ? set({ modeAccueil: m }) : exigerCompte(() => set({ modeAccueil: m }));
   const { donnees: vedettes } = useApi((signal) => api.vedettes(signal), []);
   // Sans vedette (ou si l'API ne répond pas), la section disparaît plutôt que d'afficher un vide.
-  const afficherVedettes = CONFIG.afficherVedettes && etat.modeAccueil === "recherche" && !!vedettes?.length;
+  const afficherVedettes = CONFIG.afficherVedettes && mode === "recherche" && !!vedettes?.length;
 
   return (
     <main>
@@ -198,17 +202,19 @@ export function Home() {
                 boxShadow: "var(--shadow-sm)",
               }}
             >
-              <button onClick={() => set({ modeAccueil: "recherche" })} style={tabIcon(etat.modeAccueil === "recherche")}>
+              <button onClick={() => ouvrirMode("recherche")} style={tabIcon(mode === "recherche")}>
                 <Icon name="search" size={15} strokeWidth={2.75} />
                 Recherche
               </button>
-              <button onClick={() => set({ modeAccueil: "carte" })} style={tabIcon(etat.modeAccueil === "carte")}>
+              <button onClick={() => ouvrirMode("carte")} style={tabIcon(mode === "carte")}>
                 <Icon name="map" size={15} strokeWidth={2.75} />
                 Autour de moi
+                {!etat.auth && <Icon name="lock" size={13} style={{ opacity: 0.6 }} />}
               </button>
-              <button onClick={() => set({ modeAccueil: "box" })} style={tabIcon(etat.modeAccueil === "box")}>
+              <button onClick={() => ouvrirMode("box")} style={tabIcon(mode === "box")}>
                 <Icon name="bot" size={15} strokeWidth={2.75} />
                 Box intelligente
+                {!etat.auth && <Icon name="lock" size={13} style={{ opacity: 0.6 }} />}
               </button>
             </div>
           </div>
@@ -231,11 +237,11 @@ export function Home() {
         </div>
       </section>
 
-      {etat.modeAccueil === "carte" && <ModeCarte />}
-      {etat.modeAccueil === "box" && <ModeBox />}
+      {mode === "carte" && <ModeCarte />}
+      {mode === "box" && <ModeBox />}
 
       {/* ---- Recherches populaires ---- */}
-      {etat.modeAccueil === "recherche" && (
+      {mode === "recherche" && (
         <section data-r="container" data-sec="" style={{ paddingTop: 52 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 20 }}>
             <h2 style={{ fontSize: "29px", margin: 0 }}>Recherches populaires</h2>

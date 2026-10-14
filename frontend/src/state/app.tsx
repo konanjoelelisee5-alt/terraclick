@@ -177,6 +177,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [etat.auth],
   );
 
+  // Feuille de connexion refermée sans se connecter : l'action interrompue est abandonnée,
+  // pour ne pas la rejouer plus tard lors d'une connexion faite pour autre chose.
+  useEffect(() => {
+    if (!etat.authOpen && !etat.auth) enAttente.current = null;
+  }, [etat.authOpen, etat.auth]);
+
   // Une session mémorisée est reprise au chargement ; un jeton refusé est oublié par le client API.
   useEffect(() => {
     if (!jeton.lire()) return;
@@ -263,7 +269,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const villeIdx = etat.ville === null ? Math.max(0, VILLES.indexOf(CONFIG.villeParDefaut)) : etat.ville;
-  const voirCarte = etat.carte === null ? CONFIG.vueResultats === "Carte" : etat.carte;
+  // La carte (localisation) est réservée aux clients inscrits : un visiteur reste en liste.
+  const voirCarte = !!etat.auth && (etat.carte === null ? CONFIG.vueResultats === "Carte" : etat.carte);
 
   const valeur = useMemo<Contexte>(
     () => ({

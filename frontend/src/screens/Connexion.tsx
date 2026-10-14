@@ -31,7 +31,7 @@ export function Connexion() {
     }
     if (utilisateur.profil_complet) {
       terminerAuth(utilisateur);
-      go("compte");
+      go("clientDashboard");
     } else {
       // Numéro vérifié mais sans profil : l'inscription reprend à cette étape.
       go("inscription", { telDraft: telephone });
