@@ -93,34 +93,67 @@ svg,
   max-width: 100%;
 }
 
-/* ---- Espace prestataire : rail à gauche, contenu à droite ---- */
-[data-r="pro-shell"] {
+/* ---- Application prestataire : logiciel de gestion sur ordinateur ---- */
+[data-r="pro-app"] {
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
-  gap: 28px;
-  align-items: start;
+  min-height: 100vh;
+  background: var(--surface-sunken);
 }
 
-[data-r="pro-rail"] {
+[data-r="pro-side"] {
   position: sticky;
-  top: 92px;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--argile-900);
+}
+
+[data-r="pro-main"] {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+[data-r="pro-top"] {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 8px 28px;
   background: var(--surface-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-card);
-  padding: 14px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+[data-r="pro-content"] {
+  width: 100%;
+  max-width: 1240px;
+  box-sizing: border-box;
+  padding: 22px 28px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+[data-r="pro-bottom"] {
+  display: none;
 }
 
 /* Contenu principal + colonne latérale (actions, état du profil). */
 [data-r="pro-split"] {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 24px;
+  gap: 20px;
   align-items: start;
 }
 
 [data-r="pro-split"] > aside {
   position: sticky;
-  top: 92px;
+  top: 84px;
 }
 
 /* Tableau des factures : grille sur grand écran, cartes en dessous. */
@@ -163,35 +196,53 @@ svg,
     bottom: 64px !important;
   }
 
-  /* Le rail devient une rangée d'onglets balayable au-dessus du contenu. */
-  [data-r="pro-shell"] {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 18px;
+  /* Application prestataire sur tablette et téléphone : barre du haut et navigation basse. */
+  [data-r="pro-app"] {
+    display: block;
+    padding-bottom: calc(68px + env(safe-area-inset-bottom));
   }
 
-  [data-r="pro-rail"] {
-    position: static;
-    padding: 6px;
-    border-radius: 999px;
-  }
-
-  [data-r="pro-rail-tete"] {
+  [data-r="pro-side"],
+  [data-r="pro-fil"],
+  [data-r="pro-plan"] {
     display: none !important;
   }
 
-  [data-r="pro-nav"] {
-    flex-direction: row !important;
-    overflow-x: auto;
-    scrollbar-width: none;
+  [data-r="pro-top"] {
+    padding: 8px 16px;
+    min-height: 56px;
   }
 
-  [data-r="pro-nav"]::-webkit-scrollbar {
-    display: none;
+  [data-r="pro-content"] {
+    padding: 16px 16px 32px;
   }
 
-  [data-r="pro-nav"] button {
-    flex: none;
-    border-radius: 999px !important;
+  [data-r="pro-bottom"] {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    background: var(--surface-card);
+    border-top: 1px solid var(--border-subtle);
+    box-shadow: 0 -6px 20px rgba(26, 22, 19, 0.06);
+  }
+
+  [data-r="pro-bottom"] button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-height: 52px;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
   }
 }
 

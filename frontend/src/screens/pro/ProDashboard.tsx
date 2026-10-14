@@ -1,62 +1,42 @@
 import { useApp } from "../../state/app";
-import { api } from "../../lib/api";
-import { FACTURES, PRO, STATS } from "../../data/pro";
+import { CONSIGNES, FACTURES, PRO, STATS } from "../../data/pro";
 import { Icon } from "../../components/Icon";
-import { useToast } from "../../components/Toast";
 import { EspacePro, MONO, TITRE_CARTE, badge } from "./EspacePro";
 import { useEtatPro } from "./store";
 
+const LIGNE: React.CSSProperties = {
+  border: "1px solid var(--border-subtle)",
+  background: "var(--surface-card)",
+  borderRadius: 10,
+  padding: "10px 12px",
+  cursor: "pointer",
+  display: "flex",
+  flexDirection: "column",
+  gap: 4,
+  textAlign: "left",
+  font: "inherit",
+  color: "inherit",
+};
+
 export function ProDashboard() {
   const { go } = useApp();
-  const toast = useToast();
-  const { demandes } = useEtatPro();
-  const aRepondre = demandes.slice(0, 3);
+  const { demandes, consignesFaites } = useEtatPro();
+  const aRepondre = demandes.filter((d) => ["Nouvelles", "Vues"].includes(d.groupe)).slice(0, 3);
+  const consignes = CONSIGNES.filter((c) => !consignesFaites.includes(c.ref));
   const facture = FACTURES[0];
 
-  // La fiche publique est celle de l'annuaire réel : on la retrouve par son nom.
-  const voirFichePublique = async () => {
-    const id = await api
-      .rechercher({ q: PRO.nom, par_page: 1 })
-      .then((r) => r.data[0]?.id)
-      .catch(() => undefined);
-    if (id) go("fiche", { fiche: id });
-    else toast("Fiche introuvable", "Votre fiche publique n'a pas pu être chargée.", "danger");
+  // Les compteurs liés aux demandes suivent l'état réel de la boîte de réception.
+  const parGroupe = (...groupes: string[]) => String(demandes.filter((d) => groupes.includes(d.groupe)).length);
+  const valeurs: Record<string, string> = {
+    "Nouvelles demandes": parGroupe("Nouvelles"),
+    "À répondre": parGroupe("Nouvelles", "Vues"),
+    "Rendez-vous": parGroupe("Acceptées"),
+    "À confirmer": parGroupe("À confirmer"),
   };
 
   return (
-    <EspacePro titre={`Bonjour, ${PRO.nom}`} sousTitre="Voici ce qui demande votre attention aujourd'hui.">
-      <div className="sy-card" style={{ borderColor: "var(--lagune-200)" }}>
-        <div className="sy-card__body" style={{ display: "flex", gap: 14, alignItems: "flex-start", flexWrap: "wrap" }}>
-          <span
-            style={{
-              width: 44,
-              height: 44,
-              flex: "none",
-              borderRadius: 12,
-              background: "var(--state-success-soft)",
-              color: "var(--lagune-700)",
-              display: "grid",
-              placeItems: "center",
-            }}
-          >
-            <Icon name="shield-check" size={22} />
-          </span>
-          {/* Base de 220 px : sur téléphone, le bouton passe sous le texte au lieu de l'écraser. */}
-          <div style={{ minWidth: 0, flex: "1 1 220px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <strong style={{ fontFamily: "var(--font-heading)", fontSize: "17px" }}>Profil vérifié</strong>
-              <span className="sy-badge sy-badge--success">Publié</span>
-            </div>
-            <p style={{ margin: "6px 0 0", fontSize: "14px", lineHeight: 1.6, color: "var(--argile-700)" }}>
-              Votre profil est visible par les visiteurs. Répondez vite aux demandes pour rester bien classé.
-            </p>
-          </div>
-          <button type="button" className="sy-btn sy-btn--outline sy-btn--sm" onClick={voirFichePublique}>
-            Voir mon profil public
-          </button>
-        </div>
-      </div>
-
+    <EspacePro titre="Tableau de bord" sousTitre={`Bonjour ${PRO.nom}, voici ce qui demande votre attention aujourd'hui.`}>
+      {/* Indicateurs */}
       <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 150px), 1fr))" }}>
         {STATS.map((s) => (
           <div key={s.libelle} className="sy-card">
@@ -78,7 +58,7 @@ export function ProDashboard() {
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                   <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "24px", lineHeight: 1 }}>
-                    {s.valeur}
+                    {valeurs[s.libelle] ?? s.valeur}
                   </span>
                   <span style={{ fontSize: "12px", color: "var(--text-muted)", whiteSpace: "nowrap" }}>{s.aide}</span>
                 </div>
@@ -90,33 +70,47 @@ export function ProDashboard() {
       </div>
 
       <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))" }}>
+        {/* Ordres de l'administration */}
         <div className="sy-card">
-          <div className="sy-card__body" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div className="sy-card__body" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+              <h2 style={TITRE_CARTE}>Consignes de l'administration</h2>
+              <button type="button" className="sy-btn sy-btn--ghost sy-btn--sm" onClick={() => go("proConsignes")}>
+                Tout voir
+              </button>
+            </div>
+            {consignes.length === 0 && (
+              <p style={{ margin: 0, fontSize: "14px", color: "var(--text-muted)" }}>Aucune consigne en attente.</p>
+            )}
+            {consignes.map((c) => (
+              <button key={c.ref} type="button" onClick={() => go(c.ecran)} style={LIGNE}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                  <span style={{ ...MONO, fontSize: "12px", color: "var(--kola-700)" }}>{c.ref}</span>
+                  <span className={badge(c.ton)}>Priorité {c.priorite.toLowerCase()}</span>
+                </div>
+                <span style={{ fontSize: "14px", fontWeight: 700 }}>{c.titre}</span>
+                <span style={{ fontSize: "12.5px", color: "var(--text-muted)" }}>
+                  {c.emetteur} · échéance {c.echeance}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Interactions clients */}
+        <div className="sy-card">
+          <div className="sy-card__body" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
               <h2 style={TITRE_CARTE}>Demandes à répondre</h2>
               <button type="button" className="sy-btn sy-btn--ghost sy-btn--sm" onClick={() => go("proDemandes")}>
                 Tout voir
               </button>
             </div>
+            {aRepondre.length === 0 && (
+              <p style={{ margin: 0, fontSize: "14px", color: "var(--text-muted)" }}>Aucune demande en attente de réponse.</p>
+            )}
             {aRepondre.map((d) => (
-              <button
-                key={d.ref}
-                type="button"
-                onClick={() => go("proDemande")}
-                style={{
-                  border: "1px solid var(--border-subtle)",
-                  background: "var(--surface-card)",
-                  borderRadius: 12,
-                  padding: 12,
-                  cursor: "pointer",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 6,
-                  textAlign: "left",
-                  font: "inherit",
-                  color: "inherit",
-                }}
-              >
+              <button key={d.ref} type="button" onClick={() => go("proDemande")} style={LIGNE}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                   <span style={{ ...MONO, fontSize: "12px", color: "var(--kola-700)" }}>{d.ref}</span>
                   <span className={badge(d.ton)}>{d.statut}</span>
@@ -124,35 +118,59 @@ export function ProDashboard() {
                 <span style={{ fontSize: "14px", fontWeight: 700 }}>
                   {d.client} · {d.categorie}
                 </span>
-                <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+                <span style={{ fontSize: "12.5px", color: "var(--text-muted)" }}>
                   {d.quartier} · {d.date}
                 </span>
               </button>
             ))}
           </div>
         </div>
+      </div>
 
-        <div className="sy-card">
-          <div className="sy-card__body" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <h2 style={TITRE_CARTE}>Abonnement et facture</h2>
-            <div
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))" }}>
+        {/* État du profil */}
+        <div className="sy-card" style={{ borderColor: "var(--lagune-200)" }}>
+          <div className="sy-card__body" style={{ display: "flex", gap: 14, alignItems: "flex-start", flexWrap: "wrap" }}>
+            <span
               style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 10,
-                padding: 12,
-                background: "var(--argile-50)",
-                borderRadius: 12,
-                flexWrap: "wrap",
+                width: 40,
+                height: 40,
+                flex: "none",
+                borderRadius: 10,
+                background: "var(--state-success-soft)",
+                color: "var(--lagune-700)",
+                display: "grid",
+                placeItems: "center",
               }}
             >
+              <Icon name="shield-check" size={20} />
+            </span>
+            {/* Base de 200 px : sur téléphone, le bouton passe sous le texte au lieu de l'écraser. */}
+            <div style={{ minWidth: 0, flex: "1 1 200px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <h2 style={TITRE_CARTE}>Profil vérifié</h2>
+                <span className="sy-badge sy-badge--success">Publié</span>
+              </div>
+              <p style={{ margin: "6px 0 0", fontSize: "13.5px", lineHeight: 1.55, color: "var(--argile-700)" }}>
+                Vos clients vous trouvent. Répondez vite aux demandes pour rester bien classé.
+              </p>
+            </div>
+            <button type="button" className="sy-btn sy-btn--outline sy-btn--sm" onClick={() => go("proVerification")}>
+              Aperçu de ma fiche
+            </button>
+          </div>
+        </div>
+
+        {/* Abonnement */}
+        <div className="sy-card">
+          <div className="sy-card__body" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
               <div>
-                <div style={{ fontSize: "14px", fontWeight: 700 }}>Plan {PRO.plan}</div>
+                <h2 style={TITRE_CARTE}>Plan {PRO.plan}</h2>
                 <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>Expire le {PRO.expiration}</div>
               </div>
               <button type="button" className="sy-btn sy-btn--outline sy-btn--sm" onClick={() => go("proAbonnement")}>
-                Voir
+                Gérer
               </button>
             </div>
             <div
@@ -161,16 +179,16 @@ export function ProDashboard() {
                 alignItems: "center",
                 justifyContent: "space-between",
                 gap: 10,
-                padding: 12,
+                padding: "10px 12px",
                 background: "var(--state-warning-soft)",
-                borderRadius: 12,
+                borderRadius: 10,
                 flexWrap: "wrap",
               }}
             >
               <div>
                 <div style={{ ...MONO, fontSize: "13px", fontWeight: 700, color: "var(--state-warning)" }}>{facture.ref}</div>
-                <div style={{ fontSize: "13px", color: "var(--state-warning)" }}>
-                  {facture.type} · {facture.montant} · échéance {facture.echeance}
+                <div style={{ fontSize: "12.5px", color: "var(--state-warning)" }}>
+                  {facture.montant} · {facture.statut.toLowerCase()}
                 </div>
               </div>
               <button type="button" className="sy-btn sy-btn--primary sy-btn--sm" onClick={() => go("proAbonnement")}>

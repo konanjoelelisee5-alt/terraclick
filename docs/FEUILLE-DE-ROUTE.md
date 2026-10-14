@@ -49,7 +49,16 @@ mot de passe).
 - **Prestataire — interfaces faites** (données de démonstration, pas encore reliées à l'API) :
   - les 10 écrans : tableau de bord, demandes de devis et détail, profil, réalisations,
     vérification, abonnement et factures, mise en avant, avis, notifications ;
-  - un rail latéral, qui devient une rangée d'onglets sous 1 080 px.
+  - **une application à part du site d'annonces** : ni en-tête public, ni pied de page, ni
+    barre d'onglets client.
+    - Sur ordinateur, une interface de type logiciel de gestion (GMAO) : barre latérale sombre
+      avec modules groupés (Activité, Mon profil, Compte), barre supérieure avec fil
+      d'Ariane, notifications et « Quitter l'espace pro ».
+    - Sur téléphone, une application avec barre du haut et navigation basse : Accueil,
+      Consignes, Demandes, Profil, et « Plus » pour les autres modules.
+  - un module **Consignes** : les ordres de l'administration à exécuter (corrections de
+    vérification, factures, compléments), avec priorité, émetteur et échéance, et un bouton
+    « Marquer exécutée ».
   - Accès : « Devenir partenaire » sur l'accueil, et « Devenir partenaire » ou « Espace pro »
     dans le pied de page. Un compte connecté est demandé.
   - Composants ajoutés et réutilisables : fenêtre de confirmation (`Dialogue`) et message

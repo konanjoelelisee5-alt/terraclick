@@ -31,6 +31,7 @@ import { ProjSuivi } from "./screens/projet/ProjSuivi";
 import { ProjetDashboard } from "./screens/projet/ProjetDashboard";
 import { ProAbonnement } from "./screens/pro/ProAbonnement";
 import { ProAvis } from "./screens/pro/ProAvis";
+import { ProConsignes } from "./screens/pro/ProConsignes";
 import { ProDashboard } from "./screens/pro/ProDashboard";
 import { ProDemande } from "./screens/pro/ProDemande";
 import { ProDemandes } from "./screens/pro/ProDemandes";
@@ -66,6 +67,7 @@ const ECRANS: Record<Ecran, () => JSX.Element> = {
   connexion: Connexion,
   inscription: Inscription,
   proDashboard: ProDashboard,
+  proConsignes: ProConsignes,
   proDemandes: ProDemandes,
   proDemande: ProDemande,
   proProfil: ProProfil,
@@ -95,6 +97,17 @@ function Coque() {
     document.addEventListener("mousedown", fermer);
     return () => document.removeEventListener("mousedown", fermer);
   }, [etat.deptsOpen, set]);
+
+  // L'espace prestataire est une application à part : ni en-tête d'annuaire,
+  // ni pied de page, ni barre d'onglets du site public.
+  if (/^pro[A-Z]/.test(etat.screen)) {
+    return (
+      <div style={{ fontFamily: "var(--font-body)", color: "var(--color-text)" }}>
+        <Ecran />
+        <AuthSheet />
+      </div>
+    );
+  }
 
   return (
     <div

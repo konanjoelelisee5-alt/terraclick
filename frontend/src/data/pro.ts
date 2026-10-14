@@ -124,4 +124,41 @@ export const NOTIFICATIONS_PRO = [
   { icone: "clock", titre: "Abonnement bientôt expiré", texte: "Votre plan Standard expire le 30 avril 2026.", date: "samedi 11 avril", nouveau: false, fond: "var(--state-warning-soft)", encre: "var(--state-warning)" },
 ];
 
+/**
+ * Ordres de l'administration à exécuter par le prestataire : corrections demandées
+ * lors de la vérification, factures à régler, documents à renouveler.
+ */
+export const CONSIGNES = [
+  {
+    ref: "ORD-0412",
+    titre: "Ajouter une photo ou un logo",
+    detail: "Demandé lors de la vérification : votre fiche n'a pas encore de photo.",
+    emetteur: "Diane K., manager",
+    echeance: "20 avril 2026",
+    priorite: "Haute",
+    ton: "danger" as Ton,
+    ecran: "proProfil" as const,
+  },
+  {
+    ref: "ORD-0409",
+    titre: "Régler la facture FAC-2026-00025",
+    detail: "Mise en avant 7 jours · 8 000 F. Sans paiement, la mise en avant ne démarre pas.",
+    emetteur: "Administration",
+    echeance: "22 avril 2026",
+    priorite: "Normale",
+    ton: "warning" as Ton,
+    ecran: "proAbonnement" as const,
+  },
+  {
+    ref: "ORD-0398",
+    titre: "Renseigner vos années d'expérience",
+    detail: "Recommandé pour le classement dans les résultats.",
+    emetteur: "Administration",
+    echeance: "30 avril 2026",
+    priorite: "Basse",
+    ton: "neutral" as Ton,
+    ecran: "proVerification" as const,
+  },
+];
+
 export const MOYENS_PAIEMENT_DIRECT = ["Espèces", "Wave", "Orange Money", "MTN Mobile Money", "Virement"];

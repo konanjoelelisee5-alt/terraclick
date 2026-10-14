@@ -28,6 +28,7 @@ export type Ecran =
   | "inscription"
   /* Espace prestataire */
   | "proDashboard"
+  | "proConsignes"
   | "proDemandes"
   | "proDemande"
   | "proProfil"

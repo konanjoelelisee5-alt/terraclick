@@ -9,9 +9,11 @@ type EtatPro = {
   realisations: Realisation[];
   demandes: Demande[];
   notificationsLues: boolean;
+  /** Références des consignes de l'administration marquées comme exécutées. */
+  consignesFaites: string[];
 };
 
-let etat: EtatPro = { realisations: REALISATIONS, demandes: DEMANDES, notificationsLues: false };
+let etat: EtatPro = { realisations: REALISATIONS, demandes: DEMANDES, notificationsLues: false, consignesFaites: [] };
 const abonnes = new Set<() => void>();
 
 export function modifierPro(patch: Partial<EtatPro> | ((e: EtatPro) => Partial<EtatPro>)) {

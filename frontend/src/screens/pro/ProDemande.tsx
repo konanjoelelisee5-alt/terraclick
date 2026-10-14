@@ -34,7 +34,7 @@ export function ProDemande() {
 
   return (
     <EspacePro titre={`${d.client} · ${d.categorie}`}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: -8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <span style={{ ...MONO, fontSize: "14px", fontWeight: 700 }}>{d.ref}</span>
         <span className={badge(courante.ton)}>{courante.statut}</span>
       </div>

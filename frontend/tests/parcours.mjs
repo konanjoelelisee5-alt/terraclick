@@ -255,10 +255,17 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
   await p.getByRole('button', { name: 'Devenir partenaire' }).first().click();
   ok('« Devenir partenaire » demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
   await connecter(p);
-  ok('après connexion : tableau de bord prestataire', await apparait(p.getByRole('heading', { name: 'Bonjour, Koffi Tanoh' })));
+  ok('après connexion : tableau de bord prestataire', await apparait(p.getByRole('heading', { name: 'Tableau de bord' })));
+  ok('espace pro : ni en-tête ni pied de page du site d’annonces',
+     !(await p.getByText('Urgence 24/24').isVisible().catch(() => false)) &&
+       (await p.getByText('Tous droits réservés', { exact: false }).count()) === 0);
+  ok('tableau de bord : consignes de l’administration', await apparait(p.getByText('Ajouter une photo ou un logo').first()));
 
   const rail = p.getByRole('complementary', { name: 'Espace prestataire' });
-  await rail.getByRole('button', { name: /Demandes de devis/ }).click();
+  await rail.getByRole('button', { name: /Consignes/ }).click();
+  await p.getByRole('button', { name: 'Marquer exécutée' }).first().click();
+  ok('consigne exécutée : passe dans « Exécutées »', await apparait(p.getByText('Consigne exécutée')));
+  await rail.getByRole('button', { name: /Demandes clients/ }).click();
   await apparait(p.getByRole('heading', { name: 'Demandes de devis' }));
   await p.getByRole('button', { name: 'Acceptées', exact: true }).click();
   const cartes = await p.getByRole('button', { name: 'Voir la demande' }).count();
@@ -283,16 +290,16 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
   await apparait(p.getByRole('heading', { name: 'Demandes de devis' }));
   ok('réponse envoyée : la demande passe à « Répondue »', (await p.getByText('Répondue', { exact: true }).count()) >= 2);
 
-  await rail.getByRole('button', { name: /Mes réalisations/ }).click();
+  await rail.getByRole('button', { name: /Réalisations/ }).click();
   await p.getByRole('button', { name: 'Ajouter une photo' }).first().click();
-  await rail.getByRole('button', { name: /Mon profil/ }).click();
+  await rail.getByRole('button', { name: /Fiche professionnelle/ }).click();
   ok('photo ajoutée visible dans le profil (4 sur 5)', await apparait(p.getByText(/^4$/).first()));
 
   for (const [entree, titre] of [
     [/Vérification/, 'Soumettre à vérification'],
-    [/Abonnement et factures/, 'Abonnement et factures'],
+    [/Facturation/, 'Abonnement et factures'],
     [/Mise en avant/, 'Mise en avant'],
-    [/Mes avis/, 'Mes avis'],
+    [/Avis clients/, 'Mes avis'],
     [/Notifications/, 'Notifications'],
   ]) {
     await rail.getByRole('button', { name: entree }).click();
@@ -300,17 +307,26 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
   }
   await p.getByRole('button', { name: 'Tout marquer comme lu' }).click();
   ok('notifications lues : plus de pastille « Nouveau »', !(await p.getByText('Nouveau', { exact: true }).isVisible().catch(() => false)));
+  await rail.getByRole('button', { name: "Quitter l'espace pro" }).click();
+  ok('« Quitter l’espace pro » ramène au site', await apparait(p.getByText('Recherches populaires')));
   await ctx.close();
 }
 
-// M · Espace prestataire sur téléphone : rail en onglets, factures en cartes, pas de débordement
+// M · Espace prestataire sur téléphone : application avec navigation basse
 {
   const { ctx, p } = await neuve(390, 844);
   await p.getByRole('button', { name: 'Devenir partenaire' }).first().click();
   await connecter(p);
-  await apparait(p.getByRole('heading', { name: 'Bonjour, Koffi Tanoh' }));
-  await p.getByRole('complementary', { name: 'Espace prestataire' }).getByRole('button', { name: /Abonnement/ }).click();
-  ok('mobile : factures affichées en cartes', await apparait(p.locator('[data-r="factures-cartes"]').getByText('FAC-2026-00042')));
+  await apparait(p.getByRole('heading', { name: 'Tableau de bord' }));
+  const bas = p.getByRole('navigation', { name: "Navigation de l'espace pro" });
+  ok('mobile : navigation basse de l’application', await apparait(bas));
+  ok('mobile : pas de barre d’onglets du site public', !(await p.locator('[data-r="tabbar"]').isVisible().catch(() => false)));
+  await bas.getByRole('button', { name: /Demandes/ }).click();
+  ok('mobile : onglet Demandes', await apparait(p.getByRole('heading', { name: 'Demandes de devis' })));
+  await bas.getByRole('button', { name: 'Plus' }).click();
+  await p.getByRole('dialog', { name: 'Autres modules' }).getByRole('button', { name: /Factures/ }).click();
+  ok('mobile : « Plus » mène aux factures, affichées en cartes',
+     await apparait(p.locator('[data-r="factures-cartes"]').getByText('FAC-2026-00042')));
   ok('mobile : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
   await ctx.close();
 }
