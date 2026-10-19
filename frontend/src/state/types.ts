@@ -2,6 +2,7 @@ import type { Prestataire } from "../data/catalogue";
 import type { Sujet } from "../data/projet";
 import type { CleCanal } from "../data/compte";
 import type { Filtre } from "../lib/annuaire";
+import type { DemandeApi, PrestataireApi } from "../lib/api";
 
 export type Ecran =
   | "home"
@@ -26,6 +27,12 @@ export type Ecran =
   | "avis"
   | "connexion"
   | "inscription"
+  /* Parcours de demande : assistant, recommandations, confirmation, accusé d'envoi */
+  | "besoin"
+  | "recommandations"
+  | "confirmation"
+  | "demandeEnvoyee"
+  | "favoris"
   /* Espace client (dans le site public) */
   | "clientDashboard"
   | "clientDemandes"
@@ -71,6 +78,31 @@ export type Formulaire = {
 };
 
 export type Notes = { ponct: number; qual: number; prix: number };
+
+export type Quand = "maintenant" | "aujourdhui" | "demain" | "date";
+
+/**
+ * Le besoin du client, rempli par l'assistant en 4 questions puis complété par le choix
+ * du technicien et du paiement. Public jusqu'à « Confirmer ma demande ».
+ */
+export type Besoin = {
+  /** Clé du secteur (« plomberie »), comme dans config/secteurs.php côté API. */
+  secteur: string | null;
+  /** Secteurs suggérés par une recherche ambiguë (« porte ») : l'assistant demande lequel. */
+  suggestions: string[];
+  probleme: string | null;
+  /** Description libre, obligatoire avec « Autre ». */
+  precision: string;
+  quartier: number | null;
+  repere: string;
+  quand: Quand | null;
+  /** AAAA-MM-JJ, avec quand = « date ». */
+  date: string;
+  photos: File[];
+  mode: "recommande" | "choisi" | null;
+  prestataire: PrestataireApi | null;
+  paiement: "especes" | "mobile_money";
+};
 
 export type Etat = {
   screen: Ecran;
@@ -143,6 +175,13 @@ export type Etat = {
   /* Fiche professionnelle */
   /** Identifiant du prestataire affiché ; `null` = fiche de démonstration du module projet. */
   fiche: number | null;
+
+  /* Parcours de demande */
+  besoin: Besoin;
+  /** 0 = choix du service, 1 à 4 = les quatre questions, 5 = résumé et choix du mode. */
+  besoinEtape: number;
+  /** La demande que l'API vient d'enregistrer, pour l'accusé d'envoi. */
+  demandeEnvoyee: DemandeApi | null;
 };
 
 /** Champs restaurés lors d'un retour navigateur. */
@@ -160,4 +199,5 @@ export type Navigation = Pick<
   | "sujetPv"
   | "modeAccueil"
   | "fiche"
+  | "besoinEtape"
 >;

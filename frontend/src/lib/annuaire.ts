@@ -2,7 +2,12 @@ import type { Prestataire } from "../data/catalogue";
 import type { PrestataireApi } from "./api";
 
 /** Une recherche : ce qui est envoyé à l'API, à côté du titre affiché. */
-export type Filtre = { q?: string; categorie?: string; departement?: string };
+export type Filtre = {
+  q?: string;
+  categorie?: string;
+  departement?: string;
+  tri?: "pertinence" | "note" | "avis" | "distance" | "reponse";
+};
 
 /** « Bouaké » → « bouake », comme les slugs du backend. */
 export function slugifier(texte: string): string {

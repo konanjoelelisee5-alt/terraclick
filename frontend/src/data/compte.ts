@@ -23,23 +23,23 @@ export const NOTIFICATIONS = [
   {
     icon: "file-text",
     titre: "3 offres reçues",
-    texte: "Fondation & gros œuvre · à partir de 980 000 F",
+    texte: "Changement de serrure · à partir de 15 000 F",
     quand: "il y a 1 h",
     canal: "SMS",
     neuf: true,
   },
   {
-    icon: "shield-check",
-    titre: "L'agent a vérifié la commande",
-    texte: "Ordinateur 16 Go · conforme à la checklist",
+    icon: "calendar-check",
+    titre: "Rendez-vous confirmé",
+    texte: "Élec Yakro passe jeudi à 10 h · Millionnaire",
     quand: "hier",
     canal: "Dans l'application",
     neuf: true,
   },
   {
     icon: "receipt",
-    titre: "Séquestre libéré",
-    texte: "340 000 F versés à Tech Ivoire · reçu disponible",
+    titre: "Reçu disponible",
+    texte: "12 000 F réglés à Koffi Tanoh · fuite de douche",
     quand: "il y a 3 j",
     canal: "E-mail",
     neuf: false,
@@ -48,12 +48,12 @@ export const NOTIFICATIONS = [
 
 export const CONVERSATIONS = [
   { ini: "KT", nom: "Koffi Tanoh", texte: "Je passe ce soir vers 17h, 12 000 F", quand: "4 min" },
-  { ini: "TI", nom: "Tech Ivoire", texte: "Le PC est prêt, l'agent passe demain", quand: "hier" },
+  { ini: "MK", nom: "Menuiserie Konaté", texte: "Les deux portes sont prêtes, je pose samedi", quand: "hier" },
 ];
 
 export const DEMANDES = [
   { titre: "Plomberie · fuite douche", info: "Habitat · aujourd'hui · 3 réponses", etat: "3 offres", ok: true },
-  { titre: "Carrelage 40 m²", info: "Kokrenou · cette semaine · en attente", etat: "En attente", ok: false },
+  { titre: "Serrurerie · porte d'entrée", info: "Kokrenou · cette semaine · en attente", etat: "En attente", ok: false },
 ];
 
 export const FAVORIS = [
@@ -70,11 +70,11 @@ export const EQUIPEMENTS_POSES = [
     prochain: "Entretien prévu en octobre",
   },
   {
-    nom: "Panneaux solaires 3 kW",
-    info: "Toiture · installés le 4 janvier 2026",
-    garantie: "Garantie jusqu'au 4 janvier 2031",
+    nom: "Serrure multipoint",
+    info: "Porte d'entrée · posée le 4 janvier 2026",
+    garantie: "Garantie jusqu'au 4 janvier 2028",
     etat: "Sous garantie",
-    prochain: "Nettoyage prévu en novembre",
+    prochain: "Graissage conseillé en janvier",
   },
   {
     nom: "Chauffe-eau 100 L",
@@ -94,23 +94,23 @@ export const ABONNEMENTS = [
     actif: true,
   },
   {
-    nom: "Nettoyage panneaux solaires",
-    info: "Une visite par an · Soleil CI",
+    nom: "Contrôle de l'installation électrique",
+    info: "Une visite par an · Élec Yakro",
     prochain: "Novembre 2026",
-    prix: "45 000 F par visite",
+    prix: "20 000 F par visite",
     actif: true,
   },
   {
-    nom: "Ménage hebdomadaire",
+    nom: "Entretien plomberie",
     info: "Suspendu depuis juillet",
     prochain: "Aucune visite planifiée",
-    prix: "12 000 F par passage",
+    prix: "10 000 F par passage",
     actif: false,
   },
 ];
 
 export const RECUS = [
-  { ref: "REC-2841", titre: "Ordinateur 16 Go · Tech Ivoire", montant: "340 000 F", date: "12 août 2026" },
+  { ref: "REC-2841", titre: "Changement de serrure · Serrurerie N'Guessan", montant: "18 000 F", date: "12 août 2026" },
   { ref: "REC-2790", titre: "Fuite douche · Koffi Tanoh", montant: "12 000 F", date: "3 août 2026" },
 ];
 

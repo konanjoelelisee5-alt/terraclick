@@ -1,19 +1,30 @@
+import { CONFIG } from "../lib/config";
 import { useApp } from "../state/app";
+import { ChoixVille } from "./ChoixVille";
 import { Icon } from "./Icon";
 
-/** Mot-symbole de la marque : aucun logo n'existe, la marque s'écrit. */
+/** Logo TerraClick : le pictogramme (public/icons/logo-96.png) suivi du nom, Terra foncé et Click orange. */
 export function Wordmark({ size = 21 }: { size?: number }) {
   return (
-    <span
-      style={{
-        fontFamily: "var(--font-heading)",
-        fontWeight: 800,
-        fontSize: `${size}px`,
-        letterSpacing: "-0.028em",
-        color: "var(--color-text)",
-      }}
-    >
-      servis<span style={{ color: "var(--color-accent)" }}>yakro</span>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: Math.round(size * 0.3) }}>
+      <img
+        src={`${import.meta.env.BASE_URL}icons/logo-96.png`}
+        alt=""
+        width={Math.round(size * 1.7)}
+        height={Math.round(size * 1.7)}
+        style={{ display: "block", flex: "none" }}
+      />
+      <span
+        style={{
+          fontFamily: "var(--font-heading)",
+          fontWeight: 800,
+          fontSize: `${size}px`,
+          letterSpacing: "-0.028em",
+          color: "var(--color-text)",
+        }}
+      >
+        Terra<span style={{ color: "var(--color-accent)" }}>Click</span>
+      </span>
     </span>
   );
 }
@@ -28,7 +39,8 @@ const LIEN: React.CSSProperties = {
 };
 
 export function Header() {
-  const { etat, set, go, exigerCompte, deconnecter, ville, villeIdx } = useApp();
+  const { etat, set, go, exigerCompte, deconnecter, demarrerBesoin } = useApp();
+  const espaceClient = /^(client[A-Z]|compte$)/.test(etat.screen);
   const connecte = !!etat.auth;
   const initiales = etat.auth
     ? etat.auth.prenom
@@ -37,8 +49,6 @@ export function Header() {
         .join("")
         .slice(0, 2)
     : "";
-
-  const changerVille = () => set({ ville: (villeIdx + 1) % 4 });
 
   return (
     <header
@@ -50,11 +60,11 @@ export function Header() {
         borderBottom: "1px solid var(--color-divider)",
       }}
     >
-      <div data-r="container" style={{ minHeight: 72, display: "flex", alignItems: "center", gap: 26 }}>
+      <div data-r="container" data-bloc="entete" style={{ minHeight: 72, display: "flex", alignItems: "center", gap: 26 }}>
         <button
           onClick={() => go("home")}
           style={{ ...LIEN, display: "flex", alignItems: "center", gap: 10 }}
-          aria-label="Servis Yakro, retour à l'accueil"
+          aria-label="TerraClick, retour à l'accueil"
         >
           <Wordmark />
         </button>
@@ -72,41 +82,62 @@ export function Header() {
           >
             Départements
           </button>
-          <button onClick={() => exigerCompte(() => go("devis", { step: 1 }))} style={LIEN}>
-            Demander un devis
+          <button onClick={() => demarrerBesoin()} style={LIEN}>
+            Demander une intervention
           </button>
-          <button onClick={() => go("construction")} style={LIEN}>
-            Construction
-          </button>
-          <button onClick={() => exigerCompte(() => go("mesProjets"))} style={LIEN}>
-            Mes projets
-          </button>
+          {CONFIG.moduleConstruction && (
+            <>
+              <button onClick={() => go("construction")} style={LIEN}>
+                Construction
+              </button>
+              <button onClick={() => exigerCompte(() => go("mesProjets"))} style={LIEN}>
+                Mes projets
+              </button>
+            </>
+          )}
           <button onClick={() => go("urgence")} style={{ ...LIEN, color: "var(--color-accent-700)" }}>
             Urgence 24/24
           </button>
         </nav>
 
+        {/* La ville sert à chercher : elle n'a pas sa place dans l'espace client. */}
+        {!espaceClient && (
+          <ChoixVille
+            data-r="nav-ville"
+            compact
+            style={{
+              display: "none",
+              marginLeft: "auto",
+              alignItems: "center",
+              gap: 6,
+              border: "1px solid var(--color-divider)",
+              borderRadius: "999px",
+              padding: "6px 12px",
+              fontSize: "13px",
+              whiteSpace: "nowrap",
+            }}
+          />
+        )}
+
+        {/* En-tête mobile : notifications à côté de la ville (la navigation d'en-tête est masquée). */}
         <button
-          onClick={changerVille}
-          data-r="nav-ville"
+          data-r="nav-notif-mobile"
+          onClick={() => exigerCompte(() => set({ notifOpen: !etat.notifOpen }))}
+          aria-label="Notifications"
           style={{
-            display: "none",
-            marginLeft: "auto",
-            alignItems: "center",
-            gap: 6,
-            background: "none",
+            marginLeft: espaceClient ? "auto" : 0,
+            width: 44,
+            height: 44,
+            flex: "none",
+            placeItems: "center",
             border: "1px solid var(--color-divider)",
-            borderRadius: "999px",
-            padding: "6px 12px",
-            cursor: "pointer",
-            font: "inherit",
-            fontSize: "13px",
+            borderRadius: 999,
+            background: "var(--color-neutral-100)",
             color: "inherit",
-            whiteSpace: "nowrap",
+            cursor: "pointer",
           }}
         >
-          <Icon name="map-pin" size={15} strokeWidth={2.75} color="var(--color-accent)" />
-          {ville}
+          <Icon name="bell" size={20} />
         </button>
 
         <div data-r="nav-auth" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>

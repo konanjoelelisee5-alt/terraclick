@@ -1,6 +1,6 @@
-# Servis Yakro — API
+# TerraClick — API
 
-API Laravel 13 de Servis Yakro. Elle sert le frontend React de `../frontend`.
+API Laravel 13 de TerraClick (anciennement Servis Yakro). Elle sert le frontend React de `../frontend`.
 
 ## Démarrer
 
@@ -49,15 +49,32 @@ attendent l'en-tête `Authorization: Bearer <token>`.
 | GET | `/prestataires/{id}` | Fiche professionnelle. Le téléphone n'apparaît que pour un utilisateur connecté |
 | GET | `/prestataires/{id}/avis` | Avis, paginés |
 | POST | `/prestataires/{id}/avis` 🔒 | Publie un avis. Corps : `ponctualite`, `qualite`, `prix` (de 1 à 5), `commentaire` |
+| GET | `/secteurs` | Services ouverts et leurs problèmes types (première question de l'assistant) |
+| GET | `/analyse?q=` | Ce que la barre de recherche comprend : `secteurs` et, s'il est nommé, `probleme` |
+| GET | `/recommandations?secteur=&quartier=` | Les 3 meilleurs techniciens pour ce besoin (quartier d'abord, puis mis en avant, note, avis, réactivité). `exclure[]` écarte ceux déjà proposés |
+| POST | `/demandes` 🔒 | Envoie une demande. Multipart : `secteur`, `probleme`, `precision`, `quartier_id`, `repere`, `quand` (`maintenant`, `aujourdhui`, `demain`, `date` + `date_souhaitee`), `mode` (`recommande` ou `choisi`), `prestataire_id`, `paiement` (`especes` ou `mobile_money`), `photos[]` (3 au plus) |
+| GET | `/demandes/{id}` 🔒 | Une demande, pour son auteur seulement |
 
 **Filtres de `/prestataires`** :
 
-- `q` : texte libre, sans tenir compte des accents ;
+- `q` : texte libre, sans tenir compte des accents. Il peut s'agir d'un métier (« plombier »),
+  d'un service (« plomberie ») ou d'une phrase (« ma douche fuit depuis hier »).
+  `App\Services\AnalyseurBesoin` en déduit le secteur d'après le vocabulaire de
+  `config/secteurs.php`, et la recherche porte alors sur ses catégories. À égalité, plusieurs
+  secteurs sont proposés : « porte » donne Serrurerie et Menuiserie. Si rien n'est reconnu,
+  la phrase entière ou l'un de ses mots significatifs est cherché dans le nom, le métier, la
+  description et les catégories. La réponse indique ce qui a été compris dans
+  `analyse.secteurs` (par exemple `["Plomberie"]`, ou `[]`) ;
 - `categorie`, `departement`, `ville` : slugs ;
 - `quartier` : identifiant ;
 - `lat`, `lng` et `rayon_km` : « Autour de moi » ;
 - `tri` : `pertinence`, `note`, `avis`, `distance` ou `reponse` ;
 - `par_page` : 50 au plus.
+
+**Périmètre MVP** : `config/mvp.php` liste les catégories ouvertes au public. Toutes les
+routes de l'annuaire, avis compris, taisent les autres catégories et les prestataires qui
+n'exercent que des métiers masqués. Les données restent en base. `MVP_ACTIF=false` rouvre
+tout. La liste de ce qui est masqué est tenue dans le [README racine](../README.md#périmètre-du-mvp).
 
 **Comportement de l'authentification** :
 

@@ -12,7 +12,8 @@ class RechercherPrestatairesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'q' => ['nullable', 'string', 'max:100'],
+            // Un métier ou une phrase décrivant le problème.
+            'q' => ['nullable', 'string', 'max:255'],
             'categorie' => ['nullable', 'string', 'exists:categories,slug'],
             'departement' => ['nullable', 'string', 'exists:departements,slug'],
             'ville' => ['nullable', 'string', 'exists:villes,slug'],

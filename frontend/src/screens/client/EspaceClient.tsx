@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useApp } from "../../state/app";
+import { Icon } from "../../components/Icon";
 import type { Ecran } from "../../state/types";
 import { useEtatClient } from "./store";
 
@@ -26,22 +27,37 @@ export function OngletsClient() {
     clientNotifications: notificationsLues ? 0 : 1,
   };
 
+  // Ordinateur : les onglets. Téléphone (app.css) : à leur place, un retour vers l'écran Compte,
+  // qui regroupe leur contenu en sections et en menu.
   return (
-    <nav aria-label="Espace client" data-r="steprail" className="sy-tabs" style={{ overflowX: "auto", gap: 24 }}>
-      {ONGLETS.map((o) => (
+    <>
+      <nav aria-label="Espace client" data-r="steprail" className="sy-tabs" style={{ overflowX: "auto", gap: 24 }}>
+        {ONGLETS.map((o) => (
+          <button
+            key={o.ecran}
+            type="button"
+            onClick={() => go(o.ecran)}
+            aria-current={courant === o.ecran ? "page" : undefined}
+            className={`sy-tab${courant === o.ecran ? " sy-tab--active" : ""}`}
+            style={{ flex: "none", whiteSpace: "nowrap", minHeight: 44 }}
+          >
+            {o.libelle}
+            {comptes[o.ecran] ? <span className="sy-tab__count">{comptes[o.ecran]}</span> : null}
+          </button>
+        ))}
+      </nav>
+      {etat.screen !== "clientDashboard" && (
         <button
-          key={o.ecran}
+          data-r="retour-compte"
           type="button"
-          onClick={() => go(o.ecran)}
-          aria-current={courant === o.ecran ? "page" : undefined}
-          className={`sy-tab${courant === o.ecran ? " sy-tab--active" : ""}`}
-          style={{ flex: "none", whiteSpace: "nowrap", minHeight: 44 }}
+          onClick={() => go("clientDashboard")}
+          style={{ display: "none", alignItems: "center", gap: 4, alignSelf: "flex-start", minHeight: 44, padding: 0, background: "none", border: 0, cursor: "pointer", font: "inherit", fontSize: "15px", fontWeight: 600, color: "var(--color-accent-700)" }}
         >
-          {o.libelle}
-          {comptes[o.ecran] ? <span className="sy-tab__count">{comptes[o.ecran]}</span> : null}
+          <Icon name="chevron-left" size={18} />
+          Profil
         </button>
-      ))}
-    </nav>
+      )}
+    </>
   );
 }
 

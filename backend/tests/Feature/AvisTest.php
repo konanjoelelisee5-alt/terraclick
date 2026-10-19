@@ -13,6 +13,13 @@ class AvisTest extends TestCase
 
     private const NOTES = ['ponctualite' => 5, 'qualite' => 4, 'prix' => 3, 'commentaire' => 'Travail propre.'];
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Les prestataires de la fabrique n'ont pas de catégorie : hors du périmètre MVP.
+        config(['mvp.actif' => false]);
+    }
+
     public function test_publier_un_avis_met_a_jour_la_moyenne(): void
     {
         $pro = Prestataire::factory()->create(['note_moyenne' => 4.0, 'nombre_avis' => 3]);

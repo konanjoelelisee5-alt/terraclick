@@ -75,7 +75,8 @@ export const DEMANDE_DETAIL = {
   photos: ["Photo 1", "Photo 2"],
 };
 
-export const SERVICES = ["Plomberie", "Électricité", "Carrelage", "Peinture", "Climatisation", "Menuiserie", "Maçonnerie", "Ménage"];
+/** Services proposables par un prestataire : les cinq secteurs du MVP (voir catalogue.ts). */
+export const SERVICES = ["Plomberie", "Électricité", "Climatisation", "Serrurerie", "Menuiserie"];
 export const SERVICES_ACTIFS = ["Plomberie"];
 
 export const QUARTIERS_YAKRO = ["Habitat", "Kokrenou", "Millionnaire", "Dioulakro", "N'Zuessy", "Morofe", "Assabou", "Centre-ville", "Kpangbassou"];

@@ -1,10 +1,182 @@
-# Servis Yakro
+# TerraClick
 
-Place de marché de services locaux pour la Côte d'Ivoire, ancrée à **Yamoussoukro**.
+Place de marché de services locaux pour toute la Côte d'Ivoire, lancée à **Yamoussoukro**
+puis ouverte aux autres villes du pays.
+
+> **Ancien nom : Servis Yakro.** Le produit s'appelle désormais **TerraClick**. Le
+> mot-symbole s'écrit « Terra » en noir et « Click » en orange (`--color-accent`), avec la
+> même disposition de couleurs qu'avant. Seuls les textes visibles ont été renommés. Ces
+> noms internes gardent « Servis Yakro » :
+>
+> - le design system vendorisé (`src/styles/ds/`, préfixe `sy-`) ;
+> - la variante de thème `"Servis Yakro (officiel)"` ;
+> - le dossier du dépôt ;
+> - les bases `servis_yakro_v2` ;
+> - les clés `sy.*` du stockage local.
+>
+> Les renommer est possible mais ferait perdre les sessions déjà ouvertes (`sy.jeton`).
 Un citoyen décrit son besoin — une fuite, un maçon, un ordinateur, une maison à construire —
 et l'application le relie à des prestataires vérifiés, jusqu'à la réception de la prestation.
 
 Application web responsive, utilisée sur ordinateur comme sur Android (360–412 px).
+
+## Mise en ligne
+
+L'application est une **PWA installable** sur ordinateur et téléphone :
+- `frontend/public/manifest.webmanifest` : manifeste ;
+- `frontend/public/sw.js` : service worker, qui ne met jamais l'API en cache ;
+- icônes générées depuis le logo, dans `frontend/public/icons/`.
+
+Le déploiement sur Render (API en Docker, interface en site statique, MySQL chez Aiven) est
+décrit dans [`docs/DEPLOIEMENT-RENDER.md`](docs/DEPLOIEMENT-RENDER.md) et dans `render.yaml`.
+Tant qu'aucun fournisseur SMS ou WhatsApp n'est branché, seuls les numéros listés dans
+`OTP_NUMEROS_TEST` peuvent se connecter, avec le code `OTP_CODE_TEST`.
+
+## Périmètre du MVP
+
+La première version publique ne couvre que **cinq secteurs** :
+
+- Plomberie
+- Électricité
+- Climatisation
+- Serrurerie
+- Menuiserie
+
+Tout le reste est **masqué, pas supprimé**. Les données sont toujours en base et les écrans
+restent dans le code. Les secteurs reviendront un par un, au fil de l'usage. Cette section
+recense ce qui est masqué et dit comment le rouvrir.
+
+### Comment c'est masqué
+
+| Où | Réglage | Effet |
+| --- | --- | --- |
+| API | `backend/config/mvp.php` : `categories` | Liste des slugs de catégories ouvertes. Le méga-menu, la recherche, les vedettes, les fiches et les avis taisent tout le reste. Une rubrique ou un département vidé disparaît. |
+| API | `MVP_ACTIF=false` dans `backend/.env` | Rouvre tout l'annuaire d'un coup. |
+| Frontend | `frontend/src/lib/config.ts` : `moduleConstruction` | `false` masque le module Construction (voir plus bas), `true` le rebranche partout. |
+| Frontend | `frontend/src/lib/config.ts` : `modesAccueil` | `false` masque la bascule Recherche / Autour de moi / Box intelligente de l'accueil et l'onglet « Carte » de la barre mobile (voir plus bas), `true` les rebranche. |
+| Frontend | `frontend/src/lib/config.ts` : `carteResultats` | `false` masque la bascule Liste / Carte des résultats, qui restent en liste ; `true` la rebranche. |
+| Frontend | `frontend/src/data/catalogue.ts` : `SECTEURS` | Les cinq secteurs de l'accueil (raccourcis et cartes), du formulaire de devis et, via `pro.ts`, des services d'un prestataire. |
+| Tests | `frontend/tests/parcours.mjs` : `MODULE_CONSTRUCTION` | Réactive les règles C à F (assistant, contrat, PV, bloc BTP). |
+| Tests | `frontend/tests/parcours.mjs` : `MODES_ACCUEIL` | Réactive la première moitié de la règle N (Box intelligente et « Autour de moi » réservées aux inscrits). |
+| Tests | `frontend/tests/parcours.mjs` : `CARTE_RESULTATS` | Réactive la fin de la règle N (vue carte des résultats réservée aux inscrits). |
+
+**Rouvrir un secteur** :
+
+1. Ajoutez le slug de ses catégories dans `config/mvp.php`, et son vocabulaire dans
+   `config/secteurs.php`. Ce vocabulaire permet à la barre de recherche de reconnaître
+   une phrase comme « ma voiture ne démarre plus ».
+2. Ajoutez-le à `SECTEURS` dans `catalogue.ts`, avec son icône Lucide (déclarée dans
+   `components/Icon.tsx`).
+3. Complétez `MvpTest.php`.
+
+### Catégories ouvertes
+
+| Secteur | Catégories (slug) |
+| --- | --- |
+| Plomberie | `plombiers`, `entretien-plomberie` |
+| Électricité | `electriciens`, `entretien-electricite` |
+| Climatisation | `climatisation-vente-et-reparation` |
+| Serrurerie | `serruriers` (catégorie créée pour le MVP, rubrique Construction) |
+| Menuiserie | `menuisiers` |
+
+### Masqué pour l'instant, à rouvrir plus tard
+
+**Départements et catégories de l'annuaire** (`CatalogueSeeder`) :
+
+- **Maison & Bâtiment**, sauf les catégories ci-dessus :
+  - Immobilier : maisons à louer, appartements à vendre, terrains, magasins à louer, agences
+    immobilières, notaires ;
+  - Construction : entreprises de construction, architectes et bureaux d'études,
+    quincailleries et matériaux, cimenteries, maçons, vitriers, carreleurs, peintres ;
+  - Équipement maison : panneaux solaires, groupes électrogènes, sécurité et
+    vidéosurveillance, meubles, décoration ;
+  - Entretien : femmes de ménage, jardiniers, piscinistes, désinsectisation, nettoyage de
+    façades et toitures.
+- **Auto & Transport** : mécanique, pièces détachées, transport, carburant.
+- **Alimentation & Marché** : supermarchés, marchés, restaurants et maquis, livraison.
+- **Éducation & Services** : cours, démarches administratives, formation.
+- **Santé & Bien-être** : santé, beauté.
+- **Hôtellerie & Tourisme** : hébergement, loisirs.
+- **Entreprise & Pro** : services aux entreprises, bureautique, événementiel.
+- **Technologie & Énergie** : informatique, énergie (dont « Électricien », doublon de la
+  catégorie ouverte), électroménager.
+- **Mode & Commerce** : vêtements, boutiques en ligne.
+- **Finance & Assurance** : banque, mobile money, assurance.
+- **Religion & Association** : lieux de culte, associations.
+- **Administration** : services publics, urgence.
+
+**Prestataires de démonstration masqués** : Garage Bamba, Auto Service Yakro, Solar Mamadou,
+Soleil Énergie, Ent. Bakayoko. Ali Diomandé n'apparaît que comme plombier, pas comme
+carreleur.
+
+**Module Construction** (`moduleConstruction: false`) :
+
+- page « Construction & travaux » ;
+- assistant de projet en sept étapes et page « Projet publié » ;
+- « Mes projets » et page projet à onze onglets ;
+- suivi avancé avec séquestre et litige ;
+- contrat en cinq étapes, PV de réserves.
+
+Ses points d'entrée sont retirés :
+
+- liens « Construction » et « Mes projets » de l'en-tête ;
+- onglet « Projets » de la barre mobile ;
+- bloc « Projet de construction ? » du méga-menu ;
+- bloc « Accompagnement BTP » et bandeau « Suivi avancé » des résultats ;
+- carte « Besoin en plusieurs étapes ? » de la Box intelligente ;
+- badge « Accepte les projets suivis » et bouton « Ajouter à mon projet suivi » de la fiche.
+
+Sur la fiche, « Demander un devis » ouvre le devis simple au lieu de l'assistant. Un écran du
+module atteint malgré tout (historique, état restauré) affiche l'accueil.
+
+**Modes de l'accueil** (`modesAccueil: false`), fonctionnalités à construire plus tard :
+
+- la bascule à trois boutons sous la barre de recherche : **Recherche**, **Autour de moi** et
+  **Box intelligente** ;
+- **Autour de moi** (`screens/home/ModeCarte.tsx`) : carte et liste des prestataires proches
+  de la position de l'utilisateur, réservées aux clients inscrits ;
+- **Box intelligente** (`screens/home/ModeBox.tsx`) : le client décrit son problème en une
+  phrase, et la Box répond par le métier, une fourchette de prix et le niveau d'enjeu. Elle
+  écoute aussi les messages vocaux et peut ouvrir un projet suivi. Réservée aux inscrits ;
+- l'onglet **Carte** de la barre d'onglets mobile, qui ouvrait « Autour de moi ».
+
+L'accueil reste en mode recherche.
+
+**Vue carte des résultats** (`carteResultats: false`) : la bascule **Liste / Carte** en haut
+à droite de la page des résultats est masquée. Les résultats s'affichent toujours en liste.
+La vue carte (`components/MapCanvas.tsx`) plaçait les prestataires trouvés sur une carte
+au-dessus de la liste, et elle était réservée aux clients inscrits.
+
+Côté API, les filtres `lat`, `lng` et `rayon_km` de `/prestataires` sont conservés pour ces
+fonctionnalités.
+
+**Méga-menu** (bouton « Départements » de la barre de recherche) : tant que l'API ne
+renvoie qu'un département, `components/MegaMenu.tsx` masque :
+
+- la colonne de gauche qui liste les départements ;
+- le nom du département (« Maison & Bâtiment ») ;
+- le bouton « Tout voir ».
+
+Seules restent les rubriques (Construction, Équipement maison, Entretien) et leurs
+catégories. Ces éléments reviennent d'eux-mêmes dès qu'un deuxième département est rouvert
+dans `config/mvp.php`.
+
+**Contenus d'interface remplacés** (anciennes valeurs, à reprendre au besoin) :
+
+- *Recherches populaires* : Mécanicien, Réparation climatisation, Panneaux solaires,
+  Plomberie, Électricité.
+- *Recherché en ce moment* : Plombier, Mécanicien, Cyber, Point Wave, Maquis.
+- *Formulaire de devis* : Plomberie, Électricité, Climatisation, Menuiserie (Serrurerie
+  ajoutée).
+- *Services d'un prestataire* : Carrelage, Peinture, Maçonnerie, Ménage retirés ; Serrurerie
+  ajoutée.
+- *Dépannage 24/24* : « Remorquage auto 24/24 » remplacé par « Plombier d'urgence ».
+- *Exemples de la Box intelligente* : « Je veux carreler 40 m² à Habitat », « Trouver un
+  traiteur pour 80 personnes ».
+- *Espace client fictif* (`data/compte.ts`, `data/client.ts`, reçu, avis) : achat
+  d'ordinateur chez Tech Ivoire avec séquestre, panneaux solaires, ménage hebdomadaire,
+  offres de gros œuvre, demande de carrelage, demande à Garage Bamba. Ces exemples sont
+  remplacés par des prestations des cinq secteurs.
 
 ## Démarrer
 
@@ -53,7 +225,51 @@ Commandes du frontend, à lancer dans `frontend/` :
 | `npm run typecheck` | TypeScript seul |
 | `npm run test:parcours` | rejoue les règles de fonctionnement dans un navigateur (voir plus bas) |
 
+## Parcours de demande (lot 1)
+
+Le parcours client remplace l'ancienne demande de devis en 3 étapes (`screens/Devis.tsx`,
+conservé mais plus atteignable). Les écrans se trouvent dans `frontend/src/screens/besoin/`.
+
+1. **Accueil orienté problème** : barre « Quel est votre problème ? », boutons « Urgence
+   maintenant » et « Programmer une intervention », services en tuiles. La recherche passe
+   par `/api/analyse` :
+   - si un service est reconnu, l'assistant s'ouvre, problème présélectionné quand il est nommé ;
+   - si plusieurs services sont possibles, l'assistant demande lequel ;
+   - sinon, c'est la recherche texte.
+2. **Assistant en 4 questions** : le problème (ou « Autre » décrit), le quartier et un point
+   de repère, le moment (maintenant, aujourd'hui, demain, date), puis jusqu'à 3 photos
+   facultatives. Un résumé suit : « Plomberie · Fuite d'eau · Habitat · Maintenant ».
+3. **Choix du mode** : « Trouver pour moi » est proposé en premier pour une urgence,
+   « Choisir moi-même » pour une intervention programmée ou une installation.
+4. **Mise en relation** :
+   - « Trouver pour moi » propose les 3 meilleurs techniciens, le premier marqué
+     « Recommandé ». Le client peut aussi en choisir un autre, en demander d'autres ou
+     comparer lui-même ;
+   - « Choisir moi-même » ouvre la liste filtrable, et la fiche porte « Demander ce
+     technicien ».
+5. **Confirmation** : résumé, technicien, frais de déplacement, paiement (espèces ou Mobile
+   Money, réglé directement au technicien), annulation, puis « Confirmer ma demande ».
+   **Le compte n'est demandé qu'à ce moment.** La demande est enregistrée par l'API (table
+   `demandes`, photos sur le disque `public`), et un accusé d'envoi affiche sa référence
+   (DEM-AAAA-NNNNN).
+
+Les textes de frais, d'annulation et de paiement sont dans `frontend/src/data/catalogue.ts`
+(`FRAIS_DEPLACEMENT`, `POLITIQUE_ANNULATION`, `PAIEMENTS`), **à valider côté produit**.
+
+**Restent pour les lots suivants** :
+- **Lot 2** : envoi au technicien, acceptation ou refus, passage automatique au suivant, et
+  suivi « Acceptée → En route → Arrivé → En cours → Terminée ». « Mes demandes » affiche la
+  nouvelle demande, mais son suivi reste fictif.
+- **Lot 3** : « Problème résolu ? », notation, signalement et avis du technicien sur le client.
+- **Filtres de comparaison** : ceux du texte (disponibilité, note minimale, type
+  d'intervention, budget) attendent des données que les fiches n'ont pas encore, notamment
+  les disponibilités.
+
 ## Ce que fait l'application
+
+> Cette section décrit le produit complet. Dans le MVP, l'annuaire se limite aux cinq
+> secteurs ci-dessus. Le module Construction, le suivi avancé, « Autour de moi » et la Box
+> intelligente sont masqués.
 
 **Recherche.** L'accueil offre trois entrées : la **recherche** classique, **Autour de moi**
 (carte et liste des prestataires proches) et la **Box intelligente**, où le besoin est décrit
@@ -128,8 +344,9 @@ Nuit, Compact annuaire), sélectionnées dans `src/lib/config.ts`.
 
 ## Vérification des règles de fonctionnement
 
-`frontend/tests/parcours.mjs` rejoue 27 règles produit dans un vrai navigateur, avec l'API
-réelle :
+`frontend/tests/parcours.mjs` rejoue les règles produit dans un vrai navigateur, avec l'API
+réelle (98 dans le MVP, celles du module Construction, des modes de l'accueil et de la carte des
+résultats étant suspendues) :
 
 - le mur d'authentification et la reprise de l'action interrompue ;
 - la création d'un compte et sa session après rechargement ;
@@ -138,7 +355,8 @@ réelle :
 - le blocage de l'assistant tant qu'une étape est incomplète ;
 - l'impossibilité de terminer le contrat sans signature ;
 - l'isolement du parcours PV ;
-- l'affichage conditionnel du bloc BTP.
+- l'affichage conditionnel du bloc BTP ;
+- le périmètre du MVP : cinq secteurs, métiers masqués introuvables, pas de module Construction.
 
 ```bash
 cd backend && php artisan migrate:fresh --seed && composer serve     # API, port 8000

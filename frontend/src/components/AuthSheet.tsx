@@ -137,7 +137,7 @@ export function AuthSheet() {
       onClick={fermer}
       role="dialog"
       aria-modal="true"
-      aria-label="Connexion à Servis Yakro"
+      aria-label="Connexion à TerraClick"
       style={{
         position: "fixed",
         inset: 0,
@@ -348,7 +348,7 @@ export function AuthSheet() {
                   SY
                 </span>
                 <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-                  Servis Yakro : votre code est {CODE_DEMO.slice(0, 3)} {CODE_DEMO.slice(3, 4)}•• — appuyer pour remplir
+                  TerraClick : votre code est {CODE_DEMO.slice(0, 3)} {CODE_DEMO.slice(3, 4)}•• — appuyer pour remplir
                 </span>
               </button>
             )}

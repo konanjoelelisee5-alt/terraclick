@@ -68,6 +68,26 @@ class Prestataire extends Model
         $query->where('actif', true);
     }
 
+    /** Prestataires actifs et, pendant le MVP, classés dans au moins une catégorie ouverte. */
+    public function scopeVisibles(Builder $query): void
+    {
+        $query->actifs()->when(config('mvp.actif'), fn (Builder $q) => $q->whereHas('categories', fn (Builder $c) => $c->ouvertes()));
+    }
+
+    /** Comptes de pièces justificatives, pour le badge « vérifié » (tout est contrôlé). */
+    public static function comptesDocuments(): array
+    {
+        return [
+            'documents',
+            'documents as documents_verifies_count' => fn (Builder $d) => $d->where('statut', 'verifie'),
+        ];
+    }
+
+    public function estVisible(): bool
+    {
+        return $this->actif && (! config('mvp.actif') || $this->categories()->ouvertes()->exists());
+    }
+
     /** Initiales affichées dans la pastille quand il n'y a pas de photo. */
     public function initiales(): string
     {

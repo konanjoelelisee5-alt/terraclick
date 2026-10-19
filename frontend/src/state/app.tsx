@@ -13,7 +13,7 @@ import { sujetAchat, sujetMaison, type Sujet } from "../data/projet";
 import { api, jeton, type Utilisateur } from "../lib/api";
 import type { Filtre } from "../lib/annuaire";
 import { CONFIG } from "../lib/config";
-import type { Compte, Ecran, Etat, Navigation } from "./types";
+import type { Besoin, Compte, Ecran, Etat, Navigation } from "./types";
 
 const ETAT_INITIAL: Etat = {
   screen: "home",
@@ -70,7 +70,28 @@ const ETAT_INITIAL: Etat = {
   signe: false,
 
   fiche: null,
+
+  besoin: besoinVide(),
+  besoinEtape: 0,
+  demandeEnvoyee: null,
 };
+
+function besoinVide(): Besoin {
+  return {
+    secteur: null,
+    suggestions: [],
+    probleme: null,
+    precision: "",
+    quartier: null,
+    repere: "",
+    quand: null,
+    date: "",
+    photos: [],
+    mode: null,
+    prestataire: null,
+    paiement: "especes",
+  };
+}
 
 function instantane(e: Etat): Navigation {
   return {
@@ -86,6 +107,7 @@ function instantane(e: Etat): Navigation {
     sujetPv: e.sujetPv,
     modeAccueil: e.modeAccueil,
     fiche: e.fiche,
+    besoinEtape: e.besoinEtape,
   };
 }
 
@@ -119,6 +141,13 @@ type Contexte = {
   voirCarte: boolean;
   poserSujetMaison: (patch?: Partial<Etat>) => void;
   poserSujetAchat: (patch?: Partial<Etat>) => void;
+  /**
+   * Ouvre l'assistant de besoin sur une demande neuve, pré-remplie au besoin (service,
+   * problème, urgence, technicien). Sans service connu, il commence par le demander.
+   */
+  demarrerBesoin: (patch?: Partial<Besoin>) => void;
+  /** Complète le besoin en cours, sans changer d'écran. */
+  modifierBesoin: (patch: Partial<Besoin>) => void;
 };
 
 const AppContext = createContext<Contexte | null>(null);
@@ -147,11 +176,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
     const nav = instantane(etat);
-    if (window.history.state?.nav?.screen === nav.screen && window.history.state?.nav?.onglet === nav.onglet) return;
+    const courant = window.history.state?.nav;
+    // Chaque question de l'assistant de besoin est une entrée : « Précédent » revient à la question d'avant.
+    if (courant?.screen === nav.screen && courant?.onglet === nav.onglet && courant?.besoinEtape === nav.besoinEtape) return;
     window.history.pushState({ nav }, "");
     // Seuls les champs de navigation déclenchent un empilement.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [etat.screen, etat.onglet, etat.assistStep, etat.contratStep]);
+  }, [etat.screen, etat.onglet, etat.assistStep, etat.contratStep, etat.besoinEtape]);
 
   useEffect(() => {
     const surRetour = (ev: PopStateEvent) => {
@@ -251,6 +282,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [go],
   );
 
+  const demarrerBesoin = useCallback<Contexte["demarrerBesoin"]>(
+    (patch) => {
+      const besoin = { ...besoinVide(), ...(patch ?? {}) };
+      go("besoin", { besoin, besoinEtape: besoin.secteur ? 1 : 0 });
+    },
+    [go],
+  );
+
+  const modifierBesoin = useCallback<Contexte["modifierBesoin"]>((patch) => {
+    setEtat((e) => ({ ...e, besoin: { ...e.besoin, ...patch } }));
+  }, []);
+
   const terminerAuth = useCallback<Contexte["terminerAuth"]>((utilisateur) => {
     setEtat((e) => ({ ...e, auth: versCompte(utilisateur), authOpen: false, code: "" }));
     // L'action interrompue reprend une fois la feuille refermée.
@@ -270,7 +313,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const villeIdx = etat.ville === null ? Math.max(0, VILLES.indexOf(CONFIG.villeParDefaut)) : etat.ville;
   // La carte (localisation) est réservée aux clients inscrits : un visiteur reste en liste.
-  const voirCarte = !!etat.auth && (etat.carte === null ? CONFIG.vueResultats === "Carte" : etat.carte);
+  const voirCarte = CONFIG.carteResultats && !!etat.auth && (etat.carte === null ? CONFIG.vueResultats === "Carte" : etat.carte);
 
   const valeur = useMemo<Contexte>(
     () => ({
@@ -288,8 +331,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       voirCarte,
       poserSujetMaison,
       poserSujetAchat,
+      demarrerBesoin,
+      modifierBesoin,
     }),
     [
+      demarrerBesoin,
+      modifierBesoin,
       etat,
       set,
       go,

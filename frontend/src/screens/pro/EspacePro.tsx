@@ -157,11 +157,11 @@ export function EspacePro({ titre, sousTitre, children }: { titre: string; sousT
               fontSize: "13px",
             }}
           >
-            sy
+            tc
           </span>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "15px", color: "#fff" }}>
-              Servis Yakro Pro
+              TerraClick Pro
             </div>
             <div style={{ fontSize: "11.5px", color: "rgba(255,255,255,.55)" }}>Gestion de l'activité</div>
           </div>

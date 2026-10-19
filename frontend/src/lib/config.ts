@@ -14,4 +14,27 @@ export const CONFIG = {
   afficherVedettes: true,
   /** Vue ouverte par défaut sur les résultats de recherche. */
   vueResultats: "Liste" as "Liste" | "Carte",
+  /**
+   * Module Construction : page Construction & travaux, assistant de projet, « Mes projets »,
+   * suivi avancé avec séquestre, contrat et PV de réserves. Masqué dans le MVP (voir le
+   * README) ; les écrans restent dans le code, `true` les rebranche partout.
+   */
+  moduleConstruction: false as boolean,
+  /**
+   * Modes de l'accueil : la bascule Recherche / Autour de moi / Box intelligente sous la
+   * barre de recherche, et l'onglet « Carte » de la barre mobile. Masqués dans le MVP
+   * (voir le README) ; `true` les rebranche.
+   */
+  modesAccueil: false as boolean,
+  /**
+   * Bascule Liste / Carte des résultats de recherche. Masquée dans le MVP : les résultats
+   * s'affichent toujours en liste (voir le README) ; `true` la rebranche.
+   */
+  carteResultats: false as boolean,
+  /**
+   * Accueil sur téléphone (screens/home/AccueilMobile.tsx) :
+   *  - « epuree » : accroche, recherche, deux actions, services, prestataires à la une, confiance ;
+   *  - « riche »  : la même chose, plus problèmes fréquents, « Comment ça marche » et l'appel aux techniciens.
+   */
+  accueilMobile: "epuree" as "epuree" | "riche",
 } as const;

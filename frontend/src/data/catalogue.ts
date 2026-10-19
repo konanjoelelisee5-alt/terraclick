@@ -21,12 +21,39 @@ export type Prestataire = {
 
 export const VILLES = ["Yamoussoukro", "Abidjan", "Bouaké", "Daloa"];
 
-export const POPULAIRES: ReadonlyArray<readonly [string, string]> = [
-  ["Mécanicien", "wrench"],
-  ["Réparation climatisation", "snowflake"],
-  ["Panneaux solaires", "sun"],
-  ["Plomberie", "droplets"],
-  ["Électricité", "zap"],
+/**
+ * Les cinq secteurs ouverts dans la première version (MVP). Les autres métiers sont
+ * masqués, pas supprimés : le README en tient la liste, et l'API applique la même
+ * règle (backend/config/mvp.php). `categorie` est le slug de l'annuaire.
+ *
+ * `image` : photo du secteur (public/images/secteurs/, WebP 800 px). Photos provisoires ;
+ * sans image, l'icône prend le relais (plomberie et électricité, en attente de photos).
+ */
+export type Secteur = {
+  /** Clé partagée avec l'API (config/secteurs.php). */
+  cle: string;
+  nom: string;
+  metier: string;
+  icone: string;
+  categorie: string;
+  image?: string;
+};
+
+const PHOTOS = `${import.meta.env.BASE_URL}images/secteurs/`;
+
+export const SECTEURS: readonly Secteur[] = [
+  { cle: "plomberie", nom: "Plomberie", metier: "Plombier", icone: "droplets", categorie: "plombiers" },
+  { cle: "electricite", nom: "Électricité", metier: "Électricien", icone: "zap", categorie: "electriciens" },
+  {
+    cle: "climatisation",
+    nom: "Climatisation",
+    metier: "Climaticien",
+    icone: "snowflake",
+    categorie: "climatisation-vente-et-reparation",
+    image: `${PHOTOS}climatisation.webp`,
+  },
+  { cle: "serrurerie", nom: "Serrurerie", metier: "Serrurier", icone: "key-round", categorie: "serruriers", image: `${PHOTOS}serrurerie.webp` },
+  { cle: "menuiserie", nom: "Menuiserie", metier: "Menuisier", icone: "hammer", categorie: "menuisiers", image: `${PHOTOS}menuiserie.webp` },
 ];
 
 export const PROS: Prestataire[] = [
@@ -92,10 +119,29 @@ export const PROS: Prestataire[] = [
   },
 ];
 
-export const CATS = ["Plomberie", "Électricité", "Climatisation", "Menuiserie"];
-export const DELAIS = ["Aujourd'hui", "Demain", "Cette semaine"];
+export const CATS = SECTEURS.map((s) => s.nom);
 
-export const QUICKIES = ["Plombier", "Mécanicien", "Cyber", "Point Wave", "Maquis"];
+export const secteurParCle = (cle: string | null) => SECTEURS.find((s) => s.cle === cle);
+
+/* ---- Parcours de demande : textes de la confirmation (à valider côté produit) ---- */
+
+export const PAIEMENTS = [
+  { valeur: "especes" as const, libelle: "Espèces", detail: "Réglées au technicien, à la fin de l'intervention." },
+  {
+    valeur: "mobile_money" as const,
+    libelle: "Mobile Money",
+    detail: "Wave, Orange Money ou MTN, directement au technicien.",
+  },
+];
+
+export const FRAIS_DEPLACEMENT =
+  "Le technicien vous annonce ses éventuels frais de déplacement avant de venir. Rien n'est dû sans votre accord.";
+
+export const POLITIQUE_ANNULATION =
+  "Annulation gratuite tant que le technicien n'est pas en route. Prévenez-le au plus tôt s'il s'est déjà déplacé.";
+
+export const APRES_ENVOI = "Votre demande sera envoyée. Vous recevrez une réponse dans environ 10 minutes.";
+export const DELAIS = ["Aujourd'hui", "Demain", "Cette semaine"];
 
 export const URGENCES = [
   { nom: "Sapeurs-pompiers", num: "180", icon: "flame" },
@@ -106,10 +152,13 @@ export const URGENCES = [
 
 export const DEPANNAGE = [
   { ini: "EN", nom: "Électricien de nuit", info: "Kokrenou · 2,4 km · répond en 5 min" },
-  { ini: "RM", nom: "Remorquage auto 24/24", info: "Centre-ville · 1,1 km · répond en 12 min" },
-  { ini: "SD", nom: "Serrurier dépannage", info: "Habitat · 1,8 km · répond en 20 min" },
+  { ini: "PU", nom: "Plombier d'urgence", info: "Habitat · 1,2 km · répond en 10 min" },
+  { ini: "SD", nom: "Serrurier dépannage", info: "Centre-ville · 1,1 km · répond en 15 min" },
 ];
 
-/** Une recherche relève du BTP : elle déclenche le bloc d'accompagnement construction. */
+/**
+ * Une recherche relève du BTP : elle déclenche le bloc d'accompagnement construction
+ * (seulement si CONFIG.moduleConstruction).
+ */
 export const REGEX_BTP =
   /construction|maçon|plombier|électricien|carreleur|peintre|menuisier|vitrier|quincaill|cimenter|architecte|maison|bâtiment/i;

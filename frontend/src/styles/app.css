@@ -87,6 +87,16 @@ button {
   display: none;
 }
 
+/* Rangées qui défilent au doigt (accueil mobile) : pas de barre de défilement visible. */
+[data-r="defilement"]::-webkit-scrollbar {
+  display: none;
+}
+
+/* Cloche de notifications de l'en-tête mobile : affichée sous 1080 px seulement. */
+[data-r="nav-notif-mobile"] {
+  display: none;
+}
+
 img,
 svg,
 .sy-slot {
@@ -186,6 +196,34 @@ svg,
 
   [data-r="tabbar"] {
     display: flex;
+  }
+
+  /* En-tête compact : logo à gauche, ville et notifications à droite. */
+  [data-bloc="entete"] {
+    min-height: 60px !important;
+    gap: 10px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  [data-r="nav-notif-mobile"] {
+    display: grid;
+  }
+
+  /* Espace client : pas d'onglets horizontaux sur téléphone (ils débordaient) ; l'écran Compte
+     les remplace, et chaque page de l'espace propose un retour vers lui. */
+  nav[aria-label="Espace client"] {
+    display: none !important;
+  }
+
+  [data-r="retour-compte"] {
+    display: inline-flex !important;
+  }
+
+  /* Dès que la barre d'onglets prend le relais (téléphone, tablette), l'interface est
+     celle d'une application : pas de pied de page. Il reste sur le site web, sur ordinateur. */
+  [data-r="footer"] {
+    display: none !important;
   }
 
   [data-r="page"] {
@@ -316,10 +354,6 @@ svg,
     margin-left: 0 !important;
   }
 
-  [data-r="pro-card"] {
-    flex-wrap: wrap;
-  }
-
   [data-sec] {
     padding-top: 36px !important;
   }
@@ -337,10 +371,6 @@ svg,
     grid-template-columns: 1fr;
   }
 
-  [data-r="footer"] {
-    display: var(--sy-footer-mobile, block) !important;
-  }
-
   [data-r="footer container"] {
     grid-template-columns: 1fr 1fr !important;
     gap: 24px 18px !important;
@@ -350,13 +380,131 @@ svg,
     grid-column: 1 / -1;
   }
 
+  /* Résultats, à la manière des moteurs de recherche mobiles : carte horizontale
+     (vignette + lignes d'information), toute la carte ouvre la fiche, qui porte les
+     actions. Ni description ni boutons dans la liste ; une flèche signale l'ouverture. */
+  [data-r="pro-desc"],
   [data-r="chat-actions"] {
-    flex-wrap: wrap;
+    display: none !important;
   }
 
-  [data-r="chat-actions"] button {
+  [data-r="pro-chevron"] {
+    display: block !important;
+  }
+
+  [data-r="pro-card"] {
+    padding: 12px !important;
+    gap: 14px !important;
+    align-items: center !important;
+  }
+
+  [data-r="pro-vignette"] {
+    width: 88px !important;
+    height: 88px !important;
+    font-size: 22px !important;
+  }
+
+  /* Filtres : une seule ligne qui défile au doigt, jusqu'aux bords de l'écran. */
+  [data-r="filtres"] {
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-left: -16px;
+    margin-right: -16px;
+    padding: 2px 16px;
+  }
+
+  [data-r="filtres"]::-webkit-scrollbar {
+    display: none;
+  }
+
+  [data-r="devis-bas"] > button {
     flex: 1 1 100%;
-    justify-content: center;
+  }
+
+  /* Accueil : le nom TerraClick reste centré au-dessus de la recherche, l'accroche dessous. */
+  [data-r="hero-marque"] {
+    margin-bottom: 10px !important;
+  }
+
+  [data-r="hero-sous-titre"] {
+    font-size: 14.5px !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* Métiers en tuiles à icône, sur une ligne qui défile jusqu'aux bords. */
+  [data-r="secteurs-rapides"] {
+    align-self: stretch;
+    align-items: stretch !important;
+    min-width: 0;
+    margin-top: 20px !important;
+  }
+
+  [data-r="secteurs-rapides-titre"] {
+    display: none;
+  }
+
+  [data-r="secteurs-rapides-liste"] {
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -16px;
+    padding: 2px 16px 4px;
+    gap: 10px !important;
+  }
+
+  [data-r="secteurs-rapides-liste"]::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Petites cartes photo : image en haut, métier dessous (photo ou, à défaut, icône). */
+  [data-r="secteurs-rapides-liste"] > button {
+    flex: none;
+    flex-direction: column;
+    align-items: stretch !important;
+    width: 128px;
+    height: auto !important;
+    padding: 0 0 10px !important;
+    gap: 8px !important;
+    overflow: hidden;
+    border-radius: var(--radius-lg) !important;
+    background: var(--color-neutral-100) !important;
+    font-size: 13px !important;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  [data-r="secteur-visuel"] {
+    display: block !important;
+  }
+
+  /* La grille « Recherches populaires » répète les tuiles ci-dessus : masquée ici. */
+  [data-bloc="populaires"] {
+    display: none;
+  }
+
+  /* Prestataires à la une : carrousel horizontal, la carte suivante dépasse un peu. */
+  [data-bloc="carrousel"] {
+    display: flex !important;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 16px;
+    scrollbar-width: none;
+    margin: 0 -16px;
+    padding: 2px 16px 6px;
+  }
+
+  [data-bloc="carrousel"]::-webkit-scrollbar {
+    display: none;
+  }
+
+  [data-bloc="carrousel"] > * {
+    flex: 0 0 86%;
+    scroll-snap-align: start;
+  }
+
+  [data-sec] h2 {
+    font-size: 22px !important;
   }
 
   [data-sec="hero"] {
@@ -364,16 +512,6 @@ svg,
     padding-bottom: 30px !important;
   }
 
-  [data-r="pro-card"] {
-    padding: 16px !important;
-    gap: 12px !important;
-  }
-
-  [data-r="pro-card"] > span:first-child {
-    width: 44px !important;
-    height: 44px !important;
-    font-size: 16px !important;
-  }
 
   [data-r="map-canvas"] {
     height: 300px !important;

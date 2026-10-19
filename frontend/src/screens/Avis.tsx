@@ -48,11 +48,11 @@ export function Avis() {
               fontSize: "16px",
             }}
           >
-            TI
+            SN
           </span>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "18px" }}>Tech Ivoire</div>
-            <div style={{ fontSize: "13.5px", color: "var(--text-muted)" }}>Ordinateur 16 Go · 340 000 F</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "18px" }}>Serrurerie N'Guessan</div>
+            <div style={{ fontSize: "13.5px", color: "var(--text-muted)" }}>Changement de serrure · 18 000 F</div>
           </div>
         </div>
 

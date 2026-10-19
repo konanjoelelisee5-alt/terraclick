@@ -1,0 +1,95 @@
+# Déploiement TerraClick sur Render (Blueprint) : l'API Laravel en Docker et l'interface en
+# site statique. La base MySQL est externe (Aiven). Les valeurs « sync: false » sont saisies
+# dans le tableau de bord Render au premier déploiement : ce sont des secrets ou des adresses.
+# Mode d'emploi pas à pas : docs/DEPLOIEMENT-RENDER.md.
+
+services:
+  # ---------- API ----------
+  - type: web
+    name: terraclick-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: frankfurt
+    healthCheckPath: /up
+    envVars:
+      - key: APP_NAME
+        value: TerraClick
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: APP_LOCALE
+        value: fr
+      - key: FRONTEND_URL
+        sync: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: info
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: MYSQL_SSL_CA_PEM
+        sync: false
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: FILESYSTEM_DISK
+        value: local
+      - key: MVP_ACTIF
+        value: "true"
+      - key: SEED_ON_DEPLOY
+        value: "true"
+      # Aucun fournisseur SMS ou WhatsApp branché : seuls les numéros de test peuvent se connecter.
+      - key: OTP_SMS_DRIVER
+        value: log
+      - key: OTP_WHATSAPP_DRIVER
+        value: log
+      - key: OTP_NUMEROS_TEST
+        sync: false
+      - key: OTP_CODE_TEST
+        sync: false
+
+  # ---------- Interface (PWA) ----------
+  - type: web
+    name: terraclick
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      # Adresse de l'API, terminée par /api (ex. https://terraclick-api.onrender.com/api).
+      # Le code de démonstration reste vide en ligne (frontend/.env).
+      - key: VITE_API_URL
+        sync: false
+    headers:
+      # Le service worker doit toujours être relu, sinon les mises à jour n'arrivent pas.
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache
+      - path: /manifest.webmanifest
+        name: Cache-Control
+        value: no-cache
+    routes:
+      # Application monopage : toute adresse inconnue sert index.html.
+      - type: rewrite
+        source: /*
+        destination: /index.html

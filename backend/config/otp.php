@@ -41,4 +41,13 @@ return [
     */
     'code_fixe' => env('OTP_CODE_FIXE'),
 
+    /*
+    | Numéros de test, pour les phases d'essai en ligne (y compris en production) : pour ces
+    | numéros seulement, le code est toujours OTP_CODE_TEST et rien n'est envoyé. Liste séparée
+    | par des virgules, sous n'importe quelle forme (« 07 58 42 19 03 », « +2250758421903 »).
+    | Les deux réglages vides = mode désactivé. À vider dès qu'un vrai fournisseur est branché.
+    */
+    'numeros_test' => array_values(array_filter(array_map('trim', explode(',', (string) env('OTP_NUMEROS_TEST', ''))))),
+    'code_test' => env('OTP_CODE_TEST'),
+
 ];

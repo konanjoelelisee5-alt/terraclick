@@ -104,7 +104,7 @@ export function ClientSuivi() {
           </div>
 
           <Note>
-            Le paiement de la prestation est convenu directement entre vous et le prestataire. Servis Yakro ne conserve
+            Le paiement de la prestation est convenu directement entre vous et le prestataire. TerraClick ne conserve
             pas les fonds liés à cette prestation.
           </Note>
         </div>
@@ -178,7 +178,7 @@ export function ClientSuivi() {
       {fenetre === "signaler" && (
         <Dialogue
           titre="Signaler un problème"
-          description="Le support Servis Yakro examine votre signalement et contacte les deux parties."
+          description="Le support TerraClick examine votre signalement et contacte les deux parties."
           icone="alert-triangle"
           fond="var(--state-danger-soft)"
           encre="var(--state-danger)"
@@ -216,7 +216,7 @@ export function ClientSuivi() {
       {fenetre === "paiement" && (
         <Dialogue
           titre="Déclarer un paiement direct"
-          description="Cette déclaration documente la prestation. Servis Yakro ne reçoit ni ne conserve ce paiement."
+          description="Cette déclaration documente la prestation. TerraClick ne reçoit ni ne conserve ce paiement."
           icone="banknote"
           fond="var(--argile-100)"
           encre="var(--argile-700)"
@@ -225,7 +225,7 @@ export function ClientSuivi() {
           onFermer={() => setFenetre(null)}
           onConfirmer={() => {
             setFenetre(null);
-            toast("Déclaration enregistrée", "Visible par le prestataire. Aucun fonds ne transite par Servis Yakro.");
+            toast("Déclaration enregistrée", "Visible par le prestataire. Aucun fonds ne transite par TerraClick.");
           }}
         >
           <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 140px), 1fr))" }}>

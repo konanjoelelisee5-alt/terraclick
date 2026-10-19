@@ -42,7 +42,7 @@ function Encart({ texte }: { texte: string }) {
 export function OngletPaiements() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <Encart texte="Paiement par étapes sécurisé — bientôt disponible. En attendant, chaque jalon est validé manuellement par Servis Yakro après vérification de l'agent." />
+      <Encart texte="Paiement par étapes sécurisé — bientôt disponible. En attendant, chaque jalon est validé manuellement par TerraClick après vérification de l'agent." />
       {JALONS.map((j) => (
         <div key={j.nom} className="sy-card" style={{ padding: 18, display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>

@@ -81,6 +81,35 @@ export type Utilisateur = {
 
 export type Page<T> = { data: T[]; meta: { total: number; current_page: number; last_page: number } };
 
+/** Un service ouvert et ses problèmes types (première question de l'assistant). */
+export type SecteurApi = { cle: string; nom: string; problemes: string[] };
+
+/** Ce que la barre de recherche a compris d'une saisie libre. */
+export type Analyse = { secteurs: { cle: string; nom: string }[]; probleme: string | null };
+
+export type DemandeApi = {
+  id: number;
+  reference: string;
+  secteur: { cle: string; nom: string };
+  probleme: string;
+  precision: string | null;
+  quartier: Quartier | null;
+  repere: string | null;
+  quand: "maintenant" | "aujourdhui" | "demain" | "date";
+  date_souhaitee: string | null;
+  /** « Plomberie · Fuite d'eau · Habitat · Maintenant » */
+  resume: string;
+  mode: "recommande" | "choisi";
+  prestataire: PrestataireApi | null;
+  paiement: "especes" | "mobile_money";
+  photos: string[];
+  statut: string;
+  cree_le: string;
+};
+
+/** Résultats de recherche, avec les secteurs que le serveur a reconnus dans la demande. */
+export type Resultats = Page<PrestataireApi> & { analyse?: { secteurs: string[] } };
+
 export type CriteresRecherche = {
   q?: string;
   categorie?: string;
@@ -150,7 +179,9 @@ type Options = { methode?: "GET" | "POST" | "PATCH"; corps?: unknown; signal?: A
 
 async function requete<T>(chemin: string, { methode = "GET", corps, signal }: Options = {}): Promise<T> {
   const entetes: Record<string, string> = { Accept: "application/json" };
-  if (corps !== undefined) entetes["Content-Type"] = "application/json";
+  // Un FormData (photos jointes) fixe lui-même son type multipart et sa frontière.
+  const multipart = corps instanceof FormData;
+  if (corps !== undefined && !multipart) entetes["Content-Type"] = "application/json";
   const j = jeton.lire();
   if (j) entetes.Authorization = `Bearer ${j}`;
 
@@ -159,12 +190,12 @@ async function requete<T>(chemin: string, { methode = "GET", corps, signal }: Op
     reponse = await fetch(BASE + chemin, {
       method: methode,
       headers: entetes,
-      body: corps === undefined ? undefined : JSON.stringify(corps),
+      body: corps === undefined ? undefined : multipart ? corps : JSON.stringify(corps),
       signal,
     });
   } catch (e) {
     if (signal?.aborted) throw e;
-    throw new ErreurApi("Impossible de joindre Servis Yakro. Vérifiez votre connexion.", 0);
+    throw new ErreurApi("Impossible de joindre TerraClick. Vérifiez votre connexion.", 0);
   }
 
   const contenu = await reponse.json().catch(() => null);
@@ -210,11 +241,23 @@ export const api = {
   departements: () =>
     memoriser("departements", () => requete<{ data: Departement[] }>("/departements").then((r) => r.data)),
   rechercher: (criteres: CriteresRecherche, signal?: AbortSignal) =>
-    requete<Page<PrestataireApi>>(`/prestataires${parametres(criteres)}`, { signal }),
+    requete<Resultats>(`/prestataires${parametres(criteres)}`, { signal }),
   vedettes: (signal?: AbortSignal) =>
     requete<{ data: PrestataireApi[] }>("/prestataires/vedettes", { signal }).then((r) => r.data),
   fiche: (id: number, signal?: AbortSignal) =>
     requete<{ data: FicheApi }>(`/prestataires/${id}`, { signal }).then((r) => r.data),
+  /* Assistant de besoin et demandes */
+  secteurs: () => memoriser("secteurs", () => requete<{ data: SecteurApi[] }>("/secteurs").then((r) => r.data)),
+  analyser: (q: string) => requete<Analyse>(`/analyse?${new URLSearchParams({ q })}`),
+  recommandations: (criteres: { secteur: string; quartier?: number | null; exclure?: number[] }, signal?: AbortSignal) => {
+    const p = new URLSearchParams({ secteur: criteres.secteur });
+    if (criteres.quartier) p.set("quartier", String(criteres.quartier));
+    criteres.exclure?.forEach((id) => p.append("exclure[]", String(id)));
+    return requete<{ data: PrestataireApi[] }>(`/recommandations?${p}`, { signal }).then((r) => r.data);
+  },
+  creerDemande: (formulaire: FormData) =>
+    requete<{ data: DemandeApi; message: string }>("/demandes", { methode: "POST", corps: formulaire }),
+
   publierAvis: (id: number, avis: { ponctualite: number; qualite: number; prix: number; commentaire?: string }) =>
     requete<{ data: AvisApi }>(`/prestataires/${id}/avis`, { methode: "POST", corps: avis }).then((r) => r.data),
 

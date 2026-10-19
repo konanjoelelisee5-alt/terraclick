@@ -1,19 +1,158 @@
 import { useState } from "react";
-import { REGEX_BTP } from "../data/catalogue";
+import { REGEX_BTP, SECTEURS } from "../data/catalogue";
 import { useApp } from "../state/app";
-import { api } from "../lib/api";
+import { api, type CriteresRecherche } from "../lib/api";
+import { CONFIG } from "../lib/config";
 import { slugifier, versPrestataire } from "../lib/annuaire";
 import { useApi } from "../lib/useApi";
 import { Icon } from "../components/Icon";
 import { MapCanvas } from "../components/MapCanvas";
-import { Rating } from "../components/Rating";
 import { CARTE, pill, tab } from "../components/ui";
+import { resumeBesoin } from "./besoin/commun";
 
 const BLOC_VIDE: React.CSSProperties = {
   textAlign: "center",
   padding: "56px 20px",
   background: "var(--color-surface)",
   borderRadius: "calc(var(--radius-lg) * 1.15)",
+};
+
+type Tri = NonNullable<CriteresRecherche["tri"]>;
+
+/** Tris proposés au client ; la distance attend « Autour de moi », masqué dans le MVP. */
+const TRIS: { valeur: Tri; libelle: string }[] = [
+  { valeur: "pertinence", libelle: "Pertinence" },
+  { valeur: "note", libelle: "Mieux notés" },
+  { valeur: "avis", libelle: "Plus d'avis" },
+  { valeur: "reponse", libelle: "Répond le plus vite" },
+];
+
+const BOUTON_ROND: React.CSSProperties = {
+  width: 44,
+  height: 44,
+  flex: "none",
+  display: "grid",
+  placeItems: "center",
+  borderRadius: "999px",
+  border: "1px solid var(--color-divider)",
+  background: "var(--color-neutral-100)",
+  color: "inherit",
+  cursor: "pointer",
+};
+
+const LIGNE_DISCRETE: React.CSSProperties = {
+  display: "block",
+  margin: "2px 0 0",
+  fontSize: "13.5px",
+  color: "var(--color-neutral-700)",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};
+
+const LIEN_EFFACER: React.CSSProperties = {
+  flex: "none",
+  minHeight: 40,
+  padding: "0 6px",
+  background: "none",
+  border: 0,
+  cursor: "pointer",
+  font: "inherit",
+  fontSize: "13.5px",
+  color: "var(--color-accent-700)",
+  textDecoration: "underline",
+};
+
+/** Vignette carrée aux coins arrondis, à la place de la photo du prestataire. */
+const VIGNETTE: React.CSSProperties = {
+  width: 96,
+  height: 96,
+  flex: "none",
+  borderRadius: "var(--radius-lg)",
+  background: "var(--color-accent-200)",
+  display: "grid",
+  placeItems: "center",
+  fontFamily: "var(--font-heading)",
+  fontWeight: 700,
+  fontSize: "26px",
+  color: "var(--color-accent-800)",
+};
+
+const NOM_PRO: React.CSSProperties = {
+  fontFamily: "var(--font-heading)",
+  fontWeight: 700,
+  fontSize: "17px",
+  minWidth: 0,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};
+
+const PRIX: React.CSSProperties = {
+  fontFamily: "var(--font-heading)",
+  fontWeight: 700,
+  fontSize: "15px",
+  color: "var(--color-accent-700)",
+};
+
+const META: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 6,
+  fontSize: "13px",
+  color: "var(--color-neutral-700)",
+  minWidth: 0,
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+};
+
+/**
+ * Pastille de filtre (« Quartier ▾ ») : allure de bouton, liste native du téléphone au
+ * toucher. Elle s'allume quand un choix autre que celui par défaut est actif.
+ */
+function PastilleChoix(props: {
+  icone: string;
+  libelle: string;
+  actif: boolean;
+  valeur: string;
+  options: { valeur: string; libelle: string }[];
+  onChange: (valeur: string) => void;
+}) {
+  const choisi = props.options.find((o) => o.valeur === props.valeur);
+  return (
+    <label
+      style={{ ...pill(props.actif), position: "relative", flex: "none", display: "inline-flex", alignItems: "center", gap: 7 }}
+    >
+      <Icon name={props.icone} size={15} strokeWidth={2.25} />
+      <span>{props.actif && choisi ? choisi.libelle : props.libelle}</span>
+      <Icon name="chevron-down" size={14} strokeWidth={2.25} style={{ opacity: 0.7 }} />
+      <select
+        value={props.valeur}
+        onChange={(e) => props.onChange(e.target.value)}
+        aria-label={props.libelle}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer", font: "inherit" }}
+      >
+        {props.options.map((o) => (
+          <option key={o.valeur} value={o.valeur}>
+            {o.libelle}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+/** Deux lignes au plus : la fiche donne le détail. */
+const DESCRIPTION: React.CSSProperties = {
+  color: "var(--color-neutral-700)",
+  fontSize: "14px",
+  lineHeight: 1.5,
+  margin: 0,
+  display: "-webkit-box",
+  WebkitLineClamp: 2,
+  WebkitBoxOrient: "vertical",
+  overflow: "hidden",
 };
 
 const AVANTAGES_BTP = [
@@ -23,7 +162,9 @@ const AVANTAGES_BTP = [
 ];
 
 export function Results() {
-  const { etat, set, go, rechercher, ouvrirChat, exigerCompte, voirCarte, ville } = useApp();
+  const { etat, set, go, rechercher, ouvrirChat, exigerCompte, voirCarte, ville, demarrerBesoin } = useApp();
+  // Le client compare après avoir décrit son besoin (« Choisir moi-même ») : on le lui rappelle.
+  const besoinEnCours = !!etat.besoin.secteur && !!etat.besoin.quartier && etat.besoin.mode === "choisi";
 
   const [essai, setEssai] = useState(0);
 
@@ -38,20 +179,20 @@ export function Results() {
   );
   const filtres = recherche.donnees?.data.map(versPrestataire) ?? [];
   const total = recherche.donnees?.meta.total ?? 0;
+  // Demande en texte libre (« ma douche fuit ») : le serveur en déduit le secteur, qui sert
+  // de titre ; la phrase du client est rappelée dessous.
+  const demande = etat.filtre.q;
+  const compris = demande ? (recherche.donnees?.analyse?.secteurs ?? []) : [];
+  const titre = compris.length ? compris.join(" ou ") : etat.titre;
   // Une recherche BTP remplace le bandeau de suivi générique par l'accompagnement construction.
-  const estBtp = REGEX_BTP.test(etat.titre || "");
+  // L'un et l'autre mènent au module Construction : sans lui (MVP), aucun des deux n'apparaît.
+  const estBtp = CONFIG.moduleConstruction && REGEX_BTP.test(etat.titre || "");
+  const proposerSuivi = CONFIG.moduleConstruction && !estBtp;
 
   const ouvrirAssistant = () => exigerCompte(() => go("assistant", { assistStep: 1 }));
 
   return (
     <main data-r="container" style={{ paddingTop: 26, paddingBottom: 60 }}>
-      <button
-        onClick={() => go("home")}
-        className="sy-btn sy-btn--ghost sy-btn--md"
-        style={{ marginBottom: 8, whiteSpace: "nowrap" }}
-      >
-        ← Retour à l'accueil
-      </button>
 
       {estBtp && (
         <div
@@ -94,7 +235,7 @@ export function Results() {
           </span>
           <p style={{ fontSize: "14.5px", lineHeight: 1.55, margin: 0, maxWidth: "66ch", color: "var(--text-muted)" }}>
             Trouvez des professionnels vérifiés, comparez plusieurs devis et suivez chaque étape de votre chantier
-            depuis Servis Yakro.
+            depuis TerraClick.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "10px 26px" }}>
             {AVANTAGES_BTP.map((a) => (
@@ -134,37 +275,51 @@ export function Results() {
 
       <div
         data-r="results-head"
-        style={{ display: "flex", alignItems: "flex-end", gap: 14, flexWrap: "wrap", marginBottom: 18 }}
+        style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginBottom: 16 }}
       >
-        <div>
-          <h1 style={{ fontSize: "clamp(26px,4.5vw,34px)", margin: "0 0 2px" }}>{etat.titre}</h1>
-          <span role="status" style={{ color: "var(--color-neutral-700)", fontSize: "14px" }}>
-            {recherche.chargement ? "Recherche en cours…" : `${total} ${total > 1 ? "pros" : "pro"} · ${ville}`}
+        {/* En-tête de recherche : retour rond, puis ce qui est cherché et combien de résultats. */}
+        <button onClick={() => go("home")} aria-label="Retour à l'accueil" style={BOUTON_ROND}>
+          <Icon name="arrow-left" size={20} strokeWidth={2.25} />
+        </button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h1 data-r="results-titre" style={{ fontSize: "clamp(22px,4vw,32px)", margin: 0, lineHeight: 1.15 }}>
+            {titre}
+          </h1>
+          {compris.length > 0 && demande !== titre && (
+            <p data-r="demande-comprise" style={LIGNE_DISCRETE}>
+              D'après votre demande : « {demande} »
+            </p>
+          )}
+          <span role="status" style={LIGNE_DISCRETE}>
+            {recherche.chargement ? "Recherche en cours…" : `${total} ${total > 1 ? "prestataires" : "prestataire"} · ${ville}`}
           </span>
         </div>
-        <div
-          style={{
-            marginLeft: "auto",
-            display: "flex",
-            gap: 3,
-            padding: 4,
-            borderRadius: "999px",
-            background: "var(--color-surface)",
-          }}
-        >
-          <button onClick={() => set({ carte: false })} style={tab(!voirCarte)}>
-            Liste
-          </button>
-          {/* La carte est réservée aux clients inscrits. */}
-          <button onClick={() => exigerCompte(() => set({ carte: true }))} style={tab(voirCarte)}>
-            Carte
-            {!etat.auth && <Icon name="lock" size={12} style={{ marginLeft: 5, opacity: 0.6, verticalAlign: "-1px" }} />}
-          </button>
-        </div>
+        {/* Bascule Liste / Carte, masquée dans le MVP : les résultats restent en liste. */}
+        {CONFIG.carteResultats && (
+          <div
+            style={{
+              marginLeft: "auto",
+              display: "flex",
+              gap: 3,
+              padding: 4,
+              borderRadius: "999px",
+              background: "var(--color-surface)",
+            }}
+          >
+            <button onClick={() => set({ carte: false })} style={tab(!voirCarte)}>
+              Liste
+            </button>
+            {/* La carte est réservée aux clients inscrits. */}
+            <button onClick={() => exigerCompte(() => set({ carte: true }))} style={tab(voirCarte)}>
+              Carte
+              {!etat.auth && <Icon name="lock" size={12} style={{ marginLeft: 5, opacity: 0.6, verticalAlign: "-1px" }} />}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Le suivi avancé reste une proposition : le client l'ouvre s'il le souhaite. */}
-      {!estBtp && (
+      {proposerSuivi && (
         <div
           style={{
             display: "flex",
@@ -219,12 +374,48 @@ export function Results() {
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 18 }}>
-        {quartiers.map(({ id, nom }) => (
-          <button key={id} onClick={() => set({ quartier: id })} style={pill(id === etat.quartier)}>
-            {nom}
+      {besoinEnCours && (
+        <div
+          data-r="rappel-besoin"
+          style={{ ...CARTE, padding: "12px 16px", marginBottom: 14, display: "flex", alignItems: "center", gap: 10, background: "var(--color-accent-100)" }}
+        >
+          <Icon name="file-text" size={18} color="var(--color-accent-700)" />
+          <span style={{ flex: 1, minWidth: 0, fontSize: "14px" }}>
+            <strong>Votre demande :</strong> {resumeBesoin(etat.besoin, quartiers.find((q) => q.id === etat.besoin.quartier)?.nom)}.
+            Ouvrez un profil puis « Demander ce technicien ».
+          </span>
+        </div>
+      )}
+
+      {/* Filtres en pastilles déroulantes, sur une seule ligne qui défile au doigt. */}
+      <div data-r="filtres" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
+        <PastilleChoix
+          icone="map-pin"
+          libelle="Quartier"
+          actif={!!etat.quartier}
+          valeur={String(etat.quartier)}
+          options={[
+            { valeur: "0", libelle: "Tous les quartiers" },
+            ...quartiers
+              .filter((q) => q.id)
+              .sort((a, b) => a.nom.localeCompare(b.nom, "fr"))
+              .map((q) => ({ valeur: String(q.id), libelle: q.nom })),
+          ]}
+          onChange={(v) => set({ quartier: Number(v) })}
+        />
+        <PastilleChoix
+          icone="arrow-up-down"
+          libelle="Trier"
+          actif={!!etat.filtre.tri && etat.filtre.tri !== "pertinence"}
+          valeur={etat.filtre.tri ?? "pertinence"}
+          options={TRIS}
+          onChange={(v) => set({ filtre: { ...etat.filtre, tri: v as Tri } })}
+        />
+        {!!etat.quartier && (
+          <button onClick={() => set({ quartier: 0 })} style={LIEN_EFFACER}>
+            Effacer
           </button>
-        ))}
+        )}
       </div>
 
       {voirCarte && <MapCanvas pros={filtres} hauteur={360} onPin={ouvrirChat} />}
@@ -251,81 +442,97 @@ export function Results() {
           transition: "opacity var(--dur-fast)",
         }}
       >
-        {filtres.map((p) => (
-          <div
-            key={p.id ?? p.nom}
-            data-r="pro-card"
-            style={{ ...CARTE, padding: 20, display: "flex", gap: 18, alignItems: "flex-start" }}
-          >
-            <span
-              style={{
-                width: 58,
-                height: 58,
-                flex: "none",
-                borderRadius: "999px",
-                background: "var(--color-accent-200)",
-                display: "grid",
-                placeItems: "center",
-                fontFamily: "var(--font-heading)",
-                fontSize: "19px",
-                color: "var(--color-accent-800)",
-              }}
+        {filtres.map((p) => {
+          const voirFiche = () => go("fiche", { fiche: p.id ?? null });
+          return (
+            // Toute la carte mène à la fiche (convention des places de marché) ; les
+            // boutons d'action arrêtent le clic pour ne pas l'ouvrir en plus.
+            <article
+              key={p.id ?? p.nom}
+              data-r="pro-card"
+              onClick={voirFiche}
+              style={{ ...CARTE, padding: 14, display: "flex", gap: 16, alignItems: "flex-start", cursor: "pointer" }}
             >
-              {p.ini}
-            </span>
-            <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 9 }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
-                <span style={{ fontFamily: "var(--font-heading)", fontSize: "20px" }}>{p.nom}</span>
-                <span style={{ fontSize: "13.5px", color: "var(--color-accent-700)" }}>{p.metier}</span>
-                <span style={{ marginLeft: "auto" }}>
-                  <Rating value={Number(p.note.replace(",", "."))} count={p.avis} />
+              {/* Vignette : la photo du prestataire quand elle existera, ses initiales d'ici là. */}
+              <span data-r="pro-vignette" style={VIGNETTE}>
+                {p.ini}
+              </span>
+              <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 5 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={NOM_PRO}>{p.nom}</span>
+                  {p.verifie && <Icon name="badge-check" size={17} color="var(--state-success)" style={{ flex: "none" }} />}
+                </div>
+                <span style={{ fontSize: "13.5px", color: "var(--color-accent-700)", marginTop: -3 }}>{p.metier}</span>
+                <span style={PRIX}>{p.prix}</span>
+                <span style={META}>
+                  <Icon name="star" size={14} fill="var(--rating)" color="var(--rating)" />
+                  <strong style={{ color: "var(--color-text)" }}>{p.note}</strong> ({p.avis} avis)
                 </span>
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                <span className="sy-badge sy-badge--brand">{p.prix}</span>
-                {p.delai && <span className="sy-badge sy-badge--success">Répond en {p.delai}</span>}
-                {p.verifie && <span className="sy-badge sy-badge--neutral">Profil vérifié</span>}
                 {p.quartier && (
-                  <span className="sy-badge sy-badge--neutral">{[p.quartier, p.dist].filter(Boolean).join(" · ")}</span>
+                  <span style={META}>
+                    <Icon name="map-pin" size={14} />
+                    {[p.quartier, p.dist].filter(Boolean).join(" · ")}
+                  </span>
                 )}
+                {p.delai && (
+                  <span style={META}>
+                    <Icon name="clock" size={14} />
+                    Répond en {p.delai}
+                  </span>
+                )}
+                <p data-r="pro-desc" style={DESCRIPTION}>
+                  {p.desc}
+                </p>
+                <div
+                  data-r="chat-actions"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 6 }}
+                >
+                  <button onClick={() => ouvrirChat(p)} className="sy-btn sy-btn--primary sy-btn--md" style={{ gap: 7 }}>
+                    <Icon name="message-circle" size={16} strokeWidth={2.75} />
+                    Chat
+                  </button>
+                  <button onClick={() => ouvrirChat(p)} className="sy-btn sy-btn--outline sy-btn--md" style={{ gap: 7 }}>
+                    <Icon name="phone" size={16} strokeWidth={2.75} />
+                    Appeler
+                  </button>
+                  <button
+                    data-r="voir-profil"
+                    onClick={voirFiche}
+                    className="sy-btn sy-btn--ghost sy-btn--md"
+                    style={{ marginLeft: "auto", gap: 4, whiteSpace: "nowrap" }}
+                  >
+                    Voir le profil
+                    <Icon name="chevron-right" size={16} strokeWidth={2.5} />
+                  </button>
+                </div>
               </div>
-              <p style={{ color: "var(--color-neutral-700)", fontSize: "14px", margin: 0 }}>{p.desc}</p>
-              <div data-r="chat-actions" style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 2 }}>
-                <button
-                  onClick={() => go("fiche", { fiche: p.id ?? null })}
-                  className="sy-btn sy-btn--outline sy-btn--md"
-                  style={{ gap: 7 }}
-                >
-                  Voir le profil
-                </button>
-                <button
-                  onClick={() => ouvrirChat(p)}
-                  className="sy-btn sy-btn--primary sy-btn--md"
-                  style={{ gap: 7, paddingInline: 22 }}
-                >
-                  <Icon name="message-circle" size={16} strokeWidth={2.75} />
-                  Chat
-                </button>
-                <button
-                  onClick={() => ouvrirChat(p)}
-                  className="sy-btn sy-btn--outline sy-btn--md"
-                  style={{ gap: 7, paddingInline: 22 }}
-                >
-                  <Icon name="phone" size={16} strokeWidth={2.75} />
-                  Appeler
-                </button>
-                <button
-                  onClick={() => exigerCompte(() => go("devis", { step: 1 }))}
-                  className="sy-btn sy-btn--ghost sy-btn--md"
-                  style={{ whiteSpace: "nowrap" }}
-                >
-                  Demander un devis
-                </button>
-              </div>
+              {/* Sur téléphone, la flèche dit que la carte s'ouvre ; les boutons sont sur la fiche. */}
+              <span data-r="pro-chevron" style={{ display: "none", alignSelf: "center", opacity: 0.45 }}>
+                <Icon name="chevron-right" size={20} />
+              </span>
+            </article>
+          );
+        })}
+      </div>
+
+      {/* Un seul appel à l'action, sous la liste : laisser TerraClick choisir, ou décrire son besoin. */}
+      {!recherche.chargement && filtres.length > 0 && (
+        <div data-r="devis-bas" style={{ ...CARTE, marginTop: 18, padding: "18px 20px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", background: "var(--color-surface)" }}>
+          <div style={{ flex: "1 1 240px", minWidth: 0 }}>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px" }}>Vous hésitez ?</div>
+            <div style={{ fontSize: "14px", color: "var(--color-neutral-700)" }}>
+              Nous vous proposons les 3 meilleurs techniciens disponibles près de chez vous.
             </div>
           </div>
-        ))}
-      </div>
+          <button
+            onClick={() => (besoinEnCours ? go("recommandations") : demarrerBesoin())}
+            className="sy-btn sy-btn--primary sy-btn--md"
+          >
+            Trouver pour moi
+          </button>
+        </div>
+      )}
 
       {!recherche.chargement && !recherche.erreur && filtres.length === 0 && (
         <div style={BLOC_VIDE}>
@@ -333,14 +540,25 @@ export function Results() {
             {etat.quartier ? "Personne dans ce quartier pour l'instant" : "Aucun prestataire pour cette recherche"}
           </h3>
           <p style={{ color: "var(--color-neutral-700)", fontSize: "14.5px", margin: "0 0 16px" }}>
-            {etat.quartier ? "Changez de quartier" : "Essayez un autre mot"}, ou lancez une demande de devis : les
-            prestataires viendront à vous.
+            {etat.quartier ? "Changez de quartier" : "Choisissez un service"}, ou décrivez votre besoin : nous vous
+            proposons les meilleurs techniciens près de chez vous.
           </p>
-          <button
-            onClick={() => exigerCompte(() => go("devis", { step: 1 }))}
-            className="sy-btn sy-btn--primary sy-btn--md"
-          >
-            Demander un devis
+          {!etat.quartier && (
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, marginBottom: 16 }}>
+              {SECTEURS.map((s) => (
+                <button
+                  key={s.categorie}
+                  onClick={() => demarrerBesoin({ secteur: s.cle })}
+                  className="sy-tag"
+                  style={{ height: 32, fontSize: "13px" }}
+                >
+                  {s.nom}
+                </button>
+              ))}
+            </div>
+          )}
+          <button onClick={() => demarrerBesoin()} className="sy-btn sy-btn--primary sy-btn--md">
+            Décrire mon besoin
           </button>
         </div>
       )}

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -18,5 +19,13 @@ class Categorie extends Model
     public function prestataires(): BelongsToMany
     {
         return $this->belongsToMany(Prestataire::class);
+    }
+
+    /** Catégories ouvertes au public : toutes, ou celles du MVP (config/mvp.php). */
+    public function scopeOuvertes(Builder $query): void
+    {
+        if (config('mvp.actif')) {
+            $query->whereIn('categories.slug', config('mvp.categories'));
+        }
     }
 }

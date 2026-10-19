@@ -32,7 +32,7 @@ class CatalogueSeeder extends Seeder
     private const DEPARTEMENTS = [
         ['Maison & Bâtiment', 'home', 'Immobilier, plombier, électricien, menuisier', [
             'Immobilier' => ['Maisons à louer', 'Appartements à vendre', 'Terrains', 'Magasins à louer', 'Agences immobilières', 'Notaires'],
-            'Construction' => ['Entreprises de construction', 'Architectes & bureaux d\'études', 'Quincailleries & matériaux', 'Cimenteries', 'Maçons', 'Menuisiers', 'Vitriers', 'Carreleurs', 'Peintres', 'Plombiers', 'Électriciens'],
+            'Construction' => ['Entreprises de construction', 'Architectes & bureaux d\'études', 'Quincailleries & matériaux', 'Cimenteries', 'Maçons', 'Menuisiers', 'Serruriers', 'Vitriers', 'Carreleurs', 'Peintres', 'Plombiers', 'Électriciens'],
             'Équipement maison' => ['Climatisation : vente et réparation', 'Panneaux solaires', 'Groupes électrogènes', 'Sécurité et vidéosurveillance', 'Meubles', 'Décoration'],
             'Entretien' => ['Femmes de ménage', 'Jardiniers', 'Piscinistes', 'Désinsectisation', 'Entretien plomberie', 'Entretien électricité', 'Nettoyage de façades et toitures'],
         ]],

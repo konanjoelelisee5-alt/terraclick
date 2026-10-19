@@ -542,7 +542,7 @@ export function Contrat() {
               <Icon name="info" size={18} color="var(--state-warning)" style={{ marginTop: 1 }} />
               <span style={{ fontSize: "14px", lineHeight: 1.5 }}>
                 Paiement par étapes sécurisé — bientôt disponible. En attendant, chaque jalon est validé manuellement
-                par Servis Yakro.
+                par TerraClick.
               </span>
             </div>
           </div>

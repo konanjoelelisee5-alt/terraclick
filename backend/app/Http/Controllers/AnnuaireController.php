@@ -18,7 +18,10 @@ class AnnuaireController extends Controller
         return VilleResource::collection(Ville::with('quartiers')->orderBy('ordre')->get());
     }
 
-    /** GET /api/departements — le méga-menu complet en une requête. */
+    /**
+     * GET /api/departements — le méga-menu en une requête. Seules les catégories ouvertes
+     * (config/mvp.php) y figurent ; une rubrique ou un département vidé disparaît.
+     */
     public function departements(): AnonymousResourceCollection
     {
         // Un prestataire classé dans plusieurs catégories d'un même département ne compte qu'une fois.
@@ -27,12 +30,19 @@ class AnnuaireController extends Controller
             ->join('rubriques', 'rubriques.id', '=', 'categories.rubrique_id')
             ->join('prestataires', 'prestataires.id', '=', 'categorie_prestataire.prestataire_id')
             ->where('prestataires.actif', true)
+            ->when(config('mvp.actif'), fn ($q) => $q->whereIn('categories.slug', config('mvp.categories')))
             ->groupBy('rubriques.departement_id')
             ->selectRaw('rubriques.departement_id, COUNT(DISTINCT categorie_prestataire.prestataire_id) AS total')
             ->pluck('total', 'departement_id');
 
-        $departements = Departement::with('rubriques.categories')->orderBy('ordre')->get()
-            ->each(fn (Departement $departement) => $departement->nombre_prestataires = $comptes[$departement->id] ?? 0);
+        $departements = Departement::with(['rubriques.categories' => fn ($c) => $c->ouvertes()])->orderBy('ordre')->get()
+            ->each(fn (Departement $departement) => $departement->setRelation(
+                'rubriques',
+                $departement->rubriques->filter(fn ($rubrique) => $rubrique->categories->isNotEmpty())->values(),
+            ))
+            ->filter(fn (Departement $departement) => $departement->rubriques->isNotEmpty())
+            ->each(fn (Departement $departement) => $departement->nombre_prestataires = $comptes[$departement->id] ?? 0)
+            ->values();
 
         return DepartementResource::collection($departements);
     }

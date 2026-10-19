@@ -1,21 +1,24 @@
 import { useApp } from "../state/app";
 import { api } from "../lib/api";
+import { CONFIG } from "../lib/config";
 import { useApi } from "../lib/useApi";
 import { Icon } from "./Icon";
 import { OVERLINE } from "./ui";
 
 /**
- * Méga-menu des 12 départements, déployé depuis la barre de recherche.
- * Survol à gauche, sous-catégories réelles à droite. La colonne Construction
- * porte en pied l'entrée vers le projet suivi — c'est le point d'entrée du
- * module BTP, atteignable au doigt à toutes les largeurs.
+ * Méga-menu des départements ouverts par l'API, déployé depuis la barre de recherche.
+ * Survol à gauche, sous-catégories réelles à droite. Avec le module Construction,
+ * la colonne Construction porte en pied l'entrée vers le projet suivi — le point
+ * d'entrée du module BTP, atteignable au doigt à toutes les largeurs.
  */
 export function MegaMenu() {
   const { etat, set, rechercher, exigerCompte, go } = useApp();
   const { donnees: departements, erreur } = useApi(() => api.departements(), []);
   if (!etat.deptsOpen) return null;
 
-  const deptActif = departements?.[etat.deptHover];
+  const deptActif = departements?.[etat.deptHover] ?? departements?.[0];
+  // L'API ne renvoie que les départements ouverts : un seul pendant le MVP.
+  const plusieurs = (departements?.length ?? 0) > 1;
 
   if (!departements || !deptActif) {
     return (
@@ -62,50 +65,53 @@ export function MegaMenu() {
         overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          width: 264,
-          flex: "none",
-          padding: 10,
-          borderRight: "1px solid var(--color-divider)",
-          background: "var(--color-surface)",
-          display: "flex",
-          flexDirection: "column",
-          gap: 1,
-          maxHeight: "min(620px, 76vh)",
-          overflow: "auto",
-        }}
-      >
-        {departements.map(({ nom, slug, icone: icon }, i) => {
-          const survole = i === etat.deptHover;
-          return (
-            <button
-              key={slug}
-              onMouseEnter={() => set({ deptHover: i })}
-              onFocus={() => set({ deptHover: i })}
-              onClick={() => rechercher(nom, { departement: slug })}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                textAlign: "left",
-                cursor: "pointer",
-                border: 0,
-                font: "inherit",
-                fontSize: "13.5px",
-                padding: "9px 12px",
-                borderRadius: "var(--radius-md)",
-                whiteSpace: "nowrap",
-                background: survole ? "var(--color-accent-200)" : "transparent",
-                color: survole ? "var(--color-accent-900)" : "inherit",
-              }}
-            >
-              <Icon name={icon} size={17} strokeWidth={2.75} />
-              {nom}
-            </button>
-          );
-        })}
-      </div>
+      {/* Un seul département ouvert (MVP) : la colonne de choix n'a plus d'objet. */}
+      {plusieurs && (
+        <div
+          style={{
+            width: 264,
+            flex: "none",
+            padding: 10,
+            borderRight: "1px solid var(--color-divider)",
+            background: "var(--color-surface)",
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            maxHeight: "min(620px, 76vh)",
+            overflow: "auto",
+          }}
+        >
+          {departements.map(({ nom, slug, icone: icon }, i) => {
+            const survole = i === etat.deptHover;
+            return (
+              <button
+                key={slug}
+                onMouseEnter={() => set({ deptHover: i })}
+                onFocus={() => set({ deptHover: i })}
+                onClick={() => rechercher(nom, { departement: slug })}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  textAlign: "left",
+                  cursor: "pointer",
+                  border: 0,
+                  font: "inherit",
+                  fontSize: "13.5px",
+                  padding: "9px 12px",
+                  borderRadius: "var(--radius-md)",
+                  whiteSpace: "nowrap",
+                  background: survole ? "var(--color-accent-200)" : "transparent",
+                  color: survole ? "var(--color-accent-900)" : "inherit",
+                }}
+              >
+                <Icon name={icon} size={17} strokeWidth={2.75} />
+                {nom}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <div
         style={{
@@ -119,16 +125,19 @@ export function MegaMenu() {
           overflow: "auto",
         }}
       >
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-          <span style={{ fontFamily: "var(--font-heading)", fontSize: "19px" }}>{deptActif.nom}</span>
-          <button
-            onClick={() => rechercher(deptActif.nom, { departement: deptActif.slug })}
-            className="sy-btn sy-btn--ghost sy-btn--md"
-            style={{ marginLeft: "auto", fontSize: "13px" }}
-          >
-            Tout voir
-          </button>
-        </div>
+        {/* Un seul département (MVP) : ni son nom ni « Tout voir », seules ses rubriques restent. */}
+        {plusieurs && (
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: "19px" }}>{deptActif.nom}</span>
+            <button
+              onClick={() => rechercher(deptActif.nom, { departement: deptActif.slug })}
+              className="sy-btn sy-btn--ghost sy-btn--md"
+              style={{ marginLeft: "auto", fontSize: "13px" }}
+            >
+              Tout voir
+            </button>
+          </div>
+        )}
 
         <div data-grid="421" style={{ gap: "18px 22px" }}>
           {deptActif.rubriques.map(({ nom: titre, categories }) => (
@@ -153,7 +162,7 @@ export function MegaMenu() {
                 </button>
               ))}
 
-              {titre === "Construction" && (
+              {CONFIG.moduleConstruction && titre === "Construction" && (
                 <div
                   style={{
                     marginTop: 6,

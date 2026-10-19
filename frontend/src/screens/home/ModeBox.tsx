@@ -1,11 +1,12 @@
+import { CONFIG } from "../../lib/config";
 import { useApp } from "../../state/app";
 import { Icon } from "../../components/Icon";
 import { OVERLINE } from "../../components/ui";
 
 const EXEMPLES = [
   "Ma pompe à eau ne démarre plus",
-  "Je veux carreler 40 m² à Habitat",
-  "Trouver un traiteur pour 80 personnes",
+  "La clim ne refroidit plus depuis hier",
+  "Ma porte d'entrée ne ferme plus à clé",
 ];
 
 const DIAGNOSTIC = [
@@ -21,7 +22,9 @@ const DIAGNOSTIC = [
 const CAPACITES = [
   { icon: "scan-search", texte: "Traduire un problème en métier et en caractéristiques précises" },
   { icon: "wallet", texte: "Annoncer une fourchette de prix avant tout contact" },
-  { icon: "route", texte: "Ouvrir un projet suivi quand le besoin a plusieurs étapes" },
+  ...(CONFIG.moduleConstruction
+    ? [{ icon: "route", texte: "Ouvrir un projet suivi quand le besoin a plusieurs étapes" }]
+    : []),
   { icon: "mic", texte: "Écouter un message vocal si écrire prend trop de temps" },
 ];
 
@@ -105,11 +108,11 @@ export function ModeBox() {
                 </div>
               ))}
               <button
-                onClick={() => rechercher("Plombiers")}
+                onClick={() => rechercher("Plomberie", { categorie: "plombiers" })}
                 className="sy-btn sy-btn--primary sy-btn--md"
                 style={{ alignSelf: "flex-start", marginTop: 2 }}
               >
-                Voir les 4 plombiers disponibles
+                Voir les plombiers disponibles
               </button>
             </div>
           </div>
@@ -169,21 +172,23 @@ export function ModeBox() {
             ))}
           </div>
 
-          <div className="sy-card sy-weave" style={{ padding: 18, display: "flex", flexDirection: "column", gap: 10 }}>
-            <span style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "17px" }}>
-              Besoin en plusieurs étapes ?
-            </span>
-            <span style={{ fontSize: "14px", lineHeight: 1.5, color: "var(--color-neutral-700)" }}>
-              La Box ouvre un dossier suivi et bloque l'argent étape par étape.
-            </span>
-            <button
-              onClick={() => exigerCompte(() => go("assistant", { assistStep: 1 }))}
-              className="sy-btn sy-btn--outline sy-btn--md"
-              style={{ alignSelf: "flex-start" }}
-            >
-              Ouvrir un projet suivi
-            </button>
-          </div>
+          {CONFIG.moduleConstruction && (
+            <div className="sy-card sy-weave" style={{ padding: 18, display: "flex", flexDirection: "column", gap: 10 }}>
+              <span style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "17px" }}>
+                Besoin en plusieurs étapes ?
+              </span>
+              <span style={{ fontSize: "14px", lineHeight: 1.5, color: "var(--color-neutral-700)" }}>
+                La Box ouvre un dossier suivi et bloque l'argent étape par étape.
+              </span>
+              <button
+                onClick={() => exigerCompte(() => go("assistant", { assistStep: 1 }))}
+                className="sy-btn sy-btn--outline sy-btn--md"
+                style={{ alignSelf: "flex-start" }}
+              >
+                Ouvrir un projet suivi
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </section>

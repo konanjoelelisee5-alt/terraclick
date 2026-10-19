@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { CONFIG } from "./lib/config";
+import { useEstMobile } from "./lib/useEstMobile";
 import { appliquerTheme } from "./lib/theme";
 import { AppProvider, useApp } from "./state/app";
 import { AuthSheet } from "./components/AuthSheet";
@@ -23,6 +24,11 @@ import { Publie } from "./screens/Publie";
 import { Recu } from "./screens/Recu";
 import { Results } from "./screens/Results";
 import { Urgence } from "./screens/Urgence";
+import { Favoris } from "./screens/Favoris";
+import { Besoin } from "./screens/besoin/Besoin";
+import { Confirmation } from "./screens/besoin/Confirmation";
+import { DemandeEnvoyee } from "./screens/besoin/DemandeEnvoyee";
+import { Recommandations } from "./screens/besoin/Recommandations";
 import { ProjLitige } from "./screens/projet/ProjLitige";
 import { ProjMode } from "./screens/projet/ProjMode";
 import { ProjOffres } from "./screens/projet/ProjOffres";
@@ -72,6 +78,11 @@ const ECRANS: Record<Ecran, () => JSX.Element> = {
   avis: Avis,
   connexion: Connexion,
   inscription: Inscription,
+  besoin: Besoin,
+  recommandations: Recommandations,
+  confirmation: Confirmation,
+  demandeEnvoyee: DemandeEnvoyee,
+  favoris: Favoris,
   clientDashboard: ClientDashboard,
   clientDemandes: ClientDemandes,
   clientSuivi: ClientSuivi,
@@ -91,9 +102,29 @@ const ECRANS: Record<Ecran, () => JSX.Element> = {
   proNotifications: ProNotifications,
 };
 
+/** Écrans du module Construction, inaccessibles quand CONFIG.moduleConstruction est coupé (MVP). */
+const ECRANS_CONSTRUCTION: Ecran[] = [
+  "construction",
+  "assistant",
+  "publie",
+  "mesProjets",
+  "projMode",
+  "projQuest",
+  "projDash",
+  "projOffres",
+  "projSuivi",
+  "projLitige",
+  "contrat",
+];
+
 function Coque() {
   const { etat, set } = useApp();
-  const Ecran = ECRANS[etat.screen];
+  const masque = !CONFIG.moduleConstruction && ECRANS_CONSTRUCTION.includes(etat.screen);
+  const Ecran = masque ? Home : ECRANS[etat.screen];
+  // Sur téléphone, les onglets secondaires (Profil, Favoris) portent leur propre en-tête à
+  // grand titre : ni logo ni choix de ville.
+  const estMobile = useEstMobile();
+  const sansEntete = estMobile && (etat.screen === "clientDashboard" || etat.screen === "favoris");
 
   // Un clic hors du méga-menu le referme. L'écoute porte sur `mousedown` et non
   // sur `click` : le clic qui ouvre le panneau depuis l'en-tête continue de
@@ -126,7 +157,7 @@ function Coque() {
       data-r="page"
       style={{ minHeight: "100vh", fontFamily: "var(--font-body)", color: "var(--color-text)" }}
     >
-      <Header />
+      {!sansEntete && <Header />}
       <Ecran />
       <Notifications />
       <AuthSheet />

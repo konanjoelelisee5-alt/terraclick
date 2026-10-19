@@ -50,7 +50,7 @@ export const CLAUSES_CONTRAT = [
   },
   {
     titre: "Litiges",
-    texte: "Négociation de 48 h, puis médiation par Servis Yakro sur la base du rapport de l'agent.",
+    texte: "Négociation de 48 h, puis médiation par TerraClick sur la base du rapport de l'agent.",
   },
 ];
 

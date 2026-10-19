@@ -2,9 +2,9 @@ import { useApp } from "../state/app";
 import { Icon } from "../components/Icon";
 
 const LIGNES = [
-  { cle: "Prestation", val: "Ordinateur 16 Go · Tech Ivoire" },
+  { cle: "Prestation", val: "Changement de serrure · Serrurerie N'Guessan" },
   { cle: "Date de réception", val: "mercredi 12 août 2026" },
-  { cle: "Vérifié par", val: "Agent Traoré · checklist complète" },
+  { cle: "Fin confirmée par", val: "Vous, à la fin de la prestation" },
   { cle: "Moyen de paiement", val: "Wave · 07 58 42 19 03" },
 ];
 
@@ -48,7 +48,7 @@ export function Recu() {
           </span>
           <div>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "24px", letterSpacing: "-0.02em" }}>
-              Séquestre libéré
+              Paiement confirmé
             </div>
             <div style={{ fontSize: "14px", color: "var(--text-muted)" }}>
               Le prestataire a été payé. Reçu REC-2841.
@@ -76,7 +76,7 @@ export function Recu() {
           >
             <span style={{ fontSize: "15px", color: "var(--text-muted)" }}>Montant versé</span>
             <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "28px", letterSpacing: "-0.02em" }}>
-              340 000 F
+              18 000 F
             </span>
           </div>
 

@@ -12,3 +12,13 @@ createRoot(racine).render(
     <App />
   </StrictMode>,
 );
+
+// Application installable : le service worker n'est actif qu'en production, pour qu'en
+// développement le rechargement à chaud ne soit jamais servi depuis un cache.
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {
+      /* sans service worker, l'application fonctionne normalement, simplement sans installation */
+    });
+  });
+}

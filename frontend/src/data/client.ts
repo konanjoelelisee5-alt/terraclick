@@ -23,8 +23,8 @@ export const DEMANDES_CLIENT: DemandeClient[] = [
   { ref: "DEV-2026-00128", prestataire: "Koffi Tanoh", initiales: "KT", portee: "Plomberie · Habitat", statut: "Marquée terminée", groupe: "Rendez-vous", ton: "warning", date: "14 avril", estimation: "25 000 F", prochaine: "Confirmer la fin de prestation" },
   { ref: "DEV-2026-00124", prestataire: "Élec Yakro", initiales: "EY", portee: "Électricité · Millionnaire", statut: "Réponse reçue", groupe: "Réponses reçues", ton: "info", date: "12 avril", estimation: "18 000 F", prochaine: "Accepter ou refuser le créneau" },
   { ref: "DEV-2026-00121", prestataire: "ClimaCool CI", initiales: "CC", portee: "Climatisation · Habitat", statut: "Terminée", groupe: "Terminées", ton: "success", date: "8 avril", estimation: "12 000 F", prochaine: "Laisser un avis" },
-  { ref: "DEV-2026-00119", prestataire: "Garage Bamba", initiales: "GB", portee: "Mécanique · Kokrenou", statut: "En attente", groupe: "En attente", ton: "neutral", date: "6 avril", estimation: "—", prochaine: "Attendre la réponse du prestataire" },
-  { ref: "DEV-2026-00112", prestataire: "Ali Diomandé", initiales: "AD", portee: "Carrelage · Assabou", statut: "Annulée", groupe: "Annulées", ton: "neutral", date: "2 avril", estimation: "—", prochaine: "Rechercher un autre prestataire" },
+  { ref: "DEV-2026-00119", prestataire: "Serrurerie N'Guessan", initiales: "SN", portee: "Serrurerie · Kokrenou", statut: "En attente", groupe: "En attente", ton: "neutral", date: "6 avril", estimation: "—", prochaine: "Attendre la réponse du prestataire" },
+  { ref: "DEV-2026-00112", prestataire: "Ali Diomandé", initiales: "AD", portee: "Plomberie · Assabou", statut: "Annulée", groupe: "Annulées", ton: "neutral", date: "2 avril", estimation: "—", prochaine: "Rechercher un autre prestataire" },
 ];
 
 /** Suivi détaillé de la demande DEV-2026-00128 (la seule détaillée en démonstration). */
@@ -65,5 +65,5 @@ export const PREFERENCES_NOTIFICATION = [
   { cle: "reponse", libelle: "Réponse d'un prestataire", actif: true },
   { cle: "rappel", libelle: "Rappel de rendez-vous", actif: true },
   { cle: "fin", libelle: "Demande de confirmation de fin de prestation", actif: true },
-  { cle: "nouveautes", libelle: "Nouveautés Servis Yakro", actif: false },
+  { cle: "nouveautes", libelle: "Nouveautés TerraClick", actif: false },
 ];

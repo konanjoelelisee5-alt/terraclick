@@ -11,18 +11,13 @@ const COLONNES = [
 const LIENS_PRO = ["Devenir partenaire", "Espace pro"];
 
 export function Footer() {
-  const { etat, go, exigerCompte } = useApp();
+  const { go, exigerCompte } = useApp();
 
   return (
     <footer
       data-r="footer"
-      style={{
-        marginTop: 64,
-        background: "var(--color-surface)",
-        // Sur mobile, le pied de page n'est conservé que sur l'accueil : ailleurs
-        // il éloigne inutilement la barre d'onglets du contenu.
-        ...(etat.screen === "home" ? {} : ({ "--sy-footer-mobile": "none" } as React.CSSProperties)),
-      }}
+      // Masqué sous 1080 px (téléphone, tablette) par app.css : il ne sert que sur ordinateur.
+      style={{ marginTop: 64, background: "var(--color-surface)" }}
     >
       <div
         data-r="footer container"
@@ -78,7 +73,7 @@ export function Footer() {
             textAlign: "center",
           }}
         >
-          © 2026 Servis Yakro — Tous droits réservés.
+          © 2026 TerraClick — Tous droits réservés.
         </div>
       </div>
     </footer>

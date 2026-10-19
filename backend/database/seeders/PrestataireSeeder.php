@@ -65,6 +65,20 @@ class PrestataireSeeder extends Seeder
             'categories' => ['climatisation-vente-et-reparation'],
         ],
         [
+            'nom' => 'Serrurerie N\'Guessan', 'metier' => 'Serrurier', 'quartier' => 'centre-ville',
+            'description' => 'Ouverture de porte, changement de serrure, blindage et grilles de sécurité. Dépannage 24/24.',
+            'note_moyenne' => 4.7, 'nombre_avis' => 41, 'prix_min' => 5000, 'prix_max' => 40000,
+            'delai_reponse_minutes' => 15, 'latitude' => 6.8210, 'longitude' => -5.2760, 'en_vedette' => true,
+            'categories' => ['serruriers'],
+        ],
+        [
+            'nom' => 'Menuiserie Konaté', 'metier' => 'Menuisier', 'quartier' => 'morofe',
+            'description' => 'Portes, fenêtres, placards et meubles sur mesure en bois massif. Pose et réparation.',
+            'note_moyenne' => 4.6, 'nombre_avis' => 28, 'prix_min' => 15000, 'prix_max' => 250000,
+            'delai_reponse_minutes' => 60, 'latitude' => 6.8120, 'longitude' => -5.2880, 'en_vedette' => true,
+            'categories' => ['menuisiers'],
+        ],
+        [
             'nom' => 'Soleil Énergie', 'metier' => 'Panneaux solaires', 'quartier' => 'assabou',
             'description' => 'Études et installations solaires pour particuliers et commerces. Devis gratuit.',
             'note_moyenne' => 4.7, 'nombre_avis' => 74,

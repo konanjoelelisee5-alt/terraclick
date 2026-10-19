@@ -123,7 +123,7 @@ export function ProjLitige() {
         >
           2
         </span>
-        <span style={{ fontFamily: "var(--font-heading)", fontSize: "18px" }}>Arbitrage Servis Yakro</span>
+        <span style={{ fontFamily: "var(--font-heading)", fontSize: "18px" }}>Arbitrage TerraClick</span>
         <span style={{ color: "var(--color-neutral-700)", marginLeft: "auto", fontSize: "13px" }}>si pas d'accord</span>
       </div>
       <p style={{ color: "var(--color-neutral-700)", fontSize: "13.5px", marginTop: 14 }}>

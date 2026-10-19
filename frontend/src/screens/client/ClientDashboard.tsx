@@ -1,6 +1,8 @@
 import { useApp } from "../../state/app";
 import { Icon } from "../../components/Icon";
 import { MONO, TITRE_CARTE, badge } from "../pro/EspacePro";
+import { useEstMobile } from "../../lib/useEstMobile";
+import { ProfilMobile } from "./ProfilMobile";
 import { EspaceClient } from "./EspaceClient";
 import { useEtatClient } from "./store";
 
@@ -43,6 +45,10 @@ export function ClientDashboard() {
   const { demandes } = useEtatClient();
   const prenom = etat.auth?.prenom.split(" ")[0] ?? "";
   const aFaire = demandes.filter((d) => ACTIONS[d.statut]);
+
+  // Sur téléphone : l'écran Profil (grand titre, carte d'identité, menu), sans onglets.
+  const estMobile = useEstMobile();
+  if (estMobile) return <ProfilMobile />;
 
   const RACCOURCIS = [
     { icone: "search", libelle: "Rechercher un prestataire", action: () => go("home") },

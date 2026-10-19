@@ -199,7 +199,7 @@ export function Inscription() {
             <span className="sy-choice__box sy-choice__box--check">
               {cgu && <Icon name="check" size={14} strokeWidth={3} />}
             </span>
-            J'accepte les conditions d'utilisation et la politique de confidentialité de Servis Yakro
+            J'accepte les conditions d'utilisation et la politique de confidentialité de TerraClick
           </label>
 
           <Alerte erreur={otp.erreur} />

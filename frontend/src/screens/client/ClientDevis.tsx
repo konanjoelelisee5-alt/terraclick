@@ -175,7 +175,7 @@ export function ClientDevis() {
               </div>
             </div>
             <Note>
-              Le paiement de la prestation est convenu directement entre vous et le prestataire. Servis Yakro ne
+              Le paiement de la prestation est convenu directement entre vous et le prestataire. TerraClick ne
               conserve pas les fonds liés à cette prestation.
             </Note>
             <button type="button" className="sy-btn sy-btn--primary sy-btn--lg" style={{ alignSelf: "flex-start" }} onClick={envoyer} disabled={!pro}>

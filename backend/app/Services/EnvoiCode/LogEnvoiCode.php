@@ -16,6 +16,6 @@ class LogEnvoiCode implements EnvoiCode
             throw new EnvoiCodeImpossible("Aucun fournisseur réel configuré pour le canal {$canal} (OTP_".strtoupper($canal).'_DRIVER=log).');
         }
 
-        Log::info("Code de connexion Servis Yakro pour {$telephone} ({$canal}) : {$code}");
+        Log::info("Code de connexion TerraClick pour {$telephone} ({$canal}) : {$code}");
     }
 }

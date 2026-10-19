@@ -39,7 +39,7 @@ export function Connexion() {
   };
 
   return (
-    <CadreAuth titre="Connexion" sousTitre="Accédez à vos demandes, vos conversations et vos projets." largeur={440}>
+    <CadreAuth titre="Connexion" sousTitre="Accédez à vos demandes et à vos conversations." largeur={440}>
       {etape === "tel" ? (
         <>
           <ChampTelephone

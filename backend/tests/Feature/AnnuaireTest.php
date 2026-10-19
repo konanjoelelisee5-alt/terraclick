@@ -20,6 +20,9 @@ class AnnuaireTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // L'annuaire complet, tel qu'il sera une fois tous les secteurs rouverts ;
+        // le périmètre réduit du MVP est vérifié par MvpTest.
+        config(['mvp.actif' => false]);
         $this->seed([CatalogueSeeder::class, PrestataireSeeder::class, DemoSeeder::class]);
     }
 
@@ -41,10 +44,11 @@ class AnnuaireTest extends TestCase
             ->assertJsonPath('data.0.nom', 'Maison & Bâtiment')
             ->assertJsonPath('data.0.icone', 'home')
             ->assertJsonPath('data.0.rubriques.1.nom', 'Construction')
-            ->assertJsonPath('data.0.rubriques.1.categories.9.nom', 'Plombiers');
+            ->assertJsonPath('data.0.rubriques.1.categories.10.nom', 'Plombiers');
 
-        // Maison & Bâtiment : Koffi, Ali, Élec Yakro, Solar Mamadou, ClimaCool, Soleil Énergie, Bakayoko.
-        $this->assertSame(7, $reponse->json('data.0.nombre_prestataires'));
+        // Maison & Bâtiment : Koffi, Ali, Élec Yakro, Solar Mamadou, ClimaCool, Soleil Énergie, Bakayoko,
+        // Serrurerie N'Guessan, Menuiserie Konaté.
+        $this->assertSame(9, $reponse->json('data.0.nombre_prestataires'));
         $this->assertSame(0, $reponse->json('data.11.nombre_prestataires'));
     }
 
@@ -128,7 +132,7 @@ class AnnuaireTest extends TestCase
     public function test_les_vedettes_de_l_accueil(): void
     {
         $this->assertEqualsCanonicalizing(
-            ['Auto Service Yakro', 'ClimaCool CI', 'Soleil Énergie'],
+            ['Auto Service Yakro', 'ClimaCool CI', 'Soleil Énergie', 'Serrurerie N\'Guessan', 'Menuiserie Konaté'],
             $this->getJson('/api/prestataires/vedettes')->assertOk()->json('data.*.nom'),
         );
     }

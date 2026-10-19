@@ -22,7 +22,8 @@ class OtpService
      */
     public function emettre(string $telephone, string $canal): OtpCode
     {
-        $code = $this->genererCode();
+        $test = $this->estNumeroTest($telephone);
+        $code = $test ? (string) config('otp.code_test') : $this->genererCode();
 
         $otp = DB::transaction(function () use ($telephone, $canal, $code) {
             OtpCode::where('telephone', $telephone)->valides()->update(['expire_le' => now()]);
@@ -34,6 +35,11 @@ class OtpService
                 'expire_le' => now()->addMinutes(config('otp.duree_minutes')),
             ]);
         });
+
+        // Numéro de test : le testeur connaît le code, rien n'est envoyé.
+        if ($test) {
+            return $otp;
+        }
 
         try {
             $canalUtilise = $this->envoi->envoyer($telephone, $code, $canal);
@@ -84,6 +90,17 @@ class OtpService
         if ($erreur) {
             throw ValidationException::withMessages(['code' => $erreur]);
         }
+    }
+
+    /** Numéro listé dans OTP_NUMEROS_TEST (comparé sur ses 10 derniers chiffres), avec un code de test défini. */
+    private function estNumeroTest(string $telephone): bool
+    {
+        if (! config('otp.code_test')) {
+            return false;
+        }
+        $chiffres = fn (string $n) => substr(preg_replace('/\D/', '', $n), -10);
+
+        return collect(config('otp.numeros_test'))->contains(fn (string $n) => $chiffres($n) === $chiffres($telephone));
     }
 
     private function genererCode(): string

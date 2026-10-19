@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { api, ErreurApi } from "../lib/api";
-import { versPrestataire } from "../lib/annuaire";
+import { SECTEURS } from "../data/catalogue";
+import { api, ErreurApi, type FicheApi } from "../lib/api";
+import { CONFIG } from "../lib/config";
+import { slugifier, versPrestataire } from "../lib/annuaire";
 import { useApi } from "../lib/useApi";
 import { useApp } from "../state/app";
 import { Icon } from "../components/Icon";
@@ -32,7 +34,26 @@ const STATUT_DOCUMENT = {
  * d'action reste fixe en bas, au-dessus de la barre d'onglets sur mobile.
  */
 export function FichePro() {
-  const { etat, go, ouvrirChat, exigerCompte, poserSujetMaison } = useApp();
+  const { etat, go, ouvrirChat, poserSujetMaison, demarrerBesoin, modifierBesoin } = useApp();
+
+  /**
+   * Demande en cours pour l'un de ses services : on passe à la confirmation. Sinon, l'assistant
+   * s'ouvre avec ce technicien et, s'il n'exerce qu'un service, ce service déjà choisi.
+   */
+  const demanderCeTechnicien = (p: FicheApi) => {
+    const sesSecteurs = SECTEURS.filter((s) => p.categories?.some((c) => slugifier(c) === s.categorie)).map((s) => s.cle);
+    const b = etat.besoin;
+    if (b.secteur && b.quartier && sesSecteurs.includes(b.secteur)) {
+      modifierBesoin({ prestataire: p, mode: b.mode ?? "choisi" });
+      go("confirmation");
+      return;
+    }
+    demarrerBesoin({
+      prestataire: p,
+      mode: "choisi",
+      ...(sesSecteurs.length === 1 ? { secteur: sesSecteurs[0] } : { suggestions: sesSecteurs }),
+    });
+  };
   const [essai, setEssai] = useState(0);
 
   // Rechargée à la connexion : le numéro du prestataire n'est donné qu'aux comptes connectés.
@@ -132,7 +153,7 @@ export function FichePro() {
                   Profil vérifié
                 </span>
               )}
-              {p.accepte_suivi && (
+              {CONFIG.moduleConstruction && p.accepte_suivi && (
                 <span className="sy-badge sy-badge--brand">
                   <Icon name="route" size={13} />
                   Accepte les projets suivis
@@ -210,7 +231,7 @@ export function FichePro() {
               <h2 style={TITRE_BLOC}>Avis clients</h2>
               {p.avis_recents.length === 0 && (
                 <p style={{ fontSize: "14px", margin: 0, color: "var(--text-muted)" }}>
-                  Pas encore d'avis publié sur Servis Yakro.
+                  Pas encore d'avis publié sur TerraClick.
                 </p>
               )}
               {p.avis_recents.map((a) => (
@@ -336,7 +357,7 @@ export function FichePro() {
               {p.telephone}
             </a>
           )}
-          {p.accepte_suivi && (
+          {CONFIG.moduleConstruction && p.accepte_suivi && (
             <button
               onClick={() => poserSujetMaison({ onglet: 1 })}
               className="sy-btn sy-btn--ghost sy-btn--md"
@@ -346,11 +367,11 @@ export function FichePro() {
             </button>
           )}
           <button
-            onClick={() => exigerCompte(() => go("assistant", { assistStep: 1 }))}
+            onClick={() => demanderCeTechnicien(p)}
             className="sy-btn sy-btn--primary sy-btn--md"
             style={{ flex: 1, minWidth: 180, justifyContent: "center", minHeight: 48, fontSize: "16px" }}
           >
-            Demander un devis
+            Demander ce technicien
           </button>
         </div>
       </div>

@@ -38,7 +38,8 @@ async function connecter(p, tel = '07 58 42 19 03') {
 // A · Le mur d'authentification n'arrive qu'à l'action, et l'action reprend ensuite
 {
   const { ctx, p } = await neuve();
-  await p.getByPlaceholder(/Que cherchez-vous/).fill('Plombier');
+  // Un nom de technicien n'est pas un service : la recherche texte affiche ses résultats.
+  await p.getByPlaceholder(/Quel est votre problème/).fill('Koffi');
   await p.locator('[data-r="search-go"]').click();
   await p.waitForTimeout(300);
   ok('chercher reste libre, sans compte', await apparait(p.getByText('Koffi Tanoh').first()));
@@ -56,7 +57,9 @@ async function connecter(p, tel = '07 58 42 19 03') {
 // B · Numéro inconnu dans la feuille basse (le mur) : création du profil en deux champs
 {
   const { ctx, p } = await neuve();
-  await p.getByRole('button', { name: 'Demander un devis' }).first().click();
+  await p.getByPlaceholder(/Quel est votre problème/).fill('Koffi');
+  await p.locator('[data-r="search-go"]').click();
+  await p.getByRole('button', { name: 'Chat', exact: true }).first().click();
   await apparait(p.getByText('Votre numéro, et c\'est parti'));
   await p.getByLabel('Votre numéro de téléphone').fill('07 11 22 33 44');
   await p.getByRole('button', { name: 'Recevoir mon code' }).click();
@@ -65,8 +68,12 @@ async function connecter(p, tel = '07 58 42 19 03') {
   await ctx.close();
 }
 
+// Le module Construction est masqué dans le MVP (CONFIG.moduleConstruction, src/lib/config.ts).
+// Les règles C à F le parcourent : elles ne tournent que s'il est rebranché.
+const MODULE_CONSTRUCTION = false;
+
 // C · L'assistant bloque « Continuer » tant que l'étape n'est pas renseignée
-{
+if (MODULE_CONSTRUCTION) {
   const { ctx, p } = await neuve();
   await p.getByRole('button', { name: 'Construction' }).click();
   await p.waitForTimeout(250);
@@ -87,7 +94,7 @@ async function connecter(p, tel = '07 58 42 19 03') {
 }
 
 // D · Le contrat ne se termine pas sans signature
-{
+if (MODULE_CONSTRUCTION) {
   const { ctx, p } = await neuve();
   await p.getByRole('button', { name: 'Mes projets' }).click();
   await p.waitForTimeout(250);
@@ -112,7 +119,7 @@ async function connecter(p, tel = '07 58 42 19 03') {
 }
 
 // E · Le PV de réserves n'ouvre aucune étape contractuelle
-{
+if (MODULE_CONSTRUCTION) {
   const { ctx, p } = await neuve();
   await p.getByRole('button', { name: 'Mes projets' }).click();
   await p.waitForTimeout(250);
@@ -135,9 +142,9 @@ async function connecter(p, tel = '07 58 42 19 03') {
 }
 
 // F · Bandeau de suivi contre bloc BTP, selon la recherche
-{
+if (MODULE_CONSTRUCTION) {
   const { ctx, p } = await neuve();
-  await p.getByPlaceholder(/Que cherchez-vous/).fill('Maçon');
+  await p.getByPlaceholder(/Quel est votre problème/).fill('Maçon');
   await p.locator('[data-r="search-go"]').click();
   await p.waitForTimeout(350);
   ok('recherche BTP : bloc « Accompagnement BTP »', await p.getByText('Accompagnement BTP').isVisible());
@@ -145,7 +152,7 @@ async function connecter(p, tel = '07 58 42 19 03') {
      !(await p.getByText('Suivi avancé disponible pour ce besoin').isVisible().catch(() => false)));
   await p.getByRole('button', { name: /Retour à l'accueil/ }).click();
   await p.waitForTimeout(250);
-  await p.getByPlaceholder(/Que cherchez-vous/).fill('Coiffure');
+  await p.getByPlaceholder(/Quel est votre problème/).fill('Coiffure');
   await p.locator('[data-r="search-go"]').click();
   await p.waitForTimeout(350);
   ok('hors BTP : bandeau de suivi avancé proposé (jamais imposé)',
@@ -156,12 +163,134 @@ async function connecter(p, tel = '07 58 42 19 03') {
 // G · Le retour navigateur fonctionne
 {
   const { ctx, p } = await neuve();
-  await p.getByRole('button', { name: 'Construction' }).click();
+  await p.getByRole('button', { name: 'Programmer une intervention' }).click();
+  await apparait(p.getByRole('heading', { name: 'De quel service avez-vous besoin ?' }));
   await p.waitForTimeout(300);
   await p.goBack();
   await p.waitForTimeout(400);
   ok('le bouton Précédent du navigateur revient à l’accueil',
      await p.getByText('Recherches populaires').isVisible());
+  await ctx.close();
+}
+
+// G bis · MVP : seuls les cinq secteurs sont ouverts, le module Construction est masqué
+if (!MODULE_CONSTRUCTION) {
+  const { ctx, p } = await neuve();
+  ok('MVP : pas d’entrée « Construction » ni « Mes projets »',
+     (await p.getByRole('button', { name: 'Construction', exact: true }).count()) === 0 &&
+       (await p.getByRole('button', { name: 'Mes projets', exact: true }).count()) === 0);
+  ok('MVP : les cinq secteurs sur l’accueil',
+     (await Promise.all(['Plomberie', 'Électricité', 'Climatisation', 'Serrurerie', 'Menuiserie']
+       .map((s) => p.getByRole('button', { name: s, exact: true }).isVisible()))).every(Boolean));
+  await p.locator('[data-r="search-depts"]').click();
+  await apparait(p.getByRole('button', { name: 'Serruriers', exact: true }));
+  ok('MVP : le méga-menu ne montre que les métiers ouverts',
+     (await p.getByRole('button', { name: 'Serruriers', exact: true }).isVisible()) &&
+       !(await p.getByText('Mécanicien auto').isVisible().catch(() => false)));
+  const menu = p.locator('[data-r="megamenu"]');
+  ok('MVP : méga-menu sans « Maison & Bâtiment » ni « Tout voir »',
+     (await menu.getByText('Maison & Bâtiment').count()) === 0 &&
+       (await menu.getByRole('button', { name: 'Tout voir' }).count()) === 0);
+  await p.locator('[data-r="search-depts"]').click();
+  await p.getByPlaceholder(/Quel est votre problème/).fill('Garage');
+  await p.locator('[data-r="search-go"]').click();
+  ok('MVP : un métier masqué ne renvoie personne', await apparait(p.getByText('Aucun prestataire pour cette recherche')));
+  ok('MVP : ni bloc BTP ni suivi avancé',
+     !(await p.getByText('Accompagnement BTP').isVisible().catch(() => false)) &&
+       !(await p.getByText('Suivi avancé disponible pour ce besoin').isVisible().catch(() => false)));
+  await ctx.close();
+}
+
+// G quater · La barre comprend une phrase : le client décrit son problème sans nommer le métier
+{
+  const { ctx, p } = await neuve();
+  await p.getByPlaceholder(/Quel est votre problème/).fill('ma douche fuit depuis hier');
+  await p.locator('[data-r="search-go"]').click();
+  ok('phrase libre : l’assistant s’ouvre sur la plomberie',
+     await apparait(p.getByRole('heading', { name: 'Quel est le problème ?' })) &&
+       (await p.getByText('Plomberie · Étape 1 sur 4').isVisible()));
+  await p.goto('http://localhost:4173/'); await p.waitForTimeout(300);
+  await p.getByPlaceholder(/Quel est votre problème/).fill("grosse fuite d'eau dans la cuisine");
+  await p.locator('[data-r="search-go"]').click();
+  await apparait(p.getByRole('heading', { name: 'Quel est le problème ?' }));
+  ok('problème nommé : « Fuite d’eau » est présélectionné',
+     (await p.getByRole('radio', { name: "Fuite d'eau" }).getAttribute('aria-checked')) === 'true');
+  await ctx.close();
+}
+
+// P · Lot 1 : urgence → assistant en 4 questions → « Trouver pour moi » → confirmation → envoi
+{
+  const { ctx, p } = await neuve();
+  await p.getByRole('button', { name: 'Urgence maintenant' }).click();
+  await p.locator('[data-r="choix-service"]').getByRole('button', { name: /Plomberie/ }).click();
+  const continuer = p.getByRole('button', { name: 'Continuer', exact: true });
+  ok('assistant : « Continuer » bloqué sans problème choisi', await continuer.isDisabled());
+  await p.getByRole('radio', { name: "Fuite d'eau" }).click();
+  await continuer.click();
+  await p.getByLabel('Quartier à Yamoussoukro').selectOption({ label: 'Habitat' });
+  await p.getByLabel(/point de repère/).fill('Derrière la pharmacie');
+  await continuer.click();
+  ok('urgence : « Maintenant » déjà choisi', (await p.getByRole('radio', { name: /Maintenant/ }).getAttribute('aria-checked')) === 'true');
+  await continuer.click();
+  await p.getByRole('button', { name: 'Passer cette étape' }).click();
+  ok('résumé : Plomberie · Fuite d’eau · Habitat · Maintenant',
+     (await p.locator('[data-r="resume-besoin"]').textContent()).includes("Plomberie · Fuite d'eau · Habitat · Maintenant"));
+  ok('urgence : « Trouver pour moi » proposé en premier',
+     await p.locator('[data-r^="mode-"]').first().evaluate((e) => e.dataset.r === 'mode-recommande'));
+  await p.getByRole('button', { name: 'Trouver pour moi' }).click();
+  ok('recommandations : le plombier du quartier en tête, marqué « Recommandé »',
+     await apparait(p.locator('[data-r="carte-technicien"]').first().getByText('Koffi Tanoh')) &&
+       (await p.locator('[data-r="carte-technicien"]').first().getByText('Recommandé').isVisible()));
+  await p.getByRole('button', { name: 'Confirmer ce technicien' }).click();
+  ok('confirmation : résumé, frais, paiement et annulation visibles',
+     await apparait(p.getByRole('heading', { name: "Vérifiez avant d'envoyer" })) &&
+       (await p.getByText('Frais de déplacement', { exact: true }).isVisible()) && (await p.getByText('Annulation', { exact: true }).isVisible()));
+  ok('aucune inscription demandée avant la confirmation', !(await p.getByText('Votre numéro, et c\'est parti').isVisible().catch(() => false)));
+  await p.getByRole('radio', { name: /Mobile Money/ }).click();
+  await p.getByRole('button', { name: 'Confirmer ma demande' }).click();
+  ok('confirmer demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
+  await connecter(p);
+  ok('demande envoyée par l’API, avec sa référence',
+     await apparait(p.getByRole('heading', { name: 'Demande envoyée' }), 8000) && (await p.getByText(/Référence DEM-\d{4}-\d{5}/).isVisible()));
+  await ctx.close();
+}
+
+// Q · « Programmer une intervention » : comparer d'abord, puis « Demander ce technicien » depuis la fiche
+{
+  const { ctx, p } = await neuve();
+  await p.getByRole('button', { name: 'Programmer une intervention' }).click();
+  await p.locator('[data-r="choix-service"]').getByRole('button', { name: /Serrurerie/ }).click();
+  const continuer = p.getByRole('button', { name: 'Continuer', exact: true });
+  await p.getByRole('radio', { name: 'Changer une serrure' }).click();
+  await continuer.click();
+  await p.getByLabel('Quartier à Yamoussoukro').selectOption({ label: 'Centre-ville' });
+  await continuer.click();
+  await p.getByRole('radio', { name: /Choisir une date/ }).click();
+  ok('date : « Continuer » bloqué tant qu’aucune date n’est choisie', await continuer.isDisabled());
+  const demain = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  await p.getByLabel('Date souhaitée').fill(demain);
+  await continuer.click();
+  await p.getByRole('button', { name: 'Passer cette étape' }).click();
+  ok('intervention programmée : « Comparer » proposé en premier',
+     await p.locator('[data-r^="mode-"]').first().evaluate((e) => e.dataset.r === 'mode-choisi'));
+  await p.getByRole('button', { name: 'Choisir moi-même' }).click();
+  ok('comparer : la demande est rappelée au-dessus de la liste', await apparait(p.locator('[data-r="rappel-besoin"]')));
+  await p.getByRole('button', { name: 'Voir le profil' }).first().click();
+  await p.getByRole('button', { name: 'Demander ce technicien' }).click();
+  ok('« Demander ce technicien » mène à la confirmation, avec ce serrurier',
+     await apparait(p.getByRole('heading', { name: "Vérifiez avant d'envoyer" })) &&
+       (await p.locator('[data-r="carte-technicien"]').getByText("Serrurerie N'Guessan").isVisible()));
+  await ctx.close();
+}
+
+// G ter · La ville se choisit dans une liste déroulante, sans faire défiler les autres
+{
+  const { ctx, p } = await neuve();
+  const choix = p.locator('[data-r="search-ville"] select');
+  ok('ville : liste déroulante avec les quatre villes', (await choix.locator('option').count()) === 4);
+  await choix.selectOption({ label: 'Daloa' });
+  ok('ville : Daloa choisie directement, affichée dans la barre',
+     (await p.locator('[data-r="search-ville"] [data-r="ville-nom"]').textContent()) === 'Daloa');
   await ctx.close();
 }
 
@@ -240,12 +369,64 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
   await ctx.close();
 }
 
-// K · Sur téléphone, l'onglet « Compte » mène à la page de connexion
+// K · Sur téléphone, l'onglet « Profil » mène à la page de connexion pour un visiteur
 {
   const { ctx, p } = await neuve(390, 844);
-  await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Compte/ }).click();
-  ok('mobile : l’onglet Compte ouvre la page Connexion', await apparait(p.getByRole('heading', { name: 'Connexion' })));
+  await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Profil/ }).click();
+  ok('mobile : l’onglet Profil ouvre la page Connexion', await apparait(p.getByRole('heading', { name: 'Connexion' })));
   ok('mobile : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+  await ctx.close();
+}
+
+// K bis · Accueil mobile : logo seulement dans l'en-tête, deux actions, 4 onglets, rien qui déborde
+{
+  const { ctx, p } = await neuve(390, 844);
+  await p.waitForTimeout(500);
+  const accueil = p.locator('[data-r="accueil-mobile"]');
+  ok('accueil mobile : accroche et pas de second logo',
+     (await accueil.getByRole('heading', { name: 'Trouvez le bon technicien' }).isVisible()) &&
+       (await accueil.getByText('TerraClick', { exact: true }).count()) === 0);
+  ok('accueil mobile : pas de menu des catégories dans la recherche', (await p.locator('[data-r="search-depts"]').count()) === 0);
+  ok('accueil mobile : « Urgence » et « Programmer » côte à côte',
+     await p.evaluate(() => {
+       const [u, g] = [...document.querySelectorAll('[data-r="accueil-mobile"] button')].filter((b) => /^(Urgence|Programmer)$/.test(b.textContent.trim()));
+       return !!u && !!g && Math.abs(u.getBoundingClientRect().top - g.getBoundingClientRect().top) < 2;
+     }));
+  const onglets = await p.locator('[data-r="tabbar"] button').allTextContents();
+  ok('barre du bas : Accueil, Favoris, Réservations, Messages, Profil', onglets.join('|') === 'Accueil|Favoris|Réservations|Messages|Profil');
+  ok('accueil mobile : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+  await ctx.close();
+}
+
+// K ter · Profil sur téléphone : grand titre sans logo ni ville, carte d'identité, menu, titre réduit au défilement
+{
+  const { ctx, p } = await neuve(390, 844);
+  await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Profil/ }).click();
+  await p.getByLabel('Téléphone', { exact: true }).fill('07 58 42 19 03');
+  await p.getByRole('button', { name: 'Recevoir mon code' }).click();
+  await p.getByText(/appuyer pour remplir/).click();
+  const profil = p.locator('[data-r="profil-mobile"]');
+  ok('profil mobile : écran Profil après connexion', await apparait(profil));
+  ok('profil mobile : grand titre, ni logo, ni ville, ni onglets horizontaux',
+     (await profil.getByRole('heading', { level: 1, name: 'Profil' }).isVisible()) &&
+       (await p.locator('header').count()) === 0 &&
+       !(await p.getByRole('navigation', { name: 'Espace client' }).isVisible().catch(() => false)));
+  ok('profil mobile : carte d’identité avec le nom et « Vérifié »',
+     (await profil.locator('[data-r="carte-identite"]').getByText('Aya Konan').isVisible()) &&
+       (await profil.locator('[data-r="carte-identite"]').getByText('Vérifié').isVisible()));
+  ok('profil mobile : barre de titre réduite cachée en haut de page',
+     (await p.locator('[data-r="barre-titre"]').evaluate((e) => getComputedStyle(e).opacity)) === '0');
+  await p.evaluate(() => window.scrollTo(0, 600));
+  await p.waitForTimeout(400);
+  ok('profil mobile : au défilement, le titre réduit apparaît dans la barre fixe',
+     (await p.locator('[data-r="barre-titre"]').evaluate((e) => getComputedStyle(e).opacity)) === '1');
+  await profil.getByRole('button', { name: /Paramètres du compte/ }).click();
+  ok('« Paramètres du compte » ouvre la page, avec un retour vers Profil', await apparait(p.locator('[data-r="retour-compte"]')));
+  await p.locator('[data-r="retour-compte"]').click();
+  ok('le retour ramène au Profil', await apparait(profil));
+  ok('profil mobile : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+  await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Favoris/ }).click();
+  ok('onglet Favoris : état vide soigné', await apparait(p.getByRole('heading', { name: "Aucun favori pour l'instant" })));
   await ctx.close();
 }
 
@@ -331,35 +512,63 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
   await ctx.close();
 }
 
+// Modes de l'accueil (Recherche / Autour de moi / Box intelligente) masqués dans le MVP
+// (CONFIG.modesAccueil). La première moitié de N ne tourne que s'ils sont rebranchés.
+const MODES_ACCUEIL = false;
+// Bascule Liste / Carte des résultats, masquée elle aussi (CONFIG.carteResultats).
+const CARTE_RESULTATS = false;
+
+// N bis · MVP : ni bascule des modes sous la recherche, ni onglet « Carte » sur mobile
+if (!MODES_ACCUEIL) {
+  const { ctx, p } = await neuve();
+  ok('MVP : pas de bouton « Autour de moi » ni « Box intelligente »',
+     (await p.getByRole('button', { name: /Autour de moi|Box intelligente/ }).count()) === 0 &&
+       (await p.locator('[data-r="modes"]').count()) === 0);
+  await ctx.close();
+  const mobile = await neuve(390, 844);
+  ok('MVP : pas d’onglet « Carte » dans la barre mobile',
+     (await mobile.p.locator('[data-r="tabbar"]').getByRole('button', { name: 'Carte' }).count()) === 0);
+  await mobile.ctx.close();
+}
+
 // N · Visiteur : la Box intelligente et la carte sont réservées aux clients inscrits
 {
   const { ctx, p } = await neuve();
-  await p.getByRole('button', { name: /Box intelligente/ }).click();
-  ok('visiteur : la Box intelligente demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
-  await p.getByRole('button', { name: 'Fermer' }).click();
-  ok('visiteur : la Box reste fermée sans compte', !(await p.getByText('Ce que la Box sait faire').isVisible().catch(() => false)));
-  await p.getByRole('button', { name: /Autour de moi/ }).click();
-  ok('visiteur : « Autour de moi » demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
-  await p.getByRole('button', { name: 'Fermer' }).click();
-  // Fenêtre refermée : l'action abandonnée ne doit pas se rejouer après une connexion ultérieure.
-  await p.getByRole('button', { name: 'Se connecter' }).click();
-  await p.getByLabel('Téléphone', { exact: true }).fill('07 58 42 19 03');
-  await p.getByRole('button', { name: 'Recevoir mon code' }).click();
-  await p.getByText(/appuyer pour remplir/).click();
-  await apparait(p.getByRole('heading', { name: 'Bonjour, Aya' }));
-  ok('action abandonnée non rejouée après une autre connexion',
-     !(await p.getByText('Ce que la Box sait faire').isVisible().catch(() => false)) &&
-       (await p.getByRole('heading', { name: 'Bonjour, Aya' }).isVisible()));
-  await p.getByRole('button', { name: 'Aya Konan' }).click();
-  await apparait(p.getByRole('button', { name: 'Se connecter' }));
-  await p.getByRole('button', { name: 'Servis Yakro, retour à l\'accueil' }).click();
-  await p.getByPlaceholder(/Que cherchez-vous/).fill('plomb');
+  if (MODES_ACCUEIL) {
+    await p.getByRole('button', { name: /Box intelligente/ }).click();
+    ok('visiteur : la Box intelligente demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
+    await p.getByRole('button', { name: 'Fermer' }).click();
+    ok('visiteur : la Box reste fermée sans compte', !(await p.getByText('Ce que la Box sait faire').isVisible().catch(() => false)));
+    await p.getByRole('button', { name: /Autour de moi/ }).click();
+    ok('visiteur : « Autour de moi » demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
+    await p.getByRole('button', { name: 'Fermer' }).click();
+    // Fenêtre refermée : l'action abandonnée ne doit pas se rejouer après une connexion ultérieure.
+    await p.getByRole('button', { name: 'Se connecter' }).click();
+    await p.getByLabel('Téléphone', { exact: true }).fill('07 58 42 19 03');
+    await p.getByRole('button', { name: 'Recevoir mon code' }).click();
+    await p.getByText(/appuyer pour remplir/).click();
+    await apparait(p.getByRole('heading', { name: 'Bonjour, Aya' }));
+    ok('action abandonnée non rejouée après une autre connexion',
+       !(await p.getByText('Ce que la Box sait faire').isVisible().catch(() => false)) &&
+         (await p.getByRole('heading', { name: 'Bonjour, Aya' }).isVisible()));
+    await p.getByRole('button', { name: 'Aya Konan' }).click();
+    await apparait(p.getByRole('button', { name: 'Se connecter' }));
+    await p.getByRole('button', { name: 'TerraClick, retour à l\'accueil' }).click();
+  }
+  await p.getByPlaceholder(/Quel est votre problème/).fill('Koffi');
   await p.locator('[data-r="search-go"]').click();
   await apparait(p.getByText('Koffi Tanoh').first());
-  await p.getByRole('button', { name: /^Carte/ }).click();
-  ok('visiteur : la vue carte des résultats demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
-  await connecter(p);
-  ok('après connexion : la carte s’ouvre', await apparait(p.locator('[data-r="map-canvas"]')));
+  if (CARTE_RESULTATS) {
+    await p.getByRole('button', { name: /^Carte/ }).click();
+    ok('visiteur : la vue carte des résultats demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
+    await connecter(p);
+    ok('après connexion : la carte s’ouvre', await apparait(p.locator('[data-r="map-canvas"]')));
+  } else {
+    ok('MVP : résultats en liste, sans bouton « Liste » ni « Carte »',
+       (await p.getByRole('button', { name: /^(Liste|Carte)/ }).count()) === 0 &&
+         (await p.locator('[data-r="map-canvas"]').count()) === 0 &&
+         (await p.locator('[data-r="pro-card"]').count()) > 0);
+  }
   await ctx.close();
 }
 

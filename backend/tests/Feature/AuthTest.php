@@ -25,6 +25,28 @@ class AuthTest extends TestCase
         $this->boite = $this->intercepterCodes();
     }
 
+    public function test_un_numero_de_test_se_connecte_avec_le_code_de_test_sans_envoi(): void
+    {
+        config(['otp.numeros_test' => ['+225 07 11 22 33 44'], 'otp.code_test' => '246810']);
+
+        $this->postJson('/api/auth/code', ['telephone' => self::NUMERO, 'canal' => 'sms'])->assertStatus(202);
+        $this->assertCount(0, $this->boite->envois);
+
+        // 201 : numéro inconnu, le compte est créé.
+        $this->postJson('/api/auth/verifier', ['telephone' => self::NUMERO, 'code' => '246810'])
+            ->assertCreated()
+            ->assertJsonStructure(['token']);
+    }
+
+    public function test_un_autre_numero_ne_profite_pas_du_mode_test(): void
+    {
+        config(['otp.numeros_test' => ['0700000000'], 'otp.code_test' => '246810']);
+
+        $this->postJson('/api/auth/code', ['telephone' => self::NUMERO, 'canal' => 'sms'])->assertStatus(202);
+        $this->assertCount(1, $this->boite->envois);
+        $this->assertNotSame('246810', $this->boite->dernierCode());
+    }
+
     public function test_un_code_est_envoye_sur_le_canal_choisi(): void
     {
         $this->postJson('/api/auth/code', ['telephone' => self::NUMERO, 'canal' => 'whatsapp'])

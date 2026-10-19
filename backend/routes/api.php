@@ -3,6 +3,8 @@
 use App\Http\Controllers\AnnuaireController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AvisController;
+use App\Http\Controllers\BesoinController;
+use App\Http\Controllers\DemandeController;
 use App\Http\Controllers\PrestataireController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,7 +23,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('moi', [AuthController::class, 'moi']);
     Route::patch('moi', [AuthController::class, 'modifierProfil']);
     Route::post('prestataires/{prestataire}/avis', [AvisController::class, 'store']);
+    Route::post('demandes', [DemandeController::class, 'store']);
+    Route::get('demandes/{demande}', [DemandeController::class, 'show'])->whereNumber('demande');
 });
+
+// Assistant de besoin, en accès libre jusqu'à la confirmation
+Route::get('secteurs', [BesoinController::class, 'secteurs']);
+Route::get('analyse', [BesoinController::class, 'analyse']);
+Route::get('recommandations', [BesoinController::class, 'recommandations']);
 
 // Annuaire, en accès libre
 Route::get('villes', [AnnuaireController::class, 'villes']);

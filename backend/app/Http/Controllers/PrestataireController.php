@@ -6,7 +6,9 @@ use App\Http\Requests\Annuaire\RechercherPrestatairesRequest;
 use App\Http\Resources\FicheProResource;
 use App\Http\Resources\PrestataireResource;
 use App\Models\Prestataire;
+use App\Services\AnalyseurBesoin;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class PrestataireController extends Controller
@@ -14,26 +16,43 @@ class PrestataireController extends Controller
     /** Rayon moyen de la Terre, pour le calcul de distance. */
     private const RAYON_TERRE_KM = 6371;
 
+    /** Mots d'une phrase qui ne disent rien du besoin (comparés sans accents). */
+    private const MOTS_VIDES = [
+        'avec', 'besoin', 'bonjour', 'cherche', 'chercher', 'dans', 'depuis', 'elle', 'est', 'faire',
+        'faut', 'leur', 'mais', 'merci', 'mettre', 'pour', 'quelqu', 'quelquun', 'sans', 'svp', 'tres',
+        'trouver', 'urgent', 'veux', 'voudrais', 'votre', 'vous', 'nous', 'chez', 'maison', 'aujourd',
+        'demain', 'matin', 'soir', 'hier', 'probleme', 'quelque', 'chose', 'personne', 'aide', 'aider',
+    ];
+
+    public function __construct(private AnalyseurBesoin $analyseur) {}
+
     /** GET /api/prestataires — recherche, filtres, « Autour de moi ». */
     public function index(RechercherPrestatairesRequest $request): AnonymousResourceCollection
     {
-        $requete = $this->requeteDeBase()->with('categories');
+        $requete = $this->requeteDeBase()->with(['categories' => fn ($c) => $c->ouvertes()]);
+        $secteurs = [];
 
         if ($q = $request->validated('q')) {
-            $motif = '%'.addcslashes($q, '%_\\').'%';
-            $requete->where(fn (Builder $sous) => $sous
-                ->where('nom', 'like', $motif)
-                ->orWhere('metier', 'like', $motif)
-                ->orWhere('description', 'like', $motif)
-                ->orWhereHas('categories', fn (Builder $c) => $c->where('nom', 'like', $motif)));
+            // « plombier », « plomberie » ou « ma douche fuit » : le secteur reconnu prime sur le texte.
+            $secteurs = $this->analyseur->analyser($q);
+
+            if ($secteurs !== []) {
+                $slugs = array_merge(...array_column($secteurs, 'categories'));
+                $requete->whereHas('categories', fn (Builder $c) => $c->ouvertes()->whereIn('categories.slug', $slugs));
+            } else {
+                $this->rechercherLeTexte($requete, $q);
+            }
         }
 
+        // Une catégorie ou un département masqué ne renvoie personne, même si le prestataire
+        // exerce aussi un métier ouvert.
         if ($categorie = $request->validated('categorie')) {
-            $requete->whereHas('categories', fn (Builder $c) => $c->where('slug', $categorie));
+            $requete->whereHas('categories', fn (Builder $c) => $c->ouvertes()->where('slug', $categorie));
         }
 
         if ($departement = $request->validated('departement')) {
-            $requete->whereHas('categories.rubrique.departement', fn (Builder $d) => $d->where('slug', $departement));
+            $requete->whereHas('categories', fn (Builder $c) => $c->ouvertes()
+                ->whereHas('rubrique.departement', fn (Builder $d) => $d->where('slug', $departement)));
         }
 
         if ($ville = $request->validated('ville')) {
@@ -74,7 +93,32 @@ class PrestataireController extends Controller
 
         return PrestataireResource::collection(
             $requete->orderBy('id')->paginate($request->validated('par_page') ?? 20)->withQueryString()
-        );
+        )->additional([
+            // Ce que la recherche a compris de la demande, pour l'annoncer au client.
+            'analyse' => ['secteurs' => array_column($secteurs, 'nom')],
+        ]);
+    }
+
+    /**
+     * Aucun secteur reconnu : la phrase entière, ou l'un de ses mots porteurs de sens, doit
+     * figurer dans le nom, le métier, la description ou une catégorie ouverte.
+     */
+    private function rechercherLeTexte(Builder $requete, string $q): void
+    {
+        $termes = collect(preg_split('/[\s\'’,.;:!?()-]+/u', $q, -1, PREG_SPLIT_NO_EMPTY))
+            ->filter(fn (string $mot) => mb_strlen($mot) >= 4 && ! in_array(Str::lower(Str::ascii($mot)), self::MOTS_VIDES, true))
+            ->prepend($q)
+            ->unique();
+
+        $requete->where(function (Builder $sous) use ($termes) {
+            foreach ($termes as $terme) {
+                $motif = '%'.addcslashes($terme, '%_\\').'%';
+                $sous->orWhere('nom', 'like', $motif)
+                    ->orWhere('metier', 'like', $motif)
+                    ->orWhere('description', 'like', $motif)
+                    ->orWhereHas('categories', fn (Builder $c) => $c->ouvertes()->where('nom', 'like', $motif));
+            }
+        });
     }
 
     /** GET /api/prestataires/vedettes — « Prestataires à la une » de l'accueil. */
@@ -88,11 +132,11 @@ class PrestataireController extends Controller
     /** GET /api/prestataires/{prestataire} — fiche professionnelle. */
     public function show(Prestataire $prestataire): FicheProResource
     {
-        abort_unless($prestataire->actif, 404, 'Ce prestataire n\'est plus référencé.');
+        abort_unless($prestataire->estVisible(), 404, 'Ce prestataire n\'est plus référencé.');
 
         $prestataire->load([
             'quartier.ville',
-            'categories',
+            'categories' => fn ($c) => $c->ouvertes(),
             'documents',
             'realisations',
             'avis' => fn ($avis) => $avis->with('auteur')->latest()->limit(3),
@@ -103,14 +147,11 @@ class PrestataireController extends Controller
 
     private function requeteDeBase(): Builder
     {
-        return Prestataire::query()->actifs()->with('quartier')->withCount($this->comptesDocuments());
+        return Prestataire::query()->visibles()->with('quartier')->withCount($this->comptesDocuments());
     }
 
     private function comptesDocuments(): array
     {
-        return [
-            'documents',
-            'documents as documents_verifies_count' => fn (Builder $d) => $d->where('statut', 'verifie'),
-        ];
+        return Prestataire::comptesDocuments();
     }
 }

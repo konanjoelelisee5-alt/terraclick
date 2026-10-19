@@ -114,7 +114,7 @@ export function ProDemande() {
           </div>
 
           <Note>
-            Le paiement de la prestation est convenu directement entre le client et le prestataire. Servis Yakro ne
+            Le paiement de la prestation est convenu directement entre le client et le prestataire. TerraClick ne
             conserve pas les fonds liés à cette prestation.
           </Note>
         </div>
@@ -184,7 +184,7 @@ export function ProDemande() {
       {fenetre === "paiement" && (
         <Dialogue
           titre="Déclarer un paiement direct"
-          description="Cette déclaration documente la prestation. Servis Yakro ne reçoit ni ne conserve ce paiement."
+          description="Cette déclaration documente la prestation. TerraClick ne reçoit ni ne conserve ce paiement."
           icone="banknote"
           fond="var(--argile-100)"
           encre="var(--argile-700)"
@@ -193,7 +193,7 @@ export function ProDemande() {
           onFermer={() => setFenetre(null)}
           onConfirmer={() => {
             setFenetre(null);
-            toast("Déclaration enregistrée", "Visible par l'autre partie. Aucun fonds ne transite par Servis Yakro.");
+            toast("Déclaration enregistrée", "Visible par l'autre partie. Aucun fonds ne transite par TerraClick.");
           }}
         >
           <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 140px), 1fr))" }}>
