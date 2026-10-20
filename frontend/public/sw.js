@@ -5,8 +5,9 @@
    - L'API (/api) n'est JAMAIS mise en cache : elle porte le compte et les demandes du client.
    Changer VERSION à chaque modification de ce fichier purge les anciens caches. */
 
-const VERSION = "terraclick-v1";
-const COQUILLE = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png"];
+const VERSION = "terraclick-v2";
+// Le logo de l'écran de démarrage est gardé dès l'installation : il s'affiche même hors connexion.
+const COQUILLE = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/logo-256.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(VERSION).then((cache) => cache.addAll(COQUILLE)).then(() => self.skipWaiting()));
