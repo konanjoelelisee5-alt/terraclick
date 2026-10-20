@@ -19,8 +19,12 @@ return [
 
     'allowed_methods' => ['*'],
 
-    // Plusieurs origines possibles, séparées par des virgules.
-    'allowed_origins' => array_map('trim', explode(',', env('FRONTEND_URL', 'http://localhost:5173'))),
+    // Plusieurs origines possibles, séparées par des virgules. L'adresse de l'application en
+    // ligne sur Render est toujours acceptée, quelle que soit la valeur de FRONTEND_URL.
+    'allowed_origins' => array_values(array_unique([
+        ...array_map('trim', explode(',', env('FRONTEND_URL', 'http://localhost:5173'))),
+        'https://terraclick-jkzi.onrender.com',
+    ])),
 
     'allowed_origins_patterns' => [],
 

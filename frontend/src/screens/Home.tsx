@@ -14,6 +14,7 @@ import { VisuelSecteur } from "../components/VisuelSecteur";
 import { ModeCarte } from "./home/ModeCarte";
 import { ModeBox } from "./home/ModeBox";
 import { AccueilMobile } from "./home/AccueilMobile";
+import { BandeauInstallation } from "../components/Installer";
 import { useEstMobile } from "../lib/useEstMobile";
 
 export function Home() {
@@ -49,6 +50,10 @@ export function Home() {
 
   return (
     <main>
+      {/* Proposition d'installer l'application, sur ordinateur (Chrome, Edge). */}
+      <div data-r="container">
+        <BandeauInstallation style={{ marginTop: 16 }} />
+      </div>
       {/* ---- Accroche : mot-symbole centré, recherche, bascule des trois modes ---- */}
       <section style={{ position: "relative", background: "var(--color-accent-100)" }}>
         <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>

@@ -6,6 +6,7 @@ import { CONFIG } from "../../lib/config";
 import { useApi } from "../../lib/useApi";
 import { useApp } from "../../state/app";
 import { Icon } from "../../components/Icon";
+import { BandeauInstallation } from "../../components/Installer";
 
 /* Accueil sur téléphone. Grille de 8 px, marges de 20 px, 32 px entre les sections, un seul
    accent (l'orange) ; le vert est réservé aux badges « Vérifié » et à l'encart d'aide.
@@ -114,6 +115,8 @@ export function AccueilMobile() {
     <main data-r="accueil-mobile" style={{ display: "flex", flexDirection: "column", gap: 32, paddingTop: 20, paddingBottom: 32 }}>
       {/* ---- Accroche, recherche, deux actions ---- */}
       <section style={{ padding: `0 ${GOUTTIERE}px`, display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* Proposition d'installer l'application (icône sur l'écran d'accueil). */}
+        <BandeauInstallation />
         <div>
           <h1 style={{ fontSize: "26px", lineHeight: 1.2, margin: 0 }}>Trouvez le bon technicien</h1>
           <p style={{ margin: "4px 0 0", fontSize: "15px", color: GRIS }}>Des professionnels vérifiés à {ville}.</p>
