@@ -22,12 +22,13 @@ services:
         value: "false"
       - key: APP_KEY
         sync: false
+      # Adresses attribuées par Render à ce déploiement (ce ne sont pas des secrets).
       - key: APP_URL
-        sync: false
+        value: https://terraclick-api-jkzi.onrender.com
       - key: APP_LOCALE
         value: fr
       - key: FRONTEND_URL
-        sync: false
+        value: https://terraclick-jkzi.onrender.com
       - key: LOG_CHANNEL
         value: stderr
       - key: LOG_LEVEL
@@ -76,10 +77,9 @@ services:
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
     envVars:
-      # Adresse de l'API, terminée par /api (ex. https://terraclick-api.onrender.com/api).
-      # Le code de démonstration reste vide en ligne (frontend/.env).
+      # Adresse de l'API, terminée par /api. Le code de démonstration reste vide en ligne (frontend/.env).
       - key: VITE_API_URL
-        sync: false
+        value: https://terraclick-api-jkzi.onrender.com/api
     headers:
       # Le service worker doit toujours être relu, sinon les mises à jour n'arrivent pas.
       - path: /sw.js
