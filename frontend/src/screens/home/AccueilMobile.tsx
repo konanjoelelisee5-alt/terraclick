@@ -103,15 +103,9 @@ export function AccueilMobile() {
   // Le badge de la cloche ne s'affiche qu'une fois connecté.
   const nonLues = etat.auth && !notificationsLues ? NOTIFICATIONS_CLIENT.filter((n) => n.nouveau).length : 0;
 
-  const lancerRecherche = async () => {
-    const texte = etat.query.trim();
-    if (!texte) return demarrerBesoin();
-    const analyse = await api.analyser(texte).catch(() => null);
-    const secteurs = analyse?.secteurs ?? [];
-    if (secteurs.length === 1) return demarrerBesoin({ secteur: secteurs[0].cle, probleme: analyse?.probleme ?? null });
-    if (secteurs.length > 1) return demarrerBesoin({ suggestions: secteurs.map((s) => s.cle) });
-    rechercher();
-  };
+  // La recherche mène droit aux résultats, sans passer par l'assistant : le serveur comprend
+  // la phrase (« ma douche fuit » → plombiers).
+  const lancerRecherche = () => rechercher();
 
   /** Le numéro n'est donné que par la fiche : on la charge, puis on compose ; sans numéro, la fiche s'ouvre. */
   const appeler = async (v: PrestataireApi) => {

@@ -211,17 +211,20 @@ if (!MODULE_CONSTRUCTION) {
   const { ctx, p } = await neuve();
   await p.getByPlaceholder(/Quel est votre problème/).fill('ma douche fuit depuis hier');
   await p.locator('[data-r="search-go"]').click();
-  ok('phrase libre : l’assistant s’ouvre sur la plomberie',
-     await apparait(p.getByRole('heading', { name: 'Quel est le problème ?' })) &&
-       (await p.getByText('Plomberie · Étape 1 sur 4').isVisible()));
-  await p.goto('http://localhost:4173/'); await p.waitForTimeout(300);
-  // Visiteur : le rechargement rouvre la connexion ; on revient à l'accueil.
-  await p.getByRole('button', { name: "Retour à l'accueil", exact: true }).click();
-  await p.getByPlaceholder(/Quel est votre problème/).fill("grosse fuite d'eau dans la cuisine");
+  ok('phrase libre : les résultats s’affichent directement, sans formulaire',
+     await apparait(p.getByRole('heading', { name: /Plomberie/ })) &&
+       !(await p.getByText('Étape 1 sur 4').isVisible().catch(() => false)));
+  await ctx.close();
+}
+
+// G quinquies · Sur téléphone aussi, la recherche affiche directement les résultats
+{
+  const { ctx, p } = await neuve(390, 844);
+  await p.getByPlaceholder('Rechercher un artisan...').fill('ma douche fuit depuis hier');
   await p.locator('[data-r="search-go"]').click();
-  await apparait(p.getByRole('heading', { name: 'Quel est le problème ?' }));
-  ok('problème nommé : « Fuite d’eau » est présélectionné',
-     (await p.getByRole('radio', { name: "Fuite d'eau" }).getAttribute('aria-checked')) === 'true');
+  ok('mobile : phrase libre → résultats directs, sans formulaire',
+     await apparait(p.getByRole('heading', { name: /Plomberie/ })) &&
+       !(await p.getByText('Étape 1 sur 4').isVisible().catch(() => false)));
   await ctx.close();
 }
 

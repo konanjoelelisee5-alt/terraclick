@@ -21,19 +21,10 @@ export function Home() {
   const { etat, set, go, rechercher, ouvrirChat, exigerCompte, ville, demarrerBesoin } = useApp();
 
   /**
-   * « Quel est votre problème ? » : un service reconnu ouvre l'assistant de besoin (avec le
-   * problème présélectionné s'il est nommé) ; plusieurs services possibles, l'assistant
-   * demande lequel ; rien de reconnu (un nom de technicien…), la recherche texte habituelle.
+   * « Quel est votre problème ? » mène droit aux résultats, sans passer par l'assistant :
+   * le serveur comprend la phrase (« ma douche fuit » → plombiers) ou le nom d'un technicien.
    */
-  const lancerRecherche = async () => {
-    const texte = etat.query.trim();
-    if (!texte) return demarrerBesoin();
-    const analyse = await api.analyser(texte).catch(() => null);
-    const secteurs = analyse?.secteurs ?? [];
-    if (secteurs.length === 1) return demarrerBesoin({ secteur: secteurs[0].cle, probleme: analyse?.probleme ?? null });
-    if (secteurs.length > 1) return demarrerBesoin({ suggestions: secteurs.map((s) => s.cle) });
-    rechercher();
-  };
+  const lancerRecherche = () => rechercher();
 
   // « Autour de moi » et la Box intelligente sont réservés aux clients inscrits,
   // et masqués dans le MVP.
