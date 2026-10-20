@@ -7,6 +7,9 @@ import { Icon } from "./Icon";
    recharge dans sa nouvelle version. Aucune réinstallation, même icône. */
 
 let nouvelleVersion: ServiceWorker | null = null;
+/** Vrai seulement après un toucher sur « Mettre à jour » : la 1re installation, qui prend
+    aussi la main sur la page, ne doit pas la recharger (l'écran de démarrage rejouerait). */
+let miseAJourDemandee = false;
 const signaler = (sw: ServiceWorker) => {
   nouvelleVersion = sw;
   window.dispatchEvent(new Event("tc-mise-a-jour"));
@@ -39,10 +42,10 @@ export function surveillerMisesAJour(urlServiceWorker: string) {
       /* sans service worker, l'application fonctionne normalement, sans installation ni mise à jour */
     });
 
-  // La nouvelle version a pris la main : on recharge une seule fois pour l'afficher.
+  // La nouvelle version acceptée a pris la main : on recharge une seule fois pour l'afficher.
   let recharge = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (recharge) return;
+    if (recharge || !miseAJourDemandee) return;
     recharge = true;
     window.location.reload();
   });
@@ -62,6 +65,7 @@ export function BandeauMiseAJour() {
 
   const mettreAJour = () => {
     setEnCours(true);
+    miseAJourDemandee = true;
     nouvelleVersion?.postMessage({ type: "PASSER_A_LA_NOUVELLE_VERSION" });
   };
 
