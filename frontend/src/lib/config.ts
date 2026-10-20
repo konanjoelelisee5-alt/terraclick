@@ -38,6 +38,11 @@ export const CONFIG = {
    */
   accueilMobile: "epuree" as "epuree" | "riche",
   /**
+   * Boutons « Urgence » et « Programmer » sous l'en-tête de l'accueil mobile. Masqués pour
+   * le moment (voir le README) ; `true` les rebranche.
+   */
+  actionsAccueilMobile: false as boolean,
+  /**
    * À l'ouverture, sans session mémorisée sur l'appareil : la page de connexion d'abord
    * (la flèche retour mène à l'accueil en visiteur). Avec une session, l'accueil directement.
    */

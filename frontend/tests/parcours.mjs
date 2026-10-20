@@ -410,11 +410,8 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
        (await accueil.getByText("Trouvez l'artisan qu'il vous faut !").isVisible()) &&
        (await accueil.locator('[data-r="hero-marque"]').count()) === 0);
   ok('accueil mobile : pas de menu des catégories dans la recherche', (await p.locator('[data-r="search-depts"]').count()) === 0);
-  ok('accueil mobile : « Urgence » et « Programmer » côte à côte',
-     await p.evaluate(() => {
-       const [u, g] = [...document.querySelectorAll('[data-r="accueil-mobile"] button')].filter((b) => /^(Urgence|Programmer)$/.test(b.textContent.trim()));
-       return !!u && !!g && Math.abs(u.getBoundingClientRect().top - g.getBoundingClientRect().top) < 2;
-     }));
+  ok('accueil mobile : « Urgence » et « Programmer » masqués pour le moment',
+     await p.evaluate(() => ![...document.querySelectorAll('[data-r="accueil-mobile"] button')].some((b) => /^(Urgence|Programmer)$/.test(b.textContent.trim()))));
   const onglets = await p.locator('[data-r="tabbar"] button').allTextContents();
   ok('barre du bas : Accueil, Favoris, Messages, Profil', onglets.join('|') === 'Accueil|Favoris|Messages|Profil');
   ok('en-tête de l’accueil : cloche, recherche « Rechercher un artisan... » et bouton Filtres',

@@ -263,6 +263,7 @@ export function AccueilMobile() {
         {/* Proposition d'installer l'application (icône sur l'écran d'accueil). */}
         <BandeauInstallation />
 
+        {CONFIG.actionsAccueilMobile && (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <button
             onClick={() => demarrerBesoin({ quand: "maintenant" })}
@@ -281,6 +282,7 @@ export function AccueilMobile() {
             Programmer
           </button>
         </div>
+        )}
       </section>
 
       {/* ---- Services : 4 colonnes, icône en pastille douce, libellé dessous ---- */}

@@ -55,6 +55,7 @@ recense ce qui est masqué et dit comment le rouvrir.
 | Frontend | `frontend/src/lib/config.ts` : `moduleConstruction` | `false` masque le module Construction (voir plus bas), `true` le rebranche partout. |
 | Frontend | `frontend/src/lib/config.ts` : `modesAccueil` | `false` masque la bascule Recherche / Autour de moi / Box intelligente de l'accueil et l'onglet « Carte » de la barre mobile (voir plus bas), `true` les rebranche. |
 | Frontend | `frontend/src/lib/config.ts` : `carteResultats` | `false` masque la bascule Liste / Carte des résultats, qui restent en liste ; `true` la rebranche. |
+| Frontend | `frontend/src/lib/config.ts` : `actionsAccueilMobile` | `false` masque les boutons « Urgence » et « Programmer » sous l'en-tête de l'accueil mobile (voir plus bas), `true` les rebranche. |
 | Frontend | `frontend/src/data/catalogue.ts` : `SECTEURS` | Les cinq secteurs de l'accueil (raccourcis et cartes), du formulaire de devis et, via `pro.ts`, des services d'un prestataire. |
 | Tests | `frontend/tests/parcours.mjs` : `MODULE_CONSTRUCTION` | Réactive les règles C à F (assistant, contrat, PV, bloc BTP). |
 | Tests | `frontend/tests/parcours.mjs` : `MODES_ACCUEIL` | Réactive la première moitié de la règle N (Box intelligente et « Autour de moi » réservées aux inscrits). |
@@ -146,6 +147,12 @@ L'accueil reste en mode recherche.
 à droite de la page des résultats est masquée. Les résultats s'affichent toujours en liste.
 La vue carte (`components/MapCanvas.tsx`) plaçait les prestataires trouvés sur une carte
 au-dessus de la liste, et elle était réservée aux clients inscrits.
+
+**Boutons « Urgence » et « Programmer » de l'accueil mobile** (`actionsAccueilMobile: false`) :
+les deux boutons côte à côte sous l'en-tête orange (`screens/home/AccueilMobile.tsx`) sont
+masqués pour le moment. « Urgence » ouvrait l'assistant de demande avec une intervention
+immédiate, « Programmer » l'ouvrait pour une date à choisir. L'assistant reste accessible
+par la recherche, les tuiles Services et la carte « besoin guidé ».
 
 Côté API, les filtres `lat`, `lng` et `rayon_km` de `/prestataires` sont conservés pour ces
 fonctionnalités.
