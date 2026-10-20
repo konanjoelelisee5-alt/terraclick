@@ -109,7 +109,8 @@ const META: React.CSSProperties = {
 
 /**
  * Pastille de filtre (« Quartier ▾ ») : allure de bouton, liste native du téléphone au
- * toucher. Elle s'allume quand un choix autre que celui par défaut est actif.
+ * toucher. Elle s'allume quand un choix autre que celui par défaut est actif. Réduite
+ * (`reduite`), elle ne montre que son icône ; la toucher l'ouvre et réduit sa voisine.
  */
 function PastilleChoix(props: {
   icone: string;
@@ -118,18 +119,52 @@ function PastilleChoix(props: {
   valeur: string;
   options: { valeur: string; libelle: string }[];
   onChange: (valeur: string) => void;
+  reduite?: boolean;
+  onOuvrir?: () => void;
 }) {
   const choisi = props.options.find((o) => o.valeur === props.valeur);
+  const reduite = !!props.reduite;
   return (
     <label
-      style={{ ...pill(props.actif), position: "relative", flex: "none", display: "inline-flex", alignItems: "center", gap: 7 }}
+      data-r="pastille-filtre"
+      data-reduite={reduite ? "oui" : "non"}
+      title={reduite ? props.libelle : undefined}
+      style={{
+        ...pill(props.actif),
+        position: "relative",
+        flex: "none",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: reduite ? 0 : 7,
+        minHeight: 40,
+        minWidth: 40,
+        padding: reduite ? 0 : "0 14px",
+        transition: "padding var(--dur-fast, .2s) ease, gap var(--dur-fast, .2s) ease",
+      }}
     >
-      <Icon name={props.icone} size={15} strokeWidth={2.25} />
-      <span>{props.actif && choisi ? choisi.libelle : props.libelle}</span>
-      <Icon name="chevron-down" size={14} strokeWidth={2.25} style={{ opacity: 0.7 }} />
+      <Icon name={props.icone} size={16} strokeWidth={2.25} />
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 7,
+          maxWidth: reduite ? 0 : 160,
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          opacity: reduite ? 0 : 1,
+          transition: "max-width var(--dur-fast, .2s) ease, opacity var(--dur-fast, .2s) ease",
+        }}
+      >
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{props.actif && choisi ? choisi.libelle : props.libelle}</span>
+        <Icon name="chevron-down" size={14} strokeWidth={2.25} style={{ opacity: 0.7, flex: "none" }} />
+      </span>
       <select
         value={props.valeur}
         onChange={(e) => props.onChange(e.target.value)}
+        // Le toucher ouvre la liste du téléphone et, en même temps, déplie la pastille.
+        onPointerDown={props.onOuvrir}
+        onFocus={props.onOuvrir}
         aria-label={props.libelle}
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer", font: "inherit" }}
       >
@@ -167,6 +202,8 @@ export function Results() {
   const besoinEnCours = !!etat.besoin.secteur && !!etat.besoin.quartier && etat.besoin.mode === "choisi";
 
   const [essai, setEssai] = useState(0);
+  // Pastille dépliée à droite du titre : Quartier d'abord, Trier réduit à son icône.
+  const [filtreOuvert, setFiltreOuvert] = useState<"quartier" | "tri">("quartier");
 
   const villeSlug = slugifier(ville);
   const { donnees: villes } = useApi(() => api.villes(), []);
@@ -275,14 +312,14 @@ export function Results() {
 
       <div
         data-r="results-head"
-        style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginBottom: 16 }}
+        style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}
       >
         {/* En-tête de recherche : retour rond, puis ce qui est cherché et combien de résultats. */}
         <button onClick={() => go("home")} aria-label="Retour à l'accueil" style={BOUTON_ROND}>
           <Icon name="arrow-left" size={20} strokeWidth={2.25} />
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 data-r="results-titre" style={{ fontSize: "clamp(22px,4vw,32px)", margin: 0, lineHeight: 1.15 }}>
+          <h1 data-r="results-titre" style={{ fontSize: "clamp(22px,4vw,32px)", fontWeight: 800, margin: 0, lineHeight: 1.15 }}>
             {titre}
           </h1>
           {compris.length > 0 && demande !== titre && (
@@ -293,6 +330,35 @@ export function Results() {
           <span role="status" style={LIGNE_DISCRETE}>
             {recherche.chargement ? "Recherche en cours…" : `${total} ${total > 1 ? "prestataires" : "prestataire"} · ${ville}`}
           </span>
+        </div>
+        {/* Quartier et Trier à droite du titre : une pastille dépliée, l'autre réduite à son icône. */}
+        <div data-r="filtres" style={{ flex: "none", display: "flex", alignItems: "center", gap: 6 }}>
+          <PastilleChoix
+            icone="map-pin"
+            libelle="Quartier"
+            actif={!!etat.quartier}
+            valeur={String(etat.quartier)}
+            options={[
+              { valeur: "0", libelle: "Tous les quartiers" },
+              ...quartiers
+                .filter((q) => q.id)
+                .sort((a, b) => a.nom.localeCompare(b.nom, "fr"))
+                .map((q) => ({ valeur: String(q.id), libelle: q.nom })),
+            ]}
+            onChange={(v) => set({ quartier: Number(v) })}
+            reduite={filtreOuvert !== "quartier"}
+            onOuvrir={() => setFiltreOuvert("quartier")}
+          />
+          <PastilleChoix
+            icone="arrow-up-down"
+            libelle="Trier"
+            actif={!!etat.filtre.tri && etat.filtre.tri !== "pertinence"}
+            valeur={etat.filtre.tri ?? "pertinence"}
+            options={TRIS}
+            onChange={(v) => set({ filtre: { ...etat.filtre, tri: v as Tri } })}
+            reduite={filtreOuvert !== "tri"}
+            onOuvrir={() => setFiltreOuvert("tri")}
+          />
         </div>
         {/* Bascule Liste / Carte, masquée dans le MVP : les résultats restent en liste. */}
         {CONFIG.carteResultats && (
@@ -387,36 +453,14 @@ export function Results() {
         </div>
       )}
 
-      {/* Filtres en pastilles déroulantes, sur une seule ligne qui défile au doigt. */}
-      <div data-r="filtres" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-        <PastilleChoix
-          icone="map-pin"
-          libelle="Quartier"
-          actif={!!etat.quartier}
-          valeur={String(etat.quartier)}
-          options={[
-            { valeur: "0", libelle: "Tous les quartiers" },
-            ...quartiers
-              .filter((q) => q.id)
-              .sort((a, b) => a.nom.localeCompare(b.nom, "fr"))
-              .map((q) => ({ valeur: String(q.id), libelle: q.nom })),
-          ]}
-          onChange={(v) => set({ quartier: Number(v) })}
-        />
-        <PastilleChoix
-          icone="arrow-up-down"
-          libelle="Trier"
-          actif={!!etat.filtre.tri && etat.filtre.tri !== "pertinence"}
-          valeur={etat.filtre.tri ?? "pertinence"}
-          options={TRIS}
-          onChange={(v) => set({ filtre: { ...etat.filtre, tri: v as Tri } })}
-        />
-        {!!etat.quartier && (
+      {/* Un quartier choisi : on peut revenir à tous les quartiers en un toucher. */}
+      {!!etat.quartier && (
+        <div style={{ marginTop: -10, marginBottom: 12 }}>
           <button onClick={() => set({ quartier: 0 })} style={LIEN_EFFACER}>
-            Effacer
+            Effacer le quartier
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {voirCarte && <MapCanvas pros={filtres} hauteur={360} onPin={ouvrirChat} />}
 

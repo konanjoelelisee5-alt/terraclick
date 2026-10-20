@@ -225,6 +225,13 @@ if (!MODULE_CONSTRUCTION) {
   ok('mobile : phrase libre → résultats directs, sans formulaire',
      await apparait(p.getByRole('heading', { name: /Plomberie/ })) &&
        !(await p.getByText('Étape 1 sur 4').isVisible().catch(() => false)));
+  const etats = () => p.locator('[data-r="results-head"] [data-r="pastille-filtre"]').evaluateAll((l) => l.map((e) => e.dataset.reduite).join(','));
+  ok('résultats : Quartier et Trier à droite du titre, Quartier déplié, Trier réduit', (await etats()) === 'non,oui');
+  await p.getByLabel('Trier').click({ force: true });
+  await p.keyboard.press('Escape');
+  await p.waitForTimeout(300);
+  ok('résultats : toucher Trier le déplie et réduit Quartier', (await etats()) === 'oui,non');
+  ok('résultats : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
   await ctx.close();
 }
 
