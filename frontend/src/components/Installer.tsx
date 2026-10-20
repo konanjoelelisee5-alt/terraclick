@@ -1,19 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Icon } from "./Icon";
 
-/* Bandeau « Installer TerraClick » : l'application est une PWA, ce bandeau la fait poser sur
-   l'écran d'accueil en un geste.
-   - Android, ordinateur (Chrome, Edge) : le navigateur fournit l'événement beforeinstallprompt ;
-     le bouton ouvre sa fenêtre d'installation.
-   - iPhone / iPad (Safari) : aucune installation automatique n'existe ; le bouton affiche les
-     deux gestes à faire (Partager → Sur l'écran d'accueil).
+/* Bouton « Télécharger l'application » : TerraClick est une PWA, ce bouton la pose sur l'écran
+   d'accueil (téléphone) ou sur le bureau (ordinateur), selon l'appareil.
+   - Navigateur capable d'installer seul (Chrome, Edge, Samsung Internet sur Android et ordinateur) :
+     un toucher ouvre sa fenêtre d'installation (événement beforeinstallprompt).
+   - Sinon, le bouton affiche les gestes exacts pour l'appareil : iPhone (Safari), Android, ordinateur.
    - Application déjà installée (ouverte depuis l'icône) : rien ne s'affiche. */
 
 type EvenementInstallation = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
+type Appareil = "iphone" | "android" | "ordinateur";
 
 const CLE_MASQUE = "tc.installation-masquee";
 
-/* Le navigateur peut proposer l'installation dès le chargement, avant que le bandeau soit
+/* Le navigateur peut proposer l'installation dès le chargement, avant que le bouton soit
    affiché : la proposition est captée ici, au démarrage de l'application, et gardée. */
 let propositionEnAttente: EvenementInstallation | null = null;
 window.addEventListener("beforeinstallprompt", (e) => {
@@ -29,12 +29,54 @@ function dejaInstallee(): boolean {
   );
 }
 
-const estIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+function appareil(): Appareil {
+  const ua = navigator.userAgent;
+  if (/iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) return "iphone";
+  if (/android/i.test(ua)) return "android";
+  return "ordinateur";
+}
+
+/** Gestes à faire quand le navigateur ne sait pas installer d'un seul toucher. */
+const CONSIGNES: Record<Appareil, ReactNode[]> = {
+  iphone: [
+    <>
+      Ouvrez ce lien dans <strong>Safari</strong> (sur iPhone, seul Safari installe les applications web).
+    </>,
+    <>
+      Touchez <strong>Partager</strong> <Icon name="share" size={14} style={{ verticalAlign: "-2px" }} /> en bas de l'écran.
+    </>,
+    <>
+      Choisissez <strong>Sur l'écran d'accueil</strong>, puis <strong>Ajouter</strong>.
+    </>,
+  ],
+  android: [
+    <>
+      Ouvrez ce lien dans <strong>Chrome</strong>.
+    </>,
+    <>
+      Touchez le menu <strong>⋮</strong> en haut à droite.
+    </>,
+    <>
+      Touchez <strong>Installer l'application</strong> (ou <strong>Ajouter à l'écran d'accueil</strong>), puis confirmez.
+    </>,
+  ],
+  ordinateur: [
+    <>
+      Ouvrez ce lien dans <strong>Chrome</strong> ou <strong>Edge</strong>.
+    </>,
+    <>
+      Cliquez sur l'icône d'installation à droite de la barre d'adresse (un écran avec une flèche).
+    </>,
+    <>
+      Cliquez sur <strong>Installer</strong> : TerraClick s'ouvre dans sa propre fenêtre, avec son icône sur le bureau.
+    </>,
+  ],
+};
 
 export function BandeauInstallation({ style }: { style?: React.CSSProperties }) {
   const [evenement, setEvenement] = useState<EvenementInstallation | null>(propositionEnAttente);
   const [installee, setInstallee] = useState(dejaInstallee);
-  const [aideIOS, setAideIOS] = useState(false);
+  const [consignes, setConsignes] = useState(false);
   const [masque, setMasque] = useState(() => {
     try {
       return localStorage.getItem(CLE_MASQUE) === "1";
@@ -54,11 +96,10 @@ export function BandeauInstallation({ style }: { style?: React.CSSProperties }) 
     };
   }, []);
 
-  const ios = estIOS();
-  // Rien à proposer : déjà installée, refusée par le client, ou navigateur incapable d'installer.
-  if (installee || masque || (!evenement && !ios)) return null;
+  if (installee || masque) return null;
 
-  const installer = async () => {
+  const type = appareil();
+  const telecharger = async () => {
     if (evenement) {
       await evenement.prompt();
       const { outcome } = await evenement.userChoice;
@@ -67,7 +108,7 @@ export function BandeauInstallation({ style }: { style?: React.CSSProperties }) 
       propositionEnAttente = null;
       setEvenement(null);
     } else {
-      setAideIOS((v) => !v);
+      setConsignes((v) => !v);
     }
   };
 
@@ -76,7 +117,7 @@ export function BandeauInstallation({ style }: { style?: React.CSSProperties }) 
     try {
       localStorage.setItem(CLE_MASQUE, "1");
     } catch {
-      /* stockage indisponible : le bandeau reviendra à la prochaine visite */
+      /* stockage indisponible : le bouton reviendra à la prochaine visite */
     }
   };
 
@@ -84,7 +125,7 @@ export function BandeauInstallation({ style }: { style?: React.CSSProperties }) 
     <div
       data-r="bandeau-installation"
       role="region"
-      aria-label="Installer l'application"
+      aria-label="Télécharger l'application"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -103,11 +144,10 @@ export function BandeauInstallation({ style }: { style?: React.CSSProperties }) 
           <span style={{ display: "block", fontWeight: 700, fontSize: "15px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             TerraClick
           </span>
-          <span style={{ display: "block", fontSize: "13px", color: "#5C5248" }}>L'appli sur votre écran d'accueil</span>
+          <span style={{ display: "block", fontSize: "13px", color: "#5C5248" }}>
+            {type === "ordinateur" ? "L'appli sur votre ordinateur" : "L'appli sur votre écran d'accueil"}
+          </span>
         </span>
-        <button onClick={installer} className="sy-btn sy-btn--primary sy-btn--md" style={{ flex: "none", minHeight: 44, boxShadow: "none" }}>
-          Installer
-        </button>
         <button
           onClick={fermer}
           aria-label="Ne plus proposer"
@@ -117,14 +157,22 @@ export function BandeauInstallation({ style }: { style?: React.CSSProperties }) 
         </button>
       </div>
 
-      {aideIOS && (
-        <ol style={{ margin: 0, paddingLeft: 20, fontSize: "14px", lineHeight: 1.6 }}>
-          <li>
-            Dans Safari, touchez <strong>Partager</strong> <Icon name="share" size={14} style={{ verticalAlign: "-2px" }} /> en bas de l'écran.
-          </li>
-          <li>
-            Choisissez <strong>Sur l'écran d'accueil</strong>, puis <strong>Ajouter</strong>.
-          </li>
+      {/* Pleine largeur : le bouton reste lisible et facile à toucher, même sur petit écran. */}
+      <button
+        onClick={telecharger}
+        aria-expanded={evenement ? undefined : consignes}
+        className="sy-btn sy-btn--primary sy-btn--md"
+        style={{ minHeight: 46, gap: 8, justifyContent: "center", boxShadow: "none" }}
+      >
+        <Icon name="download" size={18} strokeWidth={2.25} />
+        Télécharger l'application
+      </button>
+
+      {consignes && (
+        <ol data-r="consignes-installation" style={{ margin: 0, paddingLeft: 20, fontSize: "14px", lineHeight: 1.6 }}>
+          {CONSIGNES[type].map((c, i) => (
+            <li key={i}>{c}</li>
+          ))}
         </ol>
       )}
     </div>
