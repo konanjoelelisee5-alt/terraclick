@@ -1,70 +1,230 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { Canal } from "../lib/useCodeConnexion";
+import { useApp } from "../state/app";
 import { Icon } from "./Icon";
-import { canal as styleCanal } from "./ui";
 
-/* Briques communes aux pages Connexion et Inscription. Elles reprennent les classes
-   du design system (sy-card, sy-field, sy-weave…) et le sélecteur de canal de la
-   feuille d'authentification, pour que les deux entrées se ressemblent. */
+/* Pages Connexion et Inscription, plein écran : flèche retour, logo TerraClick avec halo,
+   « Bienvenue », pastille « Espace Client », bascule Connexion | Inscription, champs arrondis à
+   étiquette flottante et icône dans une pastille orange, grand bouton orange. Pas de mot de
+   passe : le numéro est prouvé par un code reçu par SMS ou WhatsApp. */
 
 /** Code de démonstration (le backend l'impose en local) ; vide en production. */
 const CODE_DEMO = import.meta.env.VITE_CODE_DEMO ?? "";
 
+/** Gris foncé des textes secondaires (contraste d'environ 7:1). */
+const GRIS = "#5C5248";
+
 const MESSAGE: React.CSSProperties = {
-  fontSize: "13.5px",
+  fontSize: "14px",
   lineHeight: 1.45,
   margin: 0,
-  padding: "10px 12px",
-  borderRadius: "var(--radius-md)",
+  padding: "10px 14px",
+  borderRadius: 14,
 };
 
-/** Fond tissé, colonne centrée, titre et sous-titre, puis la carte du formulaire. */
+export const BOUTON_PRINCIPAL: React.CSSProperties = {
+  width: "100%",
+  minHeight: 56,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 10,
+  border: 0,
+  borderRadius: 999,
+  background: "var(--color-accent)",
+  color: "#fff",
+  font: "inherit",
+  fontSize: "17px",
+  fontWeight: 600,
+  cursor: "pointer",
+  boxShadow: "0 6px 18px rgba(227,90,27,.22)",
+};
+
+const LIEN_ORANGE: React.CSSProperties = {
+  minHeight: 44,
+  padding: 0,
+  background: "none",
+  border: 0,
+  cursor: "pointer",
+  font: "inherit",
+  fontSize: "14.5px",
+  fontWeight: 600,
+  color: "var(--color-accent-700)",
+};
+
+/** Cadre plein écran commun aux deux pages, avec la bascule Connexion | Inscription. */
 export function CadreAuth({
+  mode,
   titre,
   sousTitre,
-  largeur,
+  telephone,
   children,
 }: {
+  mode: "connexion" | "inscription";
   titre: string;
   sousTitre: string;
-  largeur: number;
+  /** Numéro déjà saisi, repris quand on bascule vers l'autre page. */
+  telephone: string;
   children: ReactNode;
 }) {
+  const { go } = useApp();
+
   return (
     <main
-      className="sy-weave"
+      data-r="page-auth"
       style={{
-        backgroundColor: "var(--kola-50)",
-        padding: "48px 16px 64px",
+        minHeight: "100vh",
+        padding: "calc(16px + env(safe-area-inset-top)) 24px 40px",
         display: "flex",
         justifyContent: "center",
+        // Halos chauds discrets, comme sur la maquette.
+        background:
+          "radial-gradient(60% 40% at 100% 18%, rgba(227,90,27,.07), transparent 70%), radial-gradient(55% 35% at 0% 96%, rgba(242,183,5,.08), transparent 70%), var(--color-bg)",
       }}
     >
-      <div style={{ width: "100%", maxWidth: largeur, display: "flex", flexDirection: "column", gap: 16 }}>
-        <div>
-          <h1
-            style={{
-              margin: "0 0 6px",
-              fontFamily: "var(--font-heading)",
-              fontWeight: 800,
-              fontSize: "30px",
-              letterSpacing: "-0.028em",
-              lineHeight: 1.06,
-            }}
-          >
-            {titre}
-          </h1>
-          <p style={{ margin: 0, fontSize: "15px", lineHeight: 1.6, color: "var(--text-muted)" }}>{sousTitre}</p>
+      <div style={{ width: "100%", maxWidth: 440, display: "flex", flexDirection: "column" }}>
+        <button
+          onClick={() => go("home")}
+          aria-label="Retour à l'accueil"
+          style={{
+            alignSelf: "flex-start",
+            width: 48,
+            height: 48,
+            display: "grid",
+            placeItems: "center",
+            border: 0,
+            borderRadius: 999,
+            background: "var(--color-neutral-100)",
+            boxShadow: "0 4px 14px rgba(26,22,19,.10)",
+            color: "var(--color-accent)",
+            cursor: "pointer",
+          }}
+        >
+          <Icon name="arrow-left" size={22} strokeWidth={2.25} />
+        </button>
+
+        {/* Logo TerraClick sur un halo doux. */}
+        <div style={{ position: "relative", alignSelf: "center", margin: "20px 0 12px", width: 132, height: 132, display: "grid", placeItems: "center" }}>
+          <span
+            aria-hidden="true"
+            style={{ position: "absolute", inset: -8, borderRadius: 999, background: "radial-gradient(circle, rgba(26,22,19,.07), transparent 68%)" }}
+          />
+          <img src={`${import.meta.env.BASE_URL}icons/logo-256.png`} alt="TerraClick" width={112} height={112} style={{ position: "relative" }} />
         </div>
-        <div className="sy-card">
-          <div className="sy-card__body" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {children}
-          </div>
+
+        <h1
+          style={{
+            margin: 0,
+            textAlign: "center",
+            fontFamily: "var(--font-heading)",
+            fontWeight: 700,
+            fontSize: "32px",
+            letterSpacing: "-0.01em",
+            color: "var(--color-accent)",
+          }}
+        >
+          {titre} <span aria-hidden="true">👋</span>
+        </h1>
+        <span
+          style={{
+            alignSelf: "center",
+            margin: "12px 0 10px",
+            padding: "7px 18px",
+            borderRadius: 999,
+            background: "var(--state-info-soft)",
+            color: "var(--state-info)",
+            fontSize: "15px",
+            fontWeight: 600,
+          }}
+        >
+          Espace Client
+        </span>
+        <p style={{ margin: "0 0 22px", textAlign: "center", fontSize: "16px", color: GRIS }}>{sousTitre}</p>
+
+        {/* Bascule Connexion | Inscription. */}
+        <div
+          role="tablist"
+          aria-label="Connexion ou inscription"
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", padding: 6, borderRadius: 999, background: "var(--color-surface)", marginBottom: 28 }}
+        >
+          {(["connexion", "inscription"] as const).map((m) => (
+            <button
+              key={m}
+              role="tab"
+              aria-selected={mode === m}
+              onClick={() => mode !== m && go(m, { telDraft: telephone })}
+              style={{
+                minHeight: 48,
+                border: 0,
+                borderRadius: 999,
+                background: mode === m ? "var(--color-neutral-100)" : "transparent",
+                boxShadow: mode === m ? "0 2px 8px rgba(26,22,19,.08)" : "none",
+                color: mode === m ? "var(--color-accent-700)" : "var(--color-text)",
+                font: "inherit",
+                fontSize: "16px",
+                fontWeight: 600,
+                cursor: mode === m ? "default" : "pointer",
+              }}
+            >
+              {m === "connexion" ? "Connexion" : "Inscription"}
+            </button>
+          ))}
         </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>{children}</div>
       </div>
     </main>
   );
 }
+
+/**
+ * Champ arrondi : étiquette posée sur la bordure, icône dans une pastille orange à gauche,
+ * élément facultatif à droite (œil, chevron).
+ */
+export function ChampIcone({ id, libelle, icone, droite, children }: { id: string; libelle: string; icone: string; droite?: ReactNode; children: ReactNode }) {
+  return (
+    <div style={{ position: "relative" }}>
+      <label
+        htmlFor={id}
+        style={{ position: "absolute", top: -10, left: 26, zIndex: 1, padding: "0 6px", background: "var(--color-bg)", fontSize: "13.5px", color: GRIS, lineHeight: "20px" }}
+      >
+        {libelle}
+      </label>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 14,
+          minHeight: 66,
+          padding: "8px 16px 8px 10px",
+          borderRadius: 33,
+          border: "1.5px solid var(--color-divider)",
+          background: "var(--color-neutral-100)",
+        }}
+      >
+        <span style={{ width: 46, height: 46, flex: "none", borderRadius: 14, background: "var(--color-accent-100)", color: "var(--color-accent)", display: "grid", placeItems: "center" }}>
+          <Icon name={icone} size={22} strokeWidth={2} />
+        </span>
+        {children}
+        {droite}
+      </div>
+    </div>
+  );
+}
+
+/** Style des champs de saisie et listes placés dans ChampIcone. */
+export const SAISIE: React.CSSProperties = {
+  flex: 1,
+  minWidth: 0,
+  minHeight: 44,
+  border: 0,
+  outline: "none",
+  background: "none",
+  font: "inherit",
+  fontSize: "17px",
+  letterSpacing: "0.02em",
+  color: "var(--color-text)",
+};
 
 export function Alerte({ erreur, info }: { erreur: string | null; info?: string | null }) {
   return (
@@ -83,91 +243,68 @@ export function Alerte({ erreur, info }: { erreur: string | null; info?: string 
   );
 }
 
-/** Champ téléphone avec l'indicatif ivoirien affiché devant. */
-export function ChampTelephone({
-  valeur,
-  onChange,
-  onValider,
-  aide = true,
-}: {
-  valeur: string;
-  onChange: (v: string) => void;
-  onValider?: () => void;
-  /** Rappel « jamais publié », inutile quand la page le dit déjà. */
-  aide?: boolean;
-}) {
+/** Numéro de téléphone (Côte d'Ivoire). */
+export function ChampTelephone({ valeur, onChange, onValider }: { valeur: string; onChange: (v: string) => void; onValider?: () => void }) {
   return (
-    <div className="sy-field">
-      <label className="sy-field__label" htmlFor="auth-telephone">
-        Téléphone
-      </label>
-      <div style={{ display: "flex", gap: 8 }}>
-        <span
-          style={{
-            display: "flex",
-            alignItems: "center",
-            padding: "0 14px",
-            border: "1.5px solid var(--border-subtle)",
-            borderRadius: "var(--radius-md)",
-            fontSize: "15px",
-            whiteSpace: "nowrap",
-          }}
-        >
-          +225
-        </span>
-        <input
-          id="auth-telephone"
-          className="sy-input"
-          value={valeur}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && onValider?.()}
-          placeholder="07 00 00 00 00"
-          inputMode="tel"
-          autoComplete="tel-national"
-          style={{ flex: 1 }}
-        />
-      </div>
-      {aide && <span className="sy-field__hint">Il sert à vous joindre pour vos demandes. Il n'est jamais publié.</span>}
-    </div>
+    <ChampIcone id="auth-telephone" libelle="Numéro de téléphone" icone="phone">
+      <input
+        id="auth-telephone"
+        value={valeur}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && onValider?.()}
+        placeholder="07 00 00 00 00"
+        inputMode="tel"
+        autoComplete="tel-national"
+        style={SAISIE}
+      />
+    </ChampIcone>
   );
 }
 
+/** Canal du code : SMS ou WhatsApp, en deux pastilles. */
 export function ChoixCanal({ valeur, onChange }: { valeur: Canal; onChange: (c: Canal) => void }) {
   return (
-    <div role="radiogroup" aria-label="Recevoir le code par" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      <button
-        type="button"
-        role="radio"
-        aria-checked={valeur === "sms"}
-        onClick={() => onChange("sms")}
-        style={styleCanal(valeur === "sms")}
-      >
-        <Icon name="message-square" size={20} color="var(--kola-600)" />
-        <span style={{ flex: 1 }}>
-          <span style={{ display: "block", fontSize: "14.5px" }}>Code par SMS</span>
-          <span style={{ display: "block", fontSize: "12.5px", color: "var(--text-muted)" }}>Fonctionne sans internet</span>
-        </span>
-      </button>
-      <button
-        type="button"
-        role="radio"
-        aria-checked={valeur === "whatsapp"}
-        onClick={() => onChange("whatsapp")}
-        style={styleCanal(valeur === "whatsapp")}
-      >
-        <Icon name="message-circle" size={20} color="var(--kola-600)" />
-        <span style={{ flex: 1 }}>
-          <span style={{ display: "block", fontSize: "14.5px" }}>Code par WhatsApp</span>
-          <span style={{ display: "block", fontSize: "12.5px", color: "var(--text-muted)" }}>
-            Instantané en wifi, sans crédit
-          </span>
-        </span>
-      </button>
+    <div>
+      <span style={{ display: "block", margin: "0 0 8px 8px", fontSize: "13.5px", color: GRIS }}>Recevoir le code par</span>
+      <div role="radiogroup" aria-label="Recevoir le code par" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        {(
+          [
+            ["sms", "SMS", "message-square"],
+            ["whatsapp", "WhatsApp", "message-circle"],
+          ] as const
+        ).map(([v, libelle, icone]) => (
+          <button
+            key={v}
+            type="button"
+            role="radio"
+            aria-checked={valeur === v}
+            onClick={() => onChange(v)}
+            style={{
+              minHeight: 52,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              borderRadius: 999,
+              border: `1.5px solid ${valeur === v ? "var(--color-accent)" : "var(--color-divider)"}`,
+              background: valeur === v ? "var(--color-accent-100)" : "var(--color-neutral-100)",
+              color: valeur === v ? "var(--color-accent-700)" : "var(--color-text)",
+              font: "inherit",
+              fontSize: "15.5px",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            <Icon name={icone} size={18} />
+            {libelle}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
 
-/** Saisie du code reçu, avec la bulle de démonstration et le retour au numéro. */
+/** Saisie du code reçu (à la place du mot de passe de la maquette), renvoi et changement de numéro. */
 export function EtapeCode({
   telephone,
   canal,
@@ -189,6 +326,7 @@ export function EtapeCode({
   occupe: boolean;
   libelleValider: string;
 }) {
+  const [visible, setVisible] = useState(false);
   const remplirDemo = () => {
     onCode(CODE_DEMO);
     onValider(CODE_DEMO);
@@ -196,16 +334,31 @@ export function EtapeCode({
 
   return (
     <>
-      <p style={{ margin: 0, fontSize: "14.5px", color: "var(--text-muted)" }}>
-        Code envoyé par {canal === "whatsapp" ? "WhatsApp" : "SMS"} au <strong>{telephone}</strong>.
-      </p>
-      <div className="sy-field">
-        <label className="sy-field__label" htmlFor="auth-code">
-          Code à 6 chiffres
-        </label>
+      <ChampIcone id="auth-telephone-lu" libelle="Numéro de téléphone" icone="phone">
+        <input id="auth-telephone-lu" value={telephone} readOnly style={{ ...SAISIE, color: GRIS }} />
+        <button type="button" onClick={onChangerNumero} style={{ ...LIEN_ORANGE, flex: "none" }}>
+          Modifier
+        </button>
+      </ChampIcone>
+
+      <ChampIcone
+        id="auth-code"
+        libelle={`Code reçu par ${canal === "whatsapp" ? "WhatsApp" : "SMS"}`}
+        icone="lock"
+        droite={
+          <button
+            type="button"
+            onClick={() => setVisible((v) => !v)}
+            aria-label={visible ? "Masquer le code" : "Afficher le code"}
+            style={{ flex: "none", width: 44, height: 44, display: "grid", placeItems: "center", border: 0, background: "none", color: GRIS, cursor: "pointer" }}
+          >
+            <Icon name={visible ? "eye" : "eye-off"} size={22} />
+          </button>
+        }
+      >
         <input
           id="auth-code"
-          className="sy-input"
+          type={visible ? "text" : "password"}
           value={code}
           onChange={(e) => {
             const chiffres = e.target.value.replace(/\D/g, "").slice(0, 6);
@@ -216,91 +369,30 @@ export function EtapeCode({
           autoComplete="one-time-code"
           placeholder="••••••"
           maxLength={6}
-          style={{ fontFamily: "var(--font-mono)", fontSize: "22px", letterSpacing: "0.4em", textAlign: "center" }}
+          style={{ ...SAISIE, letterSpacing: "0.3em" }}
         />
+      </ChampIcone>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: -10 }}>
+        <button type="button" onClick={onRenvoyer} disabled={occupe} style={LIEN_ORANGE}>
+          Renvoyer le code
+        </button>
       </div>
+
       {CODE_DEMO && (
         <button
           type="button"
           onClick={remplirDemo}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            cursor: "pointer",
-            font: "inherit",
-            textAlign: "left",
-            padding: "10px 12px",
-            border: "1px solid var(--border-subtle)",
-            borderRadius: "var(--radius-md)",
-            background: "var(--surface-sunken)",
-          }}
+          style={{ ...MESSAGE, border: "1px dashed var(--color-divider)", background: "var(--color-surface)", cursor: "pointer", font: "inherit", textAlign: "left", color: GRIS }}
         >
-          <span
-            style={{
-              width: 28,
-              height: 28,
-              flex: "none",
-              borderRadius: "999px",
-              background: "var(--kola-50)",
-              color: "var(--kola-600)",
-              display: "grid",
-              placeItems: "center",
-              fontSize: "11px",
-              fontWeight: 700,
-            }}
-          >
-            SY
-          </span>
-          <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-            TerraClick : votre code est {CODE_DEMO.slice(0, 3)} {CODE_DEMO.slice(3, 4)}•• — appuyer pour remplir
-          </span>
+          TerraClick : votre code est {CODE_DEMO.slice(0, 3)} {CODE_DEMO.slice(3, 4)}•• — appuyer pour remplir
         </button>
       )}
-      <button
-        type="button"
-        onClick={() => onValider()}
-        disabled={occupe}
-        aria-busy={occupe}
-        className="sy-btn sy-btn--primary sy-btn--lg sy-btn--block"
-      >
-        {occupe ? "Vérification…" : libelleValider}
-      </button>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-        <button type="button" onClick={onChangerNumero} className="sy-btn sy-btn--ghost sy-btn--sm">
-          Changer de numéro
-        </button>
-        <button type="button" onClick={onRenvoyer} disabled={occupe} className="sy-btn sy-btn--ghost sy-btn--sm">
-          Renvoyer le code
-        </button>
-      </div>
-    </>
-  );
-}
 
-/** Ligne de séparation suivie du lien vers l'autre page. */
-export function LienBas({ texte, action, onClick }: { texte: string; action: string; onClick: () => void }) {
-  return (
-    <>
-      <div style={{ height: 1, background: "var(--border-subtle)" }} />
-      <p style={{ margin: 0, fontSize: "15px", textAlign: "center" }}>
-        {texte}{" "}
-        <button
-          type="button"
-          onClick={onClick}
-          style={{
-            background: "none",
-            border: 0,
-            padding: 0,
-            cursor: "pointer",
-            font: "inherit",
-            fontWeight: 700,
-            color: "var(--color-accent)",
-          }}
-        >
-          {action}
-        </button>
-      </p>
+      <button type="button" onClick={() => onValider()} disabled={occupe} aria-busy={occupe} style={{ ...BOUTON_PRINCIPAL, opacity: occupe ? 0.7 : 1 }}>
+        {occupe ? "Vérification…" : libelleValider}
+        {!occupe && <Icon name="arrow-right" size={20} strokeWidth={2.25} />}
+      </button>
     </>
   );
 }

@@ -210,11 +210,11 @@ export function Header() {
           {!connecte && (
             <>
               {/* Pages dédiées ; la feuille basse reste le mur qui monte au moment d'agir. */}
-              <button onClick={() => go("connexion", { telDraft: "" })} className="sy-btn sy-btn--outline sy-btn--md">
+              <button onClick={() => go("connexion", { telDraft: "", apresConnexion: "clientDashboard" })} className="sy-btn sy-btn--outline sy-btn--md">
                 Se connecter
               </button>
               <button
-                onClick={() => go("inscription", { telDraft: "" })}
+                onClick={() => go("inscription", { telDraft: "", apresConnexion: "clientDashboard" })}
                 className="sy-btn sy-btn--primary sy-btn--md"
               >
                 S'inscrire

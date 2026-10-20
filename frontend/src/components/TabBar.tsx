@@ -8,6 +8,8 @@ import { Icon } from "./Icon";
    les rebranche), cible tactile pleine hauteur. */
 export function TabBar() {
   const { etat, go, exigerCompte, ouvrirChat } = useApp();
+  // Connexion et inscription s'affichent en plein écran, sans barre d'onglets.
+  if (etat.screen === "connexion" || etat.screen === "inscription") return null;
 
   const onglets: { nom: string; icon: string; actif: boolean; go: () => void; badge?: number }[] = [
     {
@@ -64,7 +66,7 @@ export function TabBar() {
       icon: "user",
       actif: /^(compte|connexion|inscription|client[A-Z])/.test(etat.screen) && !/^client(Demandes|Suivi)$/.test(etat.screen),
       // Comme « Se connecter » sur ordinateur : la page de connexion, pas la feuille basse.
-      go: () => (etat.auth ? go("clientDashboard") : go("connexion", { telDraft: "" })),
+      go: () => (etat.auth ? go("clientDashboard") : go("connexion", { telDraft: "", apresConnexion: "clientDashboard" })),
     },
   ];
 

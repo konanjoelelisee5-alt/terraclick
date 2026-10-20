@@ -37,4 +37,9 @@ export const CONFIG = {
    *  - « riche »  : la même chose, plus problèmes fréquents, « Comment ça marche » et l'appel aux techniciens.
    */
   accueilMobile: "epuree" as "epuree" | "riche",
+  /**
+   * À l'ouverture, sans session mémorisée sur l'appareil : la page de connexion d'abord
+   * (la flèche retour mène à l'accueil en visiteur). Avec une session, l'accueil directement.
+   */
+  connexionAuDemarrage: true as boolean,
 } as const;

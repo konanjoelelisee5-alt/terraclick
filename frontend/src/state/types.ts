@@ -136,6 +136,8 @@ export type Etat = {
 
   /* Compte */
   auth: Compte | null;
+  /** Écran ouvert après une connexion ou une inscription réussie. */
+  apresConnexion: Ecran;
   authOpen: boolean;
   authStep: EtapeAuth;
   authCanal: "sms" | "whatsapp";

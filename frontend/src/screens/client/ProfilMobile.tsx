@@ -106,7 +106,7 @@ export function ProfilMobile() {
         <GrandTitre titre="Profil" />
         <div style={{ padding: "16px 24px 0" }}>
           <p style={{ margin: "0 0 16px", fontSize: "15px", color: GRIS }}>Connectez-vous pour suivre vos demandes.</p>
-          <button onClick={() => go("connexion", { telDraft: "" })} className="sy-btn sy-btn--primary sy-btn--md" style={{ minHeight: 48 }}>
+          <button onClick={() => go("connexion", { telDraft: "", apresConnexion: "clientDashboard" })} className="sy-btn sy-btn--primary sy-btn--md" style={{ minHeight: 48 }}>
             Se connecter
           </button>
         </div>

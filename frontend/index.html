@@ -17,86 +17,8 @@
       content="TerraClick — les prestataires vérifiés de votre ville, en une recherche. Partout en Côte d'Ivoire."
     />
     <title>TerraClick — prestataires vérifiés près de chez vous</title>
-
-    <!-- Écran de démarrage de l'application installée : le logo se reconstitue (4 morceaux qui
-         s'emboîtent), sur le même fond que l'écran de lancement du système, puis s'efface dès que
-         l'application est prête (main.tsx). Écrit ici, et non dans React, pour s'afficher avant
-         même le chargement du code. Absent dans un simple onglet de navigateur ; « ?splash » dans
-         l'adresse permet de le voir pour le tester. -->
-    <style>
-      #splash {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        background: #fdfbf8;
-        transition: opacity 0.25s ease, visibility 0.25s;
-        /* Filet de sécurité : même si l'application ne démarre pas, l'écran s'efface seul. */
-        animation: splash-filet 0.3s ease 4s forwards;
-      }
-      @media (display-mode: standalone) {
-        #splash { display: flex; }
-      }
-      .tc-autonome #splash { display: flex; }
-      #splash.splash--fin { opacity: 0; visibility: hidden; }
-
-      .splash__logo { position: relative; width: 144px; height: 144px; }
-      .splash__morceau {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        animation: splash-morceau 0.62s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-      }
-      /* Chaque morceau est un quart du logo, qui arrive de son coin en tournant légèrement. */
-      /* Les quarts se chevauchent d'un pixel : aucune ligne de jointure une fois assemblés. */
-      .splash__morceau--1 { clip-path: inset(0 calc(50% - 1px) calc(50% - 1px) 0); --dx: -34px; --dy: -34px; --r: -10deg; }
-      .splash__morceau--2 { clip-path: inset(0 0 calc(50% - 1px) calc(50% - 1px)); --dx: 34px; --dy: -34px; --r: 10deg; animation-delay: 0.08s; }
-      .splash__morceau--3 { clip-path: inset(calc(50% - 1px) calc(50% - 1px) 0 0); --dx: -34px; --dy: 34px; --r: 10deg; animation-delay: 0.16s; }
-      .splash__morceau--4 { clip-path: inset(calc(50% - 1px) 0 0 calc(50% - 1px)); --dx: 34px; --dy: 34px; --r: -10deg; animation-delay: 0.24s; }
-      /* Une fois assemblé, le logo « respire » une fois : la reconstitution est terminée. */
-      .splash__logo { animation: splash-assemble 0.36s ease-out 0.86s both; }
-
-      @keyframes splash-morceau {
-        from { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(0.9); }
-        to { opacity: 1; transform: none; }
-      }
-      @keyframes splash-assemble {
-        0% { transform: scale(1); }
-        45% { transform: scale(1.06); }
-        100% { transform: scale(1); }
-      }
-      @keyframes splash-filet {
-        to { opacity: 0; visibility: hidden; }
-      }
-      /* Moins d'animations demandé par le téléphone : un simple fondu, sans mouvement. */
-      @media (prefers-reduced-motion: reduce) {
-        .splash__logo { animation: none; }
-        .splash__morceau { animation: splash-fondu 0.3s ease forwards; transform: none; }
-        @keyframes splash-fondu { to { opacity: 1; } }
-      }
-    </style>
-    <script>
-      // iPhone (anciennes versions) : l'application installée se signale par navigator.standalone.
-      if (navigator.standalone || /[?&]splash\b/.test(location.search)) {
-        document.documentElement.classList.add("tc-autonome");
-      }
-    </script>
   </head>
   <body>
-    <div id="splash" aria-hidden="true">
-      <div class="splash__logo">
-        <img class="splash__morceau splash__morceau--1" src="/icons/logo-256.png" alt="" />
-        <img class="splash__morceau splash__morceau--2" src="/icons/logo-256.png" alt="" />
-        <img class="splash__morceau splash__morceau--3" src="/icons/logo-256.png" alt="" />
-        <img class="splash__morceau splash__morceau--4" src="/icons/logo-256.png" alt="" />
-      </div>
-    </div>
-    <!-- Début de l'animation : main.tsx compte la durée minimale à partir d'ici. -->
-    <script>window.__tcSplashDebut = performance.now();</script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

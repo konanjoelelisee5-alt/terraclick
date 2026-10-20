@@ -23,6 +23,11 @@ async function neuve(w = 1440, h = 1000) {
   const p = await ctx.newPage();
   await p.goto('http://localhost:4173/', { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(350);
+  // Sans session, l'application s'ouvre sur la connexion : la flèche retour mène à l'accueil.
+  if (await p.locator('[data-r="page-auth"]').isVisible().catch(() => false)) {
+    await p.getByRole('button', { name: "Retour à l'accueil", exact: true }).click();
+    await p.waitForTimeout(200);
+  }
   return { ctx, p };
 }
 async function connecter(p, tel = '07 58 42 19 03') {
@@ -210,6 +215,8 @@ if (!MODULE_CONSTRUCTION) {
      await apparait(p.getByRole('heading', { name: 'Quel est le problème ?' })) &&
        (await p.getByText('Plomberie · Étape 1 sur 4').isVisible()));
   await p.goto('http://localhost:4173/'); await p.waitForTimeout(300);
+  // Visiteur : le rechargement rouvre la connexion ; on revient à l'accueil.
+  await p.getByRole('button', { name: "Retour à l'accueil", exact: true }).click();
   await p.getByPlaceholder(/Quel est votre problème/).fill("grosse fuite d'eau dans la cuisine");
   await p.locator('[data-r="search-go"]').click();
   await apparait(p.getByRole('heading', { name: 'Quel est le problème ?' }));
@@ -314,22 +321,22 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
 {
   const { ctx, p } = await neuve();
   await p.getByRole('button', { name: 'Se connecter' }).click();
-  ok('« Se connecter » ouvre la page Connexion', await apparait(p.getByRole('heading', { name: 'Connexion' })));
-  await p.getByLabel('Téléphone', { exact: true }).fill('09 12 34 56 78');
+  ok('« Se connecter » ouvre la page Connexion', await apparait(p.getByRole('tab', { name: 'Connexion', selected: true })));
+  await p.getByLabel('Numéro de téléphone', { exact: true }).fill('09 12 34 56 78');
   await p.getByRole('button', { name: 'Recevoir mon code' }).click();
   ok('numéro refusé par le serveur : le motif s’affiche', await apparait(p.getByText(/pas un numéro ivoirien valide/)));
 
-  await p.getByLabel('Téléphone', { exact: true }).fill('07 58 42 19 03');
+  await p.getByLabel('Numéro de téléphone', { exact: true }).fill('07 58 42 19 03');
   await p.getByRole('radio', { name: /WhatsApp/ }).click();
   await p.getByRole('button', { name: 'Recevoir mon code' }).click();
-  ok('code demandé par WhatsApp : le canal est rappelé', await apparait(p.getByText(/Code envoyé par WhatsApp/)));
+  ok('code demandé par WhatsApp : le canal est rappelé', await apparait(p.getByText(/Code reçu par WhatsApp/)));
   await p.getByText(/appuyer pour remplir/).click();
   ok('compte connu : connexion puis espace client', await apparait(p.getByText('Aya Konan').first()));
   await ctx.close();
 
   const second = await neuve();
   await second.p.getByRole('button', { name: 'Se connecter' }).click();
-  await second.p.getByLabel('Téléphone', { exact: true }).fill(numeroNeuf());
+  await second.p.getByLabel('Numéro de téléphone', { exact: true }).fill(numeroNeuf());
   await second.p.getByRole('button', { name: 'Recevoir mon code' }).click();
   await second.p.getByText(/appuyer pour remplir/).click();
   ok('numéro inconnu : renvoyé vers l’inscription, numéro déjà vérifié',
@@ -345,14 +352,14 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
 {
   const { ctx, p } = await neuve();
   await p.getByRole('button', { name: "S'inscrire" }).click();
-  ok('« S’inscrire » ouvre la page Inscription', await apparait(p.getByRole('heading', { name: 'Créer un compte' })));
+  ok('« S’inscrire » ouvre la page Inscription', await apparait(p.getByRole('tab', { name: 'Inscription', selected: true })));
   await p.getByLabel('Nom complet').fill('Awa Test');
   await p.getByRole('button', { name: 'Créer mon compte' }).click();
   ok('conditions non acceptées : inscription bloquée', await apparait(p.getByText(/Acceptez les conditions/)));
 
   const numero = numeroNeuf();
   await p.getByLabel('E-mail (facultatif)').fill(`awa.${numero}@exemple.ci`);
-  await p.getByLabel('Téléphone', { exact: true }).fill(numero);
+  await p.getByLabel('Numéro de téléphone', { exact: true }).fill(numero);
   await p.getByLabel('Quartier').selectOption({ label: 'Kokrenou' });
   await p.locator('.sy-choice').click();
   await p.getByRole('button', { name: 'Créer mon compte' }).click();
@@ -373,8 +380,23 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
 {
   const { ctx, p } = await neuve(390, 844);
   await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Profil/ }).click();
-  ok('mobile : l’onglet Profil ouvre la page Connexion', await apparait(p.getByRole('heading', { name: 'Connexion' })));
+  ok('mobile : l’onglet Profil ouvre la page Connexion', await apparait(p.getByRole('tab', { name: 'Connexion', selected: true })));
   ok('mobile : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+  await ctx.close();
+}
+
+// K0 · Sans session, l'application s'ouvre sur la connexion (plein écran) ; la flèche retour mène à l'accueil
+{
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const p = await ctx.newPage();
+  await p.goto('http://localhost:4173/', { waitUntil: 'domcontentloaded' });
+  ok('ouverture sans session : formulaire de connexion', await apparait(p.getByRole('tab', { name: 'Connexion', selected: true })));
+  ok('formulaire plein écran : ni en-tête ni barre du bas',
+     (await p.locator('header').count()) === 0 && (await p.locator('[data-r="tabbar"]').count()) === 0);
+  await p.getByRole('tab', { name: 'Inscription' }).click();
+  ok('bascule vers l’inscription', await apparait(p.getByRole('button', { name: /Créer mon compte/ })));
+  await p.getByRole('button', { name: "Retour à l'accueil", exact: true }).click();
+  ok('flèche retour : accueil en visiteur', await apparait(p.locator('[data-r="accueil-mobile"]')));
   await ctx.close();
 }
 
@@ -385,7 +407,7 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
   const accueil = p.locator('[data-r="accueil-mobile"]');
   ok('accueil mobile : accroche et pas de second logo',
      (await accueil.getByRole('heading', { name: 'Trouvez le bon technicien' }).isVisible()) &&
-       (await accueil.getByText('TerraClick', { exact: true }).count()) === 0);
+       (await accueil.locator('[data-r="hero-marque"]').count()) === 0);
   ok('accueil mobile : pas de menu des catégories dans la recherche', (await p.locator('[data-r="search-depts"]').count()) === 0);
   ok('accueil mobile : « Urgence » et « Programmer » côte à côte',
      await p.evaluate(() => {
@@ -402,7 +424,7 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
 {
   const { ctx, p } = await neuve(390, 844);
   await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Profil/ }).click();
-  await p.getByLabel('Téléphone', { exact: true }).fill('07 58 42 19 03');
+  await p.getByLabel('Numéro de téléphone', { exact: true }).fill('07 58 42 19 03');
   await p.getByRole('button', { name: 'Recevoir mon code' }).click();
   await p.getByText(/appuyer pour remplir/).click();
   const profil = p.locator('[data-r="profil-mobile"]');
@@ -544,7 +566,7 @@ if (!MODES_ACCUEIL) {
     await p.getByRole('button', { name: 'Fermer' }).click();
     // Fenêtre refermée : l'action abandonnée ne doit pas se rejouer après une connexion ultérieure.
     await p.getByRole('button', { name: 'Se connecter' }).click();
-    await p.getByLabel('Téléphone', { exact: true }).fill('07 58 42 19 03');
+    await p.getByLabel('Numéro de téléphone', { exact: true }).fill('07 58 42 19 03');
     await p.getByRole('button', { name: 'Recevoir mon code' }).click();
     await p.getByText(/appuyer pour remplir/).click();
     await apparait(p.getByRole('heading', { name: 'Bonjour, Aya' }));
@@ -576,7 +598,7 @@ if (!MODES_ACCUEIL) {
 {
   const { ctx, p } = await neuve();
   await p.getByRole('button', { name: 'Se connecter' }).click();
-  await p.getByLabel('Téléphone', { exact: true }).fill('07 58 42 19 03');
+  await p.getByLabel('Numéro de téléphone', { exact: true }).fill('07 58 42 19 03');
   await p.getByRole('button', { name: 'Recevoir mon code' }).click();
   await p.getByText(/appuyer pour remplir/).click();
   ok('client : connexion ouvre le tableau de bord', await apparait(p.getByRole('heading', { name: 'Bonjour, Aya' })));

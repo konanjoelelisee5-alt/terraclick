@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useApp } from "../state/app";
 import { useCodeConnexion, type Canal } from "../lib/useCodeConnexion";
-import { Alerte, CadreAuth, ChampTelephone, ChoixCanal, EtapeCode, LienBas } from "../components/AuthPage";
+import { Icon } from "../components/Icon";
+import { Alerte, BOUTON_PRINCIPAL, CadreAuth, ChampTelephone, ChoixCanal, EtapeCode } from "../components/AuthPage";
 
 /**
- * Page de connexion. Même logique que la feuille d'authentification : pas de mot
- * de passe, le numéro est prouvé par un code. Un numéro inconnu est dirigé vers
- * l'inscription, où il ne reste qu'à compléter le profil.
+ * Page de connexion. Pas de mot de passe : le numéro est prouvé par un code reçu par SMS ou
+ * WhatsApp. Le compte est retrouvé (ou créé) par l'API, dans la base du serveur : on se
+ * connecte depuis n'importe quel appareil. Un numéro inconnu est dirigé vers l'inscription.
  */
 export function Connexion() {
   const { etat, go, terminerAuth } = useApp();
@@ -31,7 +32,7 @@ export function Connexion() {
     }
     if (utilisateur.profil_complet) {
       terminerAuth(utilisateur);
-      go("clientDashboard");
+      go(etat.apresConnexion);
     } else {
       // Numéro vérifié mais sans profil : l'inscription reprend à cette étape.
       go("inscription", { telDraft: telephone });
@@ -39,7 +40,7 @@ export function Connexion() {
   };
 
   return (
-    <CadreAuth titre="Connexion" sousTitre="Accédez à vos demandes et à vos conversations." largeur={440}>
+    <CadreAuth mode="connexion" titre="Bienvenue" sousTitre="Heureux de vous revoir !" telephone={telephone}>
       {etape === "tel" ? (
         <>
           <ChampTelephone
@@ -52,18 +53,10 @@ export function Connexion() {
           />
           <ChoixCanal valeur={canal} onChange={setCanal} />
           <Alerte erreur={otp.erreur} />
-          <button
-            type="button"
-            onClick={envoyer}
-            disabled={otp.occupe}
-            aria-busy={otp.occupe}
-            className="sy-btn sy-btn--primary sy-btn--lg sy-btn--block"
-          >
+          <button type="button" onClick={envoyer} disabled={otp.occupe} aria-busy={otp.occupe} style={{ ...BOUTON_PRINCIPAL, opacity: otp.occupe ? 0.7 : 1 }}>
             {otp.occupe ? "Envoi du code…" : "Recevoir mon code"}
+            {!otp.occupe && <Icon name="arrow-right" size={20} strokeWidth={2.25} />}
           </button>
-          <p style={{ margin: 0, fontSize: "12.5px", lineHeight: 1.5, color: "var(--text-muted)", textAlign: "center" }}>
-            Pas de mot de passe : le même numéro sert à créer le compte et à se reconnecter.
-          </p>
         </>
       ) : (
         <>
@@ -84,7 +77,6 @@ export function Connexion() {
           <Alerte erreur={otp.erreur} info={otp.info} />
         </>
       )}
-      <LienBas texte="Pas encore de compte ?" action="Créer un compte" onClick={() => go("inscription", { telDraft: telephone })} />
     </CadreAuth>
   );
 }

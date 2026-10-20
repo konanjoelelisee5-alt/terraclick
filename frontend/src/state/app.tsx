@@ -15,8 +15,11 @@ import type { Filtre } from "../lib/annuaire";
 import { CONFIG } from "../lib/config";
 import type { Besoin, Compte, Ecran, Etat, Navigation } from "./types";
 
+// Premier lancement ou session terminée sur cet appareil : on commence par la connexion.
+const sansSession = CONFIG.connexionAuDemarrage && !jeton.lire();
+
 const ETAT_INITIAL: Etat = {
-  screen: "home",
+  screen: sansSession ? "connexion" : "home",
   ville: null,
   query: "",
   titre: "Plombiers",
@@ -38,6 +41,8 @@ const ETAT_INITIAL: Etat = {
   quand: 0,
 
   auth: null,
+  // Depuis l'ouverture, on entre ensuite dans l'application ; depuis « Se connecter », dans son espace.
+  apresConnexion: sansSession ? "home" : "clientDashboard",
   authOpen: false,
   authStep: "tel",
   authCanal: "sms",

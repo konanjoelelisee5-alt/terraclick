@@ -5,18 +5,12 @@ import { slugifier } from "../lib/annuaire";
 import { useApi } from "../lib/useApi";
 import { useCodeConnexion, type Canal } from "../lib/useCodeConnexion";
 import { Icon } from "../components/Icon";
-import { Alerte, CadreAuth, ChampTelephone, ChoixCanal, EtapeCode, LienBas } from "../components/AuthPage";
-
-const GRILLE: React.CSSProperties = {
-  display: "grid",
-  gap: 14,
-  gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
-};
+import { Alerte, BOUTON_PRINCIPAL, CadreAuth, ChampIcone, ChampTelephone, ChoixCanal, EtapeCode, SAISIE } from "../components/AuthPage";
 
 /**
- * Page d'inscription. Le formulaire est rempli d'abord, puis le numéro est vérifié
- * par code ; le profil n'est enregistré qu'une fois le numéro prouvé. Pas de mot
- * de passe. Un numéro déjà inscrit est simplement connecté.
+ * Page d'inscription. Le formulaire est rempli d'abord, puis le numéro est vérifié par code ;
+ * le profil n'est enregistré (dans la base du serveur, via l'API) qu'une fois le numéro prouvé.
+ * Pas de mot de passe. Un numéro déjà inscrit est simplement connecté.
  */
 export function Inscription() {
   const { etat, go, terminerAuth, ville } = useApp();
@@ -62,7 +56,7 @@ export function Inscription() {
     );
     if (profil) {
       terminerAuth(profil);
-      go("clientDashboard");
+      go(etat.apresConnexion);
     } else {
       // Numéro déjà prouvé : une correction du formulaire suffit, sans nouveau code.
       setCompte(u);
@@ -91,132 +85,86 @@ export function Inscription() {
     // Numéro déjà inscrit : on connecte sans écraser le profil existant.
     if (utilisateur.profil_complet) {
       terminerAuth(utilisateur);
-      go("clientDashboard");
+      go(etat.apresConnexion);
       return;
     }
     await enregistrerProfil(utilisateur);
   };
 
+  const chevron = <Icon name="chevron-down" size={20} color="#5C5248" style={{ flex: "none", pointerEvents: "none" }} />;
+
   return (
-    <CadreAuth
-      titre="Créer un compte"
-      sousTitre="Votre numéro sert à vous joindre pour vos demandes. Il n'est jamais publié."
-      largeur={540}
-    >
+    <CadreAuth mode="inscription" titre="Bienvenue" sousTitre="Créez votre compte en quelques secondes." telephone={telephone}>
       {etape === "formulaire" ? (
         <>
-          {compte && (
-            <Alerte erreur={null} info={`Numéro ${compte.telephone_affichage} vérifié. Il ne reste qu'à compléter votre profil.`} />
-          )}
-          <div style={GRILLE}>
-            <div className="sy-field">
-              <label className="sy-field__label" htmlFor="insc-nom">
-                Nom complet
-              </label>
-              <input
-                id="insc-nom"
-                className="sy-input"
-                value={nom}
-                onChange={(e) => setNom(e.target.value)}
-                placeholder="Awa Koné"
-                autoComplete="name"
-              />
-            </div>
-            <div className="sy-field">
-              <label className="sy-field__label" htmlFor="insc-email">
-                E-mail (facultatif)
-              </label>
-              <input
-                id="insc-email"
-                className="sy-input"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="awa.kone@exemple.ci"
-                autoComplete="email"
-              />
-            </div>
-          </div>
+          {compte && <Alerte erreur={null} info={`Numéro ${compte.telephone_affichage} vérifié. Il ne reste qu'à compléter votre profil.`} />}
 
-          {!compte && <ChampTelephone valeur={telephone} onChange={setTelephone} aide={false} />}
+          <ChampIcone id="insc-nom" libelle="Nom complet" icone="user">
+            <input id="insc-nom" value={nom} onChange={(e) => setNom(e.target.value)} placeholder="Awa Koné" autoComplete="name" style={SAISIE} />
+          </ChampIcone>
 
-          <div style={GRILLE}>
-            <div className="sy-field">
-              <label className="sy-field__label" htmlFor="insc-ville">
-                Ville
-              </label>
-              <div className="sy-select-wrap">
-                <select
-                  id="insc-ville"
-                  className="sy-select"
-                  value={villeId ?? ""}
-                  onChange={(e) => {
-                    setVilleId(Number(e.target.value) || null);
-                    setQuartierId(null);
-                  }}
-                >
-                  {villes?.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.nom}
-                    </option>
-                  ))}
-                </select>
-                <span className="sy-select-wrap__caret">
-                  <Icon name="chevron-down" size={18} />
-                </span>
-              </div>
-            </div>
-            <div className="sy-field">
-              <label className="sy-field__label" htmlFor="insc-quartier">
-                Quartier
-              </label>
-              <div className="sy-select-wrap">
-                <select
-                  id="insc-quartier"
-                  className="sy-select"
-                  value={quartierId ?? ""}
-                  onChange={(e) => setQuartierId(Number(e.target.value) || null)}
-                  disabled={quartiers.length === 0}
-                >
-                  <option value="">{quartiers.length ? "Choisir plus tard" : "Bientôt disponible"}</option>
-                  {quartiers.map((q) => (
-                    <option key={q.id} value={q.id}>
-                      {q.nom}
-                    </option>
-                  ))}
-                </select>
-                <span className="sy-select-wrap__caret">
-                  <Icon name="chevron-down" size={18} />
-                </span>
-              </div>
-            </div>
-          </div>
+          {!compte && <ChampTelephone valeur={telephone} onChange={setTelephone} />}
+
+          <ChampIcone id="insc-email" libelle="E-mail (facultatif)" icone="mail">
+            <input
+              id="insc-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="awa.kone@exemple.ci"
+              autoComplete="email"
+              style={SAISIE}
+            />
+          </ChampIcone>
+
+          <ChampIcone id="insc-ville" libelle="Ville" icone="map-pin" droite={chevron}>
+            <select
+              id="insc-ville"
+              value={villeId ?? ""}
+              onChange={(e) => {
+                setVilleId(Number(e.target.value) || null);
+                setQuartierId(null);
+              }}
+              style={{ ...SAISIE, appearance: "none", cursor: "pointer" }}
+            >
+              {villes?.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.nom}
+                </option>
+              ))}
+            </select>
+          </ChampIcone>
+
+          <ChampIcone id="insc-quartier" libelle="Quartier" icone="home" droite={chevron}>
+            <select
+              id="insc-quartier"
+              value={quartierId ?? ""}
+              onChange={(e) => setQuartierId(Number(e.target.value) || null)}
+              disabled={quartiers.length === 0}
+              style={{ ...SAISIE, appearance: "none", cursor: "pointer" }}
+            >
+              <option value="">{quartiers.length ? "Choisir plus tard" : "Bientôt disponible"}</option>
+              {quartiers.map((q) => (
+                <option key={q.id} value={q.id}>
+                  {q.nom}
+                </option>
+              ))}
+            </select>
+          </ChampIcone>
 
           {!compte && <ChoixCanal valeur={canal} onChange={setCanal} />}
 
           <label className="sy-choice">
             <input type="checkbox" checked={cgu} onChange={(e) => setCgu(e.target.checked)} />
-            <span className="sy-choice__box sy-choice__box--check">
-              {cgu && <Icon name="check" size={14} strokeWidth={3} />}
-            </span>
+            <span className="sy-choice__box sy-choice__box--check">{cgu && <Icon name="check" size={14} strokeWidth={3} />}</span>
             J'accepte les conditions d'utilisation et la politique de confidentialité de TerraClick
           </label>
 
           <Alerte erreur={otp.erreur} />
-          <button
-            type="button"
-            onClick={soumettre}
-            disabled={otp.occupe}
-            aria-busy={otp.occupe}
-            className="sy-btn sy-btn--primary sy-btn--lg sy-btn--block"
-          >
+          <button type="button" onClick={soumettre} disabled={otp.occupe} aria-busy={otp.occupe} style={{ ...BOUTON_PRINCIPAL, opacity: otp.occupe ? 0.7 : 1 }}>
             {otp.occupe ? "Un instant…" : compte ? "Terminer mon inscription" : "Créer mon compte"}
+            {!otp.occupe && <Icon name="arrow-right" size={20} strokeWidth={2.25} />}
           </button>
-          {!compte && (
-            <p style={{ margin: 0, fontSize: "12.5px", lineHeight: 1.5, color: "var(--text-muted)" }}>
-              Un code de vérification vous est envoyé. Pas de mot de passe à retenir.
-            </p>
-          )}
         </>
       ) : (
         <>
@@ -237,7 +185,6 @@ export function Inscription() {
           <Alerte erreur={otp.erreur} info={otp.info} />
         </>
       )}
-      <LienBas texte="Vous avez déjà un compte ?" action="Se connecter" onClick={() => go("connexion", { telDraft: telephone })} />
     </CadreAuth>
   );
 }
