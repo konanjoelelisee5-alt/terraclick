@@ -129,42 +129,38 @@ export function AccueilMobile() {
             e.preventDefault();
             lancerRecherche();
           }}
-          style={{ ...CARTE_BLANCHE, display: "flex", alignItems: "center", gap: 8, padding: 6, boxShadow: "0 2px 10px rgba(26,22,19,.06)" }}
+          // Barre en pilule : bords entièrement arrondis, boutons ronds aux deux extrémités.
+          style={{ ...CARTE_BLANCHE, display: "flex", alignItems: "center", gap: 6, padding: 6, borderRadius: 999, boxShadow: "0 2px 10px rgba(26,22,19,.06)" }}
         >
-          {/* La ville, à gauche dans la barre : un toucher ouvre la liste des villes. */}
+          {/* La ville : l'icône de localisation seule ; un toucher ouvre la liste des villes. */}
           <ChoixVille
             data-r="recherche-ville"
-            compact
+            iconeSeule
             style={{
               flex: "none",
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              minHeight: 44,
-              padding: "0 10px",
-              borderRadius: 12,
+              width: 44,
+              height: 44,
+              display: "grid",
+              placeItems: "center",
+              borderRadius: 999,
               background: "var(--color-accent-100)",
-              color: "var(--color-accent-700)",
-              fontSize: "13.5px",
-              fontWeight: 600,
-              whiteSpace: "nowrap",
             }}
           />
           <input
             value={etat.query}
             onChange={(e) => set({ query: e.target.value })}
-            placeholder="Votre problème ?"
+            placeholder="Quel est votre problème ?"
             aria-label="Quel est votre problème ?"
             enterKeyHint="search"
-            style={{ flex: 1, minWidth: 0, minHeight: 44, border: 0, background: "none", outline: "none", font: "inherit", fontSize: "16px", color: "inherit" }}
+            style={{ flex: 1, minWidth: 0, minHeight: 44, padding: "0 4px", border: 0, background: "none", outline: "none", font: "inherit", fontSize: "16px", color: "inherit" }}
           />
           <button
             type="submit"
             data-r="search-go"
             aria-label="Rechercher"
-            style={{ width: 44, height: 44, flex: "none", display: "grid", placeItems: "center", border: 0, borderRadius: 12, background: "var(--color-accent)", color: "#fff", cursor: "pointer" }}
+            style={{ width: 44, height: 44, flex: "none", display: "grid", placeItems: "center", border: 0, borderRadius: 999, background: "var(--color-accent)", color: "#fff", cursor: "pointer" }}
           >
-            <Icon name="arrow-right" size={20} strokeWidth={2.5} />
+            <Icon name="search" size={20} strokeWidth={2.5} />
           </button>
         </form>
 

@@ -9,6 +9,8 @@ type Props = {
   style: React.CSSProperties;
   /** Icônes réduites, pour l'en-tête. */
   compact?: boolean;
+  /** Seulement l'icône de localisation (barre de recherche mobile) : la ville est annoncée, pas écrite. */
+  iconeSeule?: boolean;
 };
 
 /**
@@ -17,18 +19,22 @@ type Props = {
  * qui s'ouvre ; au clavier, les flèches suffisent. Toutes les villes sont visibles
  * d'emblée, au lieu de les faire défiler une à une.
  */
-export function ChoixVille({ style, compact = false, ...props }: Props) {
+export function ChoixVille({ style, compact = false, iconeSeule = false, ...props }: Props) {
   const { set, ville, villeIdx } = useApp();
 
   return (
-    <label data-r={props["data-r"]} style={{ position: "relative", cursor: "pointer", ...style }}>
-      <Icon name="map-pin" size={compact ? 15 : 17} strokeWidth={2.75} color="var(--color-accent)" />
-      <span data-r="ville-nom">{ville}</span>
-      <Icon name="chevron-down" size={14} strokeWidth={2.75} style={{ opacity: 0.6 }} />
+    <label data-r={props["data-r"]} title={iconeSeule ? `Ville : ${ville}` : undefined} style={{ position: "relative", cursor: "pointer", ...style }}>
+      <Icon name="map-pin" size={iconeSeule ? 22 : compact ? 15 : 17} strokeWidth={iconeSeule ? 2.25 : 2.75} color="var(--color-accent)" />
+      {!iconeSeule && (
+        <>
+          <span data-r="ville-nom">{ville}</span>
+          <Icon name="chevron-down" size={14} strokeWidth={2.75} style={{ opacity: 0.6 }} />
+        </>
+      )}
       <select
         value={villeIdx}
         onChange={(e) => set({ ville: Number(e.target.value), quartier: 0 })}
-        aria-label="Votre ville"
+        aria-label={iconeSeule ? `Choisir la ville (actuellement ${ville})` : "Votre ville"}
         style={{
           position: "absolute",
           inset: 0,
