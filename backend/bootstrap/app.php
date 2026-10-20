@@ -17,7 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // En ligne, l'API est derrière le proxy de Render, qui termine le HTTPS : sans cette
+        // confiance, les adresses générées (photos, pagination) partiraient en http://.
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
