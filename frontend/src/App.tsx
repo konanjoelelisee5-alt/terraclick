@@ -47,6 +47,7 @@ import { ProProfil } from "./screens/pro/ProProfil";
 import { ProRealisations } from "./screens/pro/ProRealisations";
 import { ProVerification } from "./screens/pro/ProVerification";
 import { ToastProvider } from "./components/Toast";
+import { BandeauMiseAJour } from "./components/MiseAJour";
 import { ClientDashboard } from "./screens/client/ClientDashboard";
 import { ClientDemandes } from "./screens/client/ClientDemandes";
 import { ClientDevis } from "./screens/client/ClientDevis";
@@ -148,6 +149,7 @@ function Coque() {
       <div style={{ fontFamily: "var(--font-body)", color: "var(--color-text)" }}>
         <Ecran />
         <AuthSheet />
+        <BandeauMiseAJour />
       </div>
     );
   }
@@ -163,6 +165,7 @@ function Coque() {
       <AuthSheet />
       <Footer />
       <TabBar />
+      <BandeauMiseAJour />
     </div>
   );
 }
