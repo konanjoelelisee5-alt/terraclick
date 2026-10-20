@@ -1,5 +1,8 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { NOTIFICATIONS_CLIENT } from "../../data/client";
+import { api, ErreurApi, messageErreur } from "../../lib/api";
+import { reduirePhoto } from "../../lib/photo";
+import { Avatar } from "../../components/Avatar";
 import { useApp } from "../../state/app";
 import type { Ecran } from "../../state/types";
 import { BoutonRond, GrandTitre } from "../../components/GrandTitre";
@@ -84,9 +87,38 @@ function LigneMenu({ l, onClick }: { l: Ligne; onClick: () => void }) {
 }
 
 export function ProfilMobile() {
-  const { etat, go, exigerCompte, deconnecter } = useApp();
+  const { etat, set, go, exigerCompte, deconnecter } = useApp();
   const { demandes, notificationsLues } = useEtatClient();
   const auth = etat.auth;
+  const [envoiPhoto, setEnvoiPhoto] = useState(false);
+  const [erreurPhoto, setErreurPhoto] = useState<string | null>(null);
+
+  /** Photo choisie : réduite à 256 px sur l'appareil, enregistrée en base, affichée partout. */
+  const choisirPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fichier = e.target.files?.[0];
+    e.target.value = "";
+    if (!fichier || !auth) return;
+    setErreurPhoto(null);
+    setEnvoiPhoto(true);
+    try {
+      const u = await api.modifierPhoto(await reduirePhoto(fichier));
+      set((s) => ({ auth: s.auth && { ...s.auth, photo: u.photo } }));
+    } catch (err) {
+      setErreurPhoto(err instanceof ErreurApi ? err.pour("photo") : "Cette image n'a pas pu être lue.");
+    } finally {
+      setEnvoiPhoto(false);
+    }
+  };
+
+  const retirerPhoto = async () => {
+    setErreurPhoto(null);
+    try {
+      await api.supprimerPhoto();
+      set((s) => ({ auth: s.auth && { ...s.auth, photo: null } }));
+    } catch (err) {
+      setErreurPhoto(messageErreur(err));
+    }
+  };
 
   const nonLues = notificationsLues ? 0 : NOTIFICATIONS_CLIENT.filter((n) => n.nouveau).length;
   // Demandes qui attendent quelque chose du client (confirmer, répondre).
@@ -114,17 +146,20 @@ export function ProfilMobile() {
     );
   }
 
-  const initiale = (auth.prenom.trim()[0] ?? "?").toUpperCase();
 
   return (
     <main data-r="profil-mobile" style={{ paddingBottom: 40 }}>
       <GrandTitre titre="Profil" actions={cloche} />
 
       <div style={{ padding: "24px 24px 0", display: "flex", flexDirection: "column", gap: 16 }}>
-        {/* 1 · Carte d'identité : toute la carte mène à « Voir mon profil ». */}
-        <button
+        {/* 1 · Carte d'identité : toute la carte mène à « Voir mon profil » ; l'appareil photo
+               sur l'avatar change la photo de profil sans quitter la page. */}
+        <div
           data-r="carte-identite"
+          role="button"
+          tabIndex={0}
           onClick={() => go("clientProfil")}
+          onKeyDown={(e) => e.key === "Enter" && go("clientProfil")}
           aria-label={`${auth.prenom}, voir mon profil`}
           style={{
             width: "100%",
@@ -133,31 +168,43 @@ export function ProfilMobile() {
             alignItems: "center",
             gap: 8,
             padding: "28px 20px 24px",
-            border: 0,
             borderRadius: 24,
             background: "var(--color-neutral-100)",
             boxShadow: OMBRE_DOUCE,
             cursor: "pointer",
-            font: "inherit",
-            color: "inherit",
           }}
         >
-          <span
-            style={{
-              width: 96,
-              height: 96,
-              borderRadius: 999,
-              background: "var(--color-accent-100)",
-              color: "var(--color-accent-700)",
-              display: "grid",
-              placeItems: "center",
-              fontFamily: "var(--font-heading)",
-              fontWeight: 700,
-              fontSize: "40px",
-            }}
-          >
-            {initiale}
+          <span style={{ position: "relative" }}>
+            <span style={{ opacity: envoiPhoto ? 0.5 : 1, transition: "opacity .2s" }}>
+              <Avatar compte={auth} taille={96} />
+            </span>
+            <label
+              onClick={(e) => e.stopPropagation()}
+              aria-label={auth.photo ? "Changer la photo de profil" : "Ajouter une photo de profil"}
+              style={{
+                position: "absolute",
+                right: -4,
+                bottom: -4,
+                width: 40,
+                height: 40,
+                borderRadius: 999,
+                background: "var(--color-accent)",
+                color: "#fff",
+                border: "3px solid var(--color-neutral-100)",
+                display: "grid",
+                placeItems: "center",
+                cursor: "pointer",
+              }}
+            >
+              <Icon name="camera" size={18} strokeWidth={2.25} />
+              <input type="file" accept="image/*" onChange={choisirPhoto} style={{ display: "none" }} />
+            </label>
           </span>
+          {erreurPhoto && (
+            <span role="alert" style={{ fontSize: "13.5px", color: "var(--state-danger)" }}>
+              {erreurPhoto}
+            </span>
+          )}
           <span style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "28px", lineHeight: 1.15, textAlign: "center" }}>{auth.prenom}</span>
           <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "15px", color: GRIS }}>
             Client
@@ -167,7 +214,18 @@ export function ProfilMobile() {
               Vérifié
             </span>
           </span>
-        </button>
+          {auth.photo && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                retirerPhoto();
+              }}
+              style={{ minHeight: 44, padding: "0 8px", border: 0, background: "none", cursor: "pointer", font: "inherit", fontSize: "14px", color: GRIS, textDecoration: "underline" }}
+            >
+              Retirer la photo
+            </button>
+          )}
+        </div>
 
         {/* 2 · Deux tuiles côte à côte */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>

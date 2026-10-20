@@ -117,7 +117,7 @@ function instantane(e: Etat): Navigation {
 }
 
 function versCompte(u: Utilisateur): Compte {
-  return { prenom: u.nom ?? "", tel: u.telephone_affichage, quartier: u.quartier?.nom ?? "" };
+  return { prenom: u.nom ?? "", tel: u.telephone_affichage, quartier: u.quartier?.nom ?? "", photo: u.photo ?? null };
 }
 
 type Contexte = {

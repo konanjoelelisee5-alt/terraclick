@@ -58,7 +58,7 @@ export type ModeAccueil = "recherche" | "carte" | "box";
 
 export type EtapeAuth = "tel" | "code" | "profil";
 
-export type Compte = { prenom: string; tel: string; quartier: string };
+export type Compte = { prenom: string; tel: string; quartier: string; photo: string | null };
 
 export type Message = { moi: boolean; texte: string };
 

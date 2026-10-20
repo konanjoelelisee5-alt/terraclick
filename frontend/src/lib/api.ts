@@ -74,6 +74,8 @@ export type Utilisateur = {
   telephone_affichage: string;
   nom: string | null;
   email: string | null;
+  /** Photo de profil (data URL), ou null. */
+  photo: string | null;
   ville: { id: number; nom: string } | null;
   quartier: Quartier | null;
   profil_complet: boolean;
@@ -175,7 +177,7 @@ export const jeton = {
 
 /* ---------- Requêtes ---------- */
 
-type Options = { methode?: "GET" | "POST" | "PATCH"; corps?: unknown; signal?: AbortSignal };
+type Options = { methode?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE"; corps?: unknown; signal?: AbortSignal };
 
 async function requete<T>(chemin: string, { methode = "GET", corps, signal }: Options = {}): Promise<T> {
   const entetes: Record<string, string> = { Accept: "application/json" };
@@ -286,5 +288,8 @@ export const api = {
     quartier_id?: number | null;
   }) =>
     requete<{ data: Utilisateur }>("/moi", { methode: "PATCH", corps: profil }).then((r) => r.data),
+  modifierPhoto: (photo: string) =>
+    requete<{ data: Utilisateur }>("/moi/photo", { methode: "PUT", corps: { photo } }).then((r) => r.data),
+  supprimerPhoto: () => requete<{ data: Utilisateur }>("/moi/photo", { methode: "DELETE" }).then((r) => r.data),
   deconnexion: () => requete<{ message: string }>("/auth/deconnexion", { methode: "POST" }),
 };

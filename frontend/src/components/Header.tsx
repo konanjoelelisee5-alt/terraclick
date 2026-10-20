@@ -1,6 +1,7 @@
 import { CONFIG } from "../lib/config";
 import { useApp } from "../state/app";
-import { ChoixVille } from "./ChoixVille";
+import { useEstMobile } from "../lib/useEstMobile";
+import { Avatar } from "./Avatar";
 import { Icon } from "./Icon";
 
 /** Logo TerraClick : le pictogramme (public/icons/logo-96.png) suivi du nom, Terra foncé et Click orange. */
@@ -40,7 +41,7 @@ const LIEN: React.CSSProperties = {
 
 export function Header() {
   const { etat, set, go, exigerCompte, deconnecter, demarrerBesoin } = useApp();
-  const espaceClient = /^(client[A-Z]|compte$)/.test(etat.screen);
+  const estMobile = useEstMobile();
   const connecte = !!etat.auth;
   const initiales = etat.auth
     ? etat.auth.prenom
@@ -61,13 +62,25 @@ export function Header() {
       }}
     >
       <div data-r="container" data-bloc="entete" style={{ minHeight: 72, display: "flex", alignItems: "center", gap: 26 }}>
-        <button
-          onClick={() => go("home")}
-          style={{ ...LIEN, display: "flex", alignItems: "center", gap: 10 }}
-          aria-label="TerraClick, retour à l'accueil"
-        >
-          <Wordmark />
-        </button>
+        {/* Accueil sur téléphone : la photo de profil à la place du logo, un toucher ouvre le profil. */}
+        {estMobile && etat.screen === "home" ? (
+          <button
+            data-r="avatar-entete"
+            onClick={() => (etat.auth ? go("clientDashboard") : go("connexion", { telDraft: "", apresConnexion: "clientDashboard" }))}
+            aria-label={etat.auth ? "Mon profil" : "Se connecter"}
+            style={{ ...LIEN, display: "flex", alignItems: "center", borderRadius: 999 }}
+          >
+            <Avatar compte={etat.auth} taille={44} />
+          </button>
+        ) : (
+          <button
+            onClick={() => go("home")}
+            style={{ ...LIEN, display: "flex", alignItems: "center", gap: 10 }}
+            aria-label="TerraClick, retour à l'accueil"
+          >
+            <Wordmark />
+          </button>
+        )}
 
         <nav
           data-r="nav-links"
@@ -100,32 +113,14 @@ export function Header() {
           </button>
         </nav>
 
-        {/* La ville sert à chercher : elle n'a pas sa place dans l'espace client. */}
-        {!espaceClient && (
-          <ChoixVille
-            data-r="nav-ville"
-            compact
-            style={{
-              display: "none",
-              marginLeft: "auto",
-              alignItems: "center",
-              gap: 6,
-              border: "1px solid var(--color-divider)",
-              borderRadius: "999px",
-              padding: "6px 12px",
-              fontSize: "13px",
-              whiteSpace: "nowrap",
-            }}
-          />
-        )}
-
-        {/* En-tête mobile : notifications à côté de la ville (la navigation d'en-tête est masquée). */}
+        {/* En-tête mobile : notifications à droite (la navigation d'en-tête est masquée). La ville
+            se choisit dans la barre de recherche de l'accueil. */}
         <button
           data-r="nav-notif-mobile"
           onClick={() => exigerCompte(() => set({ notifOpen: !etat.notifOpen }))}
           aria-label="Notifications"
           style={{
-            marginLeft: espaceClient ? "auto" : 0,
+            marginLeft: "auto",
             width: 44,
             height: 44,
             flex: "none",

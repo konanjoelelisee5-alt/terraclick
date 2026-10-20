@@ -7,6 +7,7 @@ import { useApi } from "../../lib/useApi";
 import { useApp } from "../../state/app";
 import { Icon } from "../../components/Icon";
 import { BandeauInstallation } from "../../components/Installer";
+import { ChoixVille } from "../../components/ChoixVille";
 
 /* Accueil sur téléphone. Grille de 8 px, marges de 20 px, 32 px entre les sections, un seul
    accent (l'orange) ; le vert est réservé aux badges « Vérifié » et à l'encart d'aide.
@@ -128,13 +129,31 @@ export function AccueilMobile() {
             e.preventDefault();
             lancerRecherche();
           }}
-          style={{ ...CARTE_BLANCHE, display: "flex", alignItems: "center", gap: 8, padding: "6px 6px 6px 16px", boxShadow: "0 2px 10px rgba(26,22,19,.06)" }}
+          style={{ ...CARTE_BLANCHE, display: "flex", alignItems: "center", gap: 8, padding: 6, boxShadow: "0 2px 10px rgba(26,22,19,.06)" }}
         >
-          <Icon name="search" size={20} color={GRIS} />
+          {/* La ville, à gauche dans la barre : un toucher ouvre la liste des villes. */}
+          <ChoixVille
+            data-r="recherche-ville"
+            compact
+            style={{
+              flex: "none",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              minHeight: 44,
+              padding: "0 10px",
+              borderRadius: 12,
+              background: "var(--color-accent-100)",
+              color: "var(--color-accent-700)",
+              fontSize: "13.5px",
+              fontWeight: 600,
+              whiteSpace: "nowrap",
+            }}
+          />
           <input
             value={etat.query}
             onChange={(e) => set({ query: e.target.value })}
-            placeholder="Quel est votre problème ?"
+            placeholder="Votre problème ?"
             aria-label="Quel est votre problème ?"
             enterKeyHint="search"
             style={{ flex: 1, minWidth: 0, minHeight: 44, border: 0, background: "none", outline: "none", font: "inherit", fontSize: "16px", color: "inherit" }}

@@ -415,7 +415,11 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
        return !!u && !!g && Math.abs(u.getBoundingClientRect().top - g.getBoundingClientRect().top) < 2;
      }));
   const onglets = await p.locator('[data-r="tabbar"] button').allTextContents();
-  ok('barre du bas : Accueil, Favoris, Réservations, Messages, Profil', onglets.join('|') === 'Accueil|Favoris|Réservations|Messages|Profil');
+  ok('barre du bas : Accueil, Favoris, Messages, Profil', onglets.join('|') === 'Accueil|Favoris|Messages|Profil');
+  ok('en-tête de l’accueil : avatar de profil à la place du logo',
+     (await p.locator('[data-r="avatar-entete"]').isVisible()) && (await p.locator('header').getByText('TerraClick').count()) === 0);
+  ok('ville dans la barre de recherche, plus dans l’en-tête',
+     (await p.locator('[data-r="recherche-ville"] select option').count()) === 4 && (await p.locator('header select').count()) === 0);
   ok('accueil mobile : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
   await ctx.close();
 }
@@ -447,6 +451,17 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
   await p.locator('[data-r="retour-compte"]').click();
   ok('le retour ramène au Profil', await apparait(profil));
   ok('profil mobile : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+  // Photo de profil : ajoutée depuis le profil, gardée en base, visible dans l'en-tête, puis retirée.
+  await p.evaluate(() => window.scrollTo(0, 0));
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP4z8DwHwyBNBMDGAMA7fwH+ZfS+DQAAAAASUVORK5CYII=', 'base64');
+  await profil.locator('[data-r="carte-identite"] input[type="file"]').setInputFiles({ name: 'moi.png', mimeType: 'image/png', buffer: png });
+  ok('photo de profil ajoutée', await apparait(profil.locator('[data-r="carte-identite"] img')));
+  await p.reload({ waitUntil: 'domcontentloaded' });
+  await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Accueil/ }).click();
+  ok('photo gardée en base : visible dans l’en-tête après rechargement', await apparait(p.locator('[data-r="avatar-entete"] img')));
+  await p.locator('[data-r="avatar-entete"]').click();
+  await p.getByRole('button', { name: 'Retirer la photo' }).click();
+  ok('photo retirée : les initiales reviennent', await apparait(p.locator('[data-r="carte-identite"]').getByText('AK')));
   await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Favoris/ }).click();
   ok('onglet Favoris : état vide soigné', await apparait(p.getByRole('heading', { name: "Aucun favori pour l'instant" })));
   await ctx.close();

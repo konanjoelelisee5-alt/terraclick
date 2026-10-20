@@ -72,6 +72,35 @@ class AuthController extends Controller
         return UtilisateurResource::make($user->load(['ville', 'quartier']));
     }
 
+    /**
+     * PUT /api/moi/photo — photo de profil, réduite sur l'appareil (JPEG, PNG ou WebP en data URL,
+     * 300 Ko au plus). Gardée en base pour survivre aux redéploiements et suivre le compte partout.
+     */
+    public function modifierPhoto(Request $request): UtilisateurResource
+    {
+        $request->validate([
+            'photo' => ['required', 'string', 'max:400000', 'regex:#^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$#'],
+        ], [
+            'photo.required' => 'Choisissez une photo.',
+            'photo.max' => 'Cette photo est trop lourde.',
+            'photo.regex' => 'Seules les photos JPEG, PNG ou WebP sont acceptées.',
+        ]);
+
+        $user = $request->user();
+        $user->update(['photo' => $request->input('photo')]);
+
+        return UtilisateurResource::make($user->load(['ville', 'quartier']));
+    }
+
+    /** DELETE /api/moi/photo — retire la photo ; les initiales reviennent. */
+    public function supprimerPhoto(Request $request): UtilisateurResource
+    {
+        $user = $request->user();
+        $user->update(['photo' => null]);
+
+        return UtilisateurResource::make($user->load(['ville', 'quartier']));
+    }
+
     /** POST /api/auth/deconnexion — ferme seulement la session de cet appareil. */
     public function deconnexion(Request $request): JsonResponse
     {

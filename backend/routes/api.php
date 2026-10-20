@@ -22,6 +22,8 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('moi', [AuthController::class, 'moi']);
     Route::patch('moi', [AuthController::class, 'modifierProfil']);
+    Route::put('moi/photo', [AuthController::class, 'modifierPhoto']);
+    Route::delete('moi/photo', [AuthController::class, 'supprimerPhoto']);
     Route::post('prestataires/{prestataire}/avis', [AvisController::class, 'store']);
     Route::post('demandes', [DemandeController::class, 'store']);
     Route::get('demandes/{demande}', [DemandeController::class, 'show'])->whereNumber('demande');

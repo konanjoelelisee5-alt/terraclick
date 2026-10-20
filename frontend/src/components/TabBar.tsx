@@ -4,7 +4,7 @@ import { useApp } from "../state/app";
 import { Icon } from "./Icon";
 
 /* Sous 1080 px la navigation d'en-tête disparaît : cette barre fixe la remplace.
-   Accueil · Favoris · Réservations · Messages · Profil (Carte et Projets s'ajoutent si CONFIG
+   Accueil · Favoris · Messages · Profil (les demandes sont dans Profil ; Carte et Projets s'ajoutent si CONFIG
    les rebranche), cible tactile pleine hauteur. */
 export function TabBar() {
   const { etat, go, exigerCompte, ouvrirChat } = useApp();
@@ -23,13 +23,6 @@ export function TabBar() {
       icon: "heart",
       actif: etat.screen === "favoris",
       go: () => go("favoris"),
-    },
-    {
-      // Les demandes d'intervention du client et leur suivi.
-      nom: "Réservations",
-      icon: "calendar-check",
-      actif: /^(clientDemandes|clientSuivi|demandeEnvoyee)$/.test(etat.screen),
-      go: () => exigerCompte(() => go("clientDemandes")),
     },
     ...(CONFIG.modesAccueil
       ? [
@@ -64,7 +57,7 @@ export function TabBar() {
     {
       nom: "Profil",
       icon: "user",
-      actif: /^(compte|connexion|inscription|client[A-Z])/.test(etat.screen) && !/^client(Demandes|Suivi)$/.test(etat.screen),
+      actif: /^(compte|connexion|inscription|client[A-Z]|demandeEnvoyee)/.test(etat.screen),
       // Comme « Se connecter » sur ordinateur : la page de connexion, pas la feuille basse.
       go: () => (etat.auth ? go("clientDashboard") : go("connexion", { telDraft: "", apresConnexion: "clientDashboard" })),
     },
