@@ -405,8 +405,9 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
   const { ctx, p } = await neuve(390, 844);
   await p.waitForTimeout(500);
   const accueil = p.locator('[data-r="accueil-mobile"]');
-  ok('accueil mobile : accroche et pas de second logo',
-     (await accueil.getByRole('heading', { name: 'Trouvez le bon technicien' }).isVisible()) &&
+  ok('accueil mobile : en-tête orange avec salutation et accroche, sans logo',
+     (await accueil.getByRole('heading', { name: /Salut/ }).isVisible()) &&
+       (await accueil.getByText("Trouvez l'artisan qu'il vous faut !").isVisible()) &&
        (await accueil.locator('[data-r="hero-marque"]').count()) === 0);
   ok('accueil mobile : pas de menu des catégories dans la recherche', (await p.locator('[data-r="search-depts"]').count()) === 0);
   ok('accueil mobile : « Urgence » et « Programmer » côte à côte',
@@ -416,10 +417,16 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
      }));
   const onglets = await p.locator('[data-r="tabbar"] button').allTextContents();
   ok('barre du bas : Accueil, Favoris, Messages, Profil', onglets.join('|') === 'Accueil|Favoris|Messages|Profil');
-  ok('en-tête de l’accueil : avatar de profil à la place du logo',
-     (await p.locator('[data-r="avatar-entete"]').isVisible()) && (await p.locator('header').getByText('TerraClick').count()) === 0);
-  ok('ville dans la barre de recherche, plus dans l’en-tête',
-     (await p.locator('[data-r="recherche-ville"] select option').count()) === 4 && (await p.locator('header select').count()) === 0);
+  ok('en-tête de l’accueil : cloche, recherche « Rechercher un artisan... » et bouton Filtres',
+     (await accueil.getByRole('button', { name: 'Notifications' }).isVisible()) &&
+       (await accueil.getByPlaceholder('Rechercher un artisan...').isVisible()) &&
+       (await p.locator('[data-r="ouvrir-filtres"]').isVisible()) &&
+       (await p.locator('header').getByText('TerraClick').count()) === 0);
+  await p.locator('[data-r="ouvrir-filtres"]').click();
+  ok('Filtres : les 4 villes au choix', (await p.locator('[data-r="filtre-villes"] [role="radio"]').count()) === 4);
+  await p.locator('[data-r="filtre-villes"]').getByRole('radio', { name: 'Abidjan' }).click();
+  await p.getByRole('button', { name: 'Appliquer' }).click();
+  ok('Filtres : la ville choisie est appliquée', (await p.locator('[data-r="ouvrir-filtres"]').getAttribute('aria-label')) === 'Filtres (ville : Abidjan)');
   ok('accueil mobile : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
   await ctx.close();
 }
@@ -458,8 +465,9 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
   ok('photo de profil ajoutée', await apparait(profil.locator('[data-r="carte-identite"] img')));
   await p.reload({ waitUntil: 'domcontentloaded' });
   await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Accueil/ }).click();
-  ok('photo gardée en base : visible dans l’en-tête après rechargement', await apparait(p.locator('[data-r="avatar-entete"] img')));
-  await p.locator('[data-r="avatar-entete"]').click();
+  ok('accueil connecté : « Salut, Aya » dans l’en-tête orange', await apparait(p.locator('[data-r="salutation"]').getByRole('heading', { name: /Salut, Aya/ })));
+  await p.locator('[data-r="salutation"]').click();
+  ok('photo gardée en base : visible dans le profil après rechargement', await apparait(profil.locator('[data-r="carte-identite"] img')));
   await p.getByRole('button', { name: 'Retirer la photo' }).click();
   ok('photo retirée : les initiales reviennent', await apparait(p.locator('[data-r="carte-identite"]').getByText('AK')));
   await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Favoris/ }).click();

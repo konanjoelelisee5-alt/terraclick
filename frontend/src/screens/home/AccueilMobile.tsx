@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
-import { SECTEURS } from "../../data/catalogue";
+import { SECTEURS, VILLES } from "../../data/catalogue";
+import { NOTIFICATIONS_CLIENT } from "../../data/client";
 import { api, type PrestataireApi } from "../../lib/api";
 import { versPrestataire } from "../../lib/annuaire";
 import { CONFIG } from "../../lib/config";
@@ -7,7 +8,8 @@ import { useApi } from "../../lib/useApi";
 import { useApp } from "../../state/app";
 import { Icon } from "../../components/Icon";
 import { BandeauInstallation } from "../../components/Installer";
-import { ChoixVille } from "../../components/ChoixVille";
+import { Dialogue } from "../../components/Dialogue";
+import { useEtatClient } from "../client/store";
 
 /* Accueil sur téléphone. Grille de 8 px, marges de 20 px, 32 px entre les sections, un seul
    accent (l'orange) ; le vert est réservé aux badges « Vérifié » et à l'encart d'aide.
@@ -90,10 +92,16 @@ function Section(props: {
 }
 
 export function AccueilMobile() {
-  const { etat, set, go, ville, demarrerBesoin, rechercher, ouvrirChat, exigerCompte } = useApp();
+  const { etat, set, go, ville, villeIdx, demarrerBesoin, rechercher, ouvrirChat, exigerCompte } = useApp();
   const riche = CONFIG.accueilMobile === "riche";
   const { donnees: vedettes } = useApi((signal) => api.vedettes(signal), []);
   const [carteVisible, setCarteVisible] = useState(0);
+  const [filtres, setFiltres] = useState(false);
+  const [villeFiltre, setVilleFiltre] = useState(villeIdx);
+  const { notificationsLues } = useEtatClient();
+  const prenom = etat.auth?.prenom.split(" ")[0] ?? "";
+  // Le badge de la cloche ne s'affiche qu'une fois connecté.
+  const nonLues = etat.auth && !notificationsLues ? NOTIFICATIONS_CLIENT.filter((n) => n.nouveau).length : 0;
 
   const lancerRecherche = async () => {
     const texte = etat.query.trim();
@@ -113,14 +121,53 @@ export function AccueilMobile() {
   };
 
   return (
-    <main data-r="accueil-mobile" style={{ display: "flex", flexDirection: "column", gap: 32, paddingTop: 20, paddingBottom: 32 }}>
-      {/* ---- Accroche, recherche, deux actions ---- */}
-      <section style={{ padding: `0 ${GOUTTIERE}px`, display: "flex", flexDirection: "column", gap: 16 }}>
-        {/* Proposition d'installer l'application (icône sur l'écran d'accueil). */}
-        <BandeauInstallation />
-        <div>
-          <h1 style={{ fontSize: "26px", lineHeight: 1.2, margin: 0 }}>Trouvez le bon technicien</h1>
-          <p style={{ margin: "4px 0 0", fontSize: "15px", color: GRIS }}>Des professionnels vérifiés à {ville}.</p>
+    <main data-r="accueil-mobile" style={{ display: "flex", flexDirection: "column", gap: 32, paddingBottom: 32 }}>
+      {/* ---- En-tête orange : salutation, cloche, recherche et filtres ---- */}
+      <header
+        data-r="entete-accueil"
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          padding: `calc(20px + env(safe-area-inset-top)) ${GOUTTIERE}px 28px`,
+          borderRadius: "0 0 32px 32px",
+          background: "linear-gradient(135deg, #E35A1B 0%, #F08A4B 100%)",
+          color: "#fff",
+        }}
+      >
+        {/* Vagues décoratives très discrètes. */}
+        <svg aria-hidden="true" viewBox="0 0 390 220" preserveAspectRatio="none" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.18 }}>
+          <path d="M-10 40 C 90 10, 170 70, 270 34 S 400 20, 410 30" fill="none" stroke="#fff" strokeWidth="1.5" />
+          <path d="M-10 190 C 80 160, 190 215, 290 180 S 400 170, 410 176" fill="none" stroke="#fff" strokeWidth="1.5" />
+        </svg>
+
+        <div style={{ position: "relative", display: "flex", alignItems: "flex-start", gap: 12 }}>
+          <button
+            data-r="salutation"
+            onClick={() => (etat.auth ? go("clientDashboard") : go("connexion", { telDraft: "", apresConnexion: "clientDashboard" }))}
+            style={{ flex: 1, minWidth: 0, padding: 0, border: 0, background: "none", color: "inherit", font: "inherit", textAlign: "left", cursor: "pointer" }}
+          >
+            <h1 style={{ margin: 0, fontSize: "28px", lineHeight: 1.2, color: "#fff" }}>
+              Salut{prenom ? `, ${prenom}` : ""} <span aria-hidden="true">👋</span>
+            </h1>
+            <span style={{ display: "block", marginTop: 4, fontSize: "16px", fontStyle: "italic", fontWeight: 600 }}>
+              Trouvez l'artisan qu'il vous faut !
+            </span>
+          </button>
+          <button
+            onClick={() => exigerCompte(() => go("clientNotifications"))}
+            aria-label={nonLues ? `Notifications, ${nonLues} non lue${nonLues > 1 ? "s" : ""}` : "Notifications"}
+            style={{ position: "relative", width: 52, height: 52, flex: "none", display: "grid", placeItems: "center", border: 0, borderRadius: 18, background: "rgba(255,255,255,.22)", color: "#fff", cursor: "pointer" }}
+          >
+            <Icon name="bell" size={24} strokeWidth={2} />
+            {nonLues > 0 && (
+              <span
+                aria-hidden="true"
+                style={{ position: "absolute", top: 6, right: 6, minWidth: 20, height: 20, padding: "0 5px", borderRadius: 999, background: "var(--state-danger)", color: "#fff", fontSize: "12px", fontWeight: 700, display: "grid", placeItems: "center" }}
+              >
+                {nonLues}
+              </span>
+            )}
+          </button>
         </div>
 
         <form
@@ -129,40 +176,92 @@ export function AccueilMobile() {
             e.preventDefault();
             lancerRecherche();
           }}
-          // Barre en pilule : bords entièrement arrondis, boutons ronds aux deux extrémités.
-          style={{ ...CARTE_BLANCHE, display: "flex", alignItems: "center", gap: 6, padding: 6, borderRadius: 999, boxShadow: "0 2px 10px rgba(26,22,19,.06)" }}
+          style={{ position: "relative", display: "flex", gap: 12, marginTop: 20 }}
         >
-          {/* La ville : l'icône de localisation seule ; un toucher ouvre la liste des villes. */}
-          <ChoixVille
-            data-r="recherche-ville"
-            iconeSeule
-            style={{
-              flex: "none",
-              width: 44,
-              height: 44,
-              display: "grid",
-              placeItems: "center",
-              borderRadius: 999,
-              background: "var(--color-accent-100)",
-            }}
-          />
-          <input
-            value={etat.query}
-            onChange={(e) => set({ query: e.target.value })}
-            placeholder="Quel est votre problème ?"
-            aria-label="Quel est votre problème ?"
-            enterKeyHint="search"
-            style={{ flex: 1, minWidth: 0, minHeight: 44, padding: "0 4px", border: 0, background: "none", outline: "none", font: "inherit", fontSize: "16px", color: "inherit" }}
-          />
+          <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 6, minHeight: 60, padding: "0 16px 0 6px", borderRadius: 20, background: "#fff", boxShadow: "0 6px 18px rgba(120,40,0,.18)" }}>
+            <button
+              type="submit"
+              data-r="search-go"
+              aria-label="Rechercher"
+              style={{ width: 44, height: 44, flex: "none", display: "grid", placeItems: "center", border: 0, background: "none", color: "var(--color-text)", cursor: "pointer" }}
+            >
+              <Icon name="search" size={24} strokeWidth={2} />
+            </button>
+            <input
+              value={etat.query}
+              onChange={(e) => set({ query: e.target.value })}
+              placeholder="Rechercher un artisan..."
+              aria-label="Quel est votre problème ?"
+              enterKeyHint="search"
+              style={{ flex: 1, minWidth: 0, minHeight: 44, border: 0, background: "none", outline: "none", font: "inherit", fontSize: "16px", color: "var(--color-text)" }}
+            />
+          </div>
           <button
-            type="submit"
-            data-r="search-go"
-            aria-label="Rechercher"
-            style={{ width: 44, height: 44, flex: "none", display: "grid", placeItems: "center", border: 0, borderRadius: 999, background: "var(--color-accent)", color: "#fff", cursor: "pointer" }}
+            type="button"
+            data-r="ouvrir-filtres"
+            onClick={() => {
+              setVilleFiltre(villeIdx);
+              setFiltres(true);
+            }}
+            aria-label={`Filtres (ville : ${ville})`}
+            style={{ width: 60, height: 60, flex: "none", display: "grid", placeItems: "center", border: 0, borderRadius: 20, background: "#fff", color: "var(--color-text)", boxShadow: "0 6px 18px rgba(120,40,0,.18)", cursor: "pointer" }}
           >
-            <Icon name="search" size={20} strokeWidth={2.5} />
+            <Icon name="sliders-horizontal" size={24} strokeWidth={2} />
           </button>
         </form>
+      </header>
+
+      {/* Filtres : la ville où l'on cherche un technicien. */}
+      {filtres && (
+        <Dialogue
+          titre="Filtres"
+          description="Choisissez la ville où vous cherchez un technicien."
+          icone="map-pin"
+          fond="var(--color-accent-100)"
+          encre="var(--color-accent-700)"
+          confirmer="Appliquer"
+          onConfirmer={() => {
+            set({ ville: villeFiltre, quartier: 0 });
+            setFiltres(false);
+          }}
+          onFermer={() => setFiltres(false)}
+        >
+          <div role="radiogroup" aria-label="Ville" data-r="filtre-villes" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {VILLES.map((nom, i) => (
+              <button
+                key={nom}
+                type="button"
+                role="radio"
+                aria-checked={villeFiltre === i}
+                onClick={() => setVilleFiltre(i)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  minHeight: 48,
+                  padding: "0 14px",
+                  borderRadius: 14,
+                  border: `1.5px solid ${villeFiltre === i ? "var(--color-accent)" : "var(--color-divider)"}`,
+                  background: villeFiltre === i ? "var(--color-accent-100)" : "var(--color-neutral-100)",
+                  font: "inherit",
+                  fontSize: "15.5px",
+                  fontWeight: 600,
+                  color: "inherit",
+                  cursor: "pointer",
+                }}
+              >
+                <Icon name="map-pin" size={18} color="var(--color-accent)" />
+                {nom}
+              </button>
+            ))}
+          </div>
+        </Dialogue>
+      )}
+
+      {/* ---- Installation et deux actions ---- */}
+      <section style={{ padding: `0 ${GOUTTIERE}px`, display: "flex", flexDirection: "column", gap: 16, marginTop: -8 }}>
+        {/* Proposition d'installer l'application (icône sur l'écran d'accueil). */}
+        <BandeauInstallation />
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <button
