@@ -23,6 +23,15 @@ class OtpService
     public function emettre(string $telephone, string $canal): OtpCode
     {
         $test = $this->estNumeroTest($telephone);
+
+        // En ligne sans fournisseur réel (phase de test) : un numéro non autorisé l'apprend
+        // clairement, au lieu d'un « service indisponible » trompeur.
+        if (! $test && app()->isProduction() && config("otp.canaux.{$canal}") === 'log') {
+            throw ValidationException::withMessages([
+                'telephone' => 'TerraClick est en phase de test : seuls les numéros autorisés peuvent se connecter pour le moment.',
+            ]);
+        }
+
         $code = $test ? (string) config('otp.code_test') : $this->genererCode();
 
         $otp = DB::transaction(function () use ($telephone, $canal, $code) {

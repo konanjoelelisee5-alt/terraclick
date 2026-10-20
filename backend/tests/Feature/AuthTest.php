@@ -38,6 +38,17 @@ class AuthTest extends TestCase
             ->assertJsonStructure(['token']);
     }
 
+    public function test_en_ligne_sans_fournisseur_un_numero_non_autorise_est_prevenu(): void
+    {
+        $this->app['env'] = 'production';
+        config(['otp.canaux.sms' => 'log', 'otp.numeros_test' => ['0700000000'], 'otp.code_test' => '246810']);
+
+        $this->postJson('/api/auth/code', ['telephone' => self::NUMERO, 'canal' => 'sms'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['telephone' => 'TerraClick est en phase de test : seuls les numéros autorisés peuvent se connecter pour le moment.']);
+        $this->assertCount(0, $this->boite->envois);
+    }
+
     public function test_un_autre_numero_ne_profite_pas_du_mode_test(): void
     {
         config(['otp.numeros_test' => ['0700000000'], 'otp.code_test' => '246810']);
