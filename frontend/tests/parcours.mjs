@@ -585,7 +585,20 @@ const numeroInscrit = numeroNeuf();
   await p.getByPlaceholder('Rechercher sur TerraClick').fill('tuyau cassé');
   await p.locator('[data-r="search-go"]').click();
   await p.locator('[data-r="resultat"]').filter({ hasText: 'Koffi Tanoh' }).locator('[data-r="titre-resultat"]').click();
-  await p.getByRole('button', { name: 'Contacter directement' }).click();
+  // Fiche sur téléphone (CONFIG.ficheMobile) : profil centré, quitter en haut à droite, actions en icônes.
+  const fiche = p.locator('[data-r="fiche-mobile"]');
+  ok('fiche mobile : photo ronde, nom, quitter en haut à droite, sans en-tête ni « Retour »',
+     (await apparait(fiche.locator('[data-r="photo-technicien"]'))) &&
+       (await fiche.getByRole('heading', { level: 1, name: 'Koffi Tanoh' }).isVisible()) &&
+       (await fiche.getByRole('button', { name: 'Quitter la fiche' }).evaluate((e) => e.getBoundingClientRect().right > window.innerWidth - 40)) &&
+       (await p.locator('header').count()) === 0 && (await p.getByText('← Retour').count()) === 0);
+  ok('fiche mobile : les deux icônes en bas du bloc des tarifs, puis les avis en bas',
+     (await fiche.locator('[data-r="bloc-presentation"]').getByRole('button', { name: 'Contacter directement' }).isVisible()) &&
+       (await fiche.locator('[data-r="bloc-presentation"]').getByRole('button', { name: 'Demander ce technicien' }).isVisible()) &&
+       (await fiche.locator('section').last().getAttribute('data-r')) === 'avis-clients');
+  await fiche.getByRole('button', { name: 'Contacter directement' }).click();
+  ok('fiche mobile : « Contacter » propose appel, WhatsApp ou message', await apparait(p.getByRole('dialog', { name: 'Contacter directement' }).getByText('Message dans TerraClick')));
+  await p.getByRole('dialog', { name: 'Contacter directement' }).getByRole('button', { name: 'Message dans TerraClick' }).click();
   // Après l'échange avec le technicien, l'application demande si l'accord est conclu.
   const question = p.getByRole('dialog', { name: 'Avez-vous conclu avec Koffi Tanoh ?' });
   ok('contact : « Avez-vous conclu ? » est posée au retour', await apparait(question, 20000));

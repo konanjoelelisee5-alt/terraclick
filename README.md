@@ -169,6 +169,14 @@ commentaires » sont affichés, marqués « Bientôt ». Chaque recherche est en
 (`POST /api/recherches`, table `recherches`) ; « Supprimer les données de navigation » la
 masque pour l'utilisateur (`efface_le`) mais l'administration la garde.
 
+**Fiche du technicien sur téléphone** (`ficheMobile: "profil"`, `screens/FicheMobile.tsx`) : profil
+centré (photo ronde, nom, métier, zone, note), bouton ✕ pour quitter en haut à droite, bloc
+présentation et tarifs portant en bas à droite les deux actions en icônes — Contacter (appel,
+WhatsApp ou message) et Demander ce technicien —, puis prestations, réalisations,
+disponibilités, garanties et documents, et les avis clients en bas. `"page"` rebranche la page
+d'avant (retour en haut à gauche, barre d'actions fixe en bas). Le **profil client** est épuré
+(`profilComplet: false`) : carte d'identité, tuiles, « Paramètres du compte » et déconnexion.
+
 **Mes onglets : relations abouties** (table `accords`, `GET/POST /api/accords`) : un onglet n'est
 pas une recherche, c'est un accord conclu avec un technicien. Quand le client le contacte
 (appel, WhatsApp, message depuis sa fiche ou les résultats), l'application note le contact

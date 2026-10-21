@@ -75,4 +75,11 @@ export const CONFIG = {
    * masquées (voir le README). `true` les rebranche.
    */
   profilComplet: false as boolean,
+  /**
+   * Fiche du technicien sur téléphone : « profil » (screens/FicheMobile.tsx) la présente comme un
+   * profil centré (photo ronde, bouton pour quitter en haut à droite, actions Contacter et
+   * Demander en icônes dans le bloc des tarifs) ; « page » rebranche la page d'avant avec sa
+   * barre d'actions fixe en bas.
+   */
+  ficheMobile: "profil" as "profil" | "page",
 } as const;

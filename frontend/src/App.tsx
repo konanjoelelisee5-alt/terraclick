@@ -134,7 +134,7 @@ function Coque() {
   // grand titre : ni logo ni choix de ville.
   const estMobile = useEstMobile();
   const sansEntete =
-    estMobile && ["home", "clientDashboard", "favoris", "connexion", "inscription"].includes(etat.screen);
+    estMobile && ["home", "clientDashboard", "favoris", "connexion", "inscription", ...(CONFIG.ficheMobile === "profil" ? ["fiche"] : [])].includes(etat.screen);
 
   // Un clic hors du méga-menu le referme. L'écoute porte sur `mousedown` et non
   // sur `click` : le clic qui ouvre le panneau depuis l'en-tête continue de

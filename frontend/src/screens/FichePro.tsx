@@ -3,6 +3,8 @@ import { SECTEURS } from "../data/catalogue";
 import { api, ErreurApi, type FicheApi } from "../lib/api";
 import { CONFIG } from "../lib/config";
 import { lienWhatsApp, noterContact } from "../lib/contacts";
+import { useEstMobile } from "../lib/useEstMobile";
+import { FicheMobile } from "./FicheMobile";
 import { slugifier, versPrestataire } from "../lib/annuaire";
 import { useApi } from "../lib/useApi";
 import { useApp } from "../state/app";
@@ -56,6 +58,7 @@ export function FichePro() {
     });
   };
   const [essai, setEssai] = useState(0);
+  const estMobile = useEstMobile();
 
   // Rechargée à la connexion : le numéro du prestataire n'est donné qu'aux comptes connectés.
   const { donnees: p, erreur } = useApi(
@@ -100,6 +103,9 @@ export function FichePro() {
       </main>
     );
   }
+
+  // Sur téléphone : profil centré, actions en icônes, bouton pour quitter (CONFIG.ficheMobile).
+  if (estMobile && CONFIG.ficheMobile === "profil") return <FicheMobile p={p} onDemander={() => demanderCeTechnicien(p)} />;
 
   const zone = p.zone_intervention ?? [p.quartier?.nom, p.quartier?.ville].filter(Boolean).join(", ");
   // Sans grille tarifaire détaillée, la fourchette de la carte de recherche en tient lieu.
