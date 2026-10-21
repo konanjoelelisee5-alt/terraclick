@@ -54,6 +54,13 @@ indicatifs par pièce sont dans `config/pressing.php` (**à valider avec les pre
 l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
 (`Demande::composerPack`), quel que soit ce que l'application envoie.
 
+**Correction des fautes de frappe**, comme Chrome ou Google (`App\Services\CorrecteurRecherche`) :
+
+- Quand la recherche n'est comprise ni comme un service ni comme une prestation, chaque mot inconnu d'au moins 4 lettres est rapproché du mot le plus proche du vocabulaire de TerraClick. Ce vocabulaire comprend les métiers, les services, les problèmes types, les prestations, les articles du pressing, les catégories, les quartiers et les noms des prestataires.
+- Fautes admises : 1 jusqu'à 6 lettres, 2 jusqu'à 10, 3 au-delà. Deux lettres inversées comptent pour une seule faute.
+- Les mots de tous les jours ne sont jamais corrigés.
+- Les résultats portent sur le mot voulu (`analyse.correction` dans `GET /api/prestataires`). L'application affiche « Résultats pour **plombier** » avec « Rechercher plutôt *plonbier* » (paramètre `exact=1`).
+
 **Fin du parcours à l'envoi** (`CONFIG.envoiDemande`) :
 
 - `"envol"` (valeur actuelle) : après « Confirmer ma demande » ou « Valider la commande », le parcours s'arrête. La fenêtre « Demande envoyée » (ou « Commande envoyée ») s'affiche avec sa référence. Elle se plie ensuite en avion en papier, qui vole jusqu'au bouton central « Mes onglets ». Le bouton rebondit, avec une onde et un « +1 » (`components/EnvolDemande.tsx`).

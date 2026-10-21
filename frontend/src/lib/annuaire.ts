@@ -4,6 +4,8 @@ import type { PrestataireApi, PrestationApi } from "./api";
 /** Une recherche : ce qui est envoyé à l'API, à côté du titre affiché. */
 export type Filtre = {
   q?: string;
+  /** Recherche telle que tapée, sans correction d'orthographe (« Rechercher plutôt… »). */
+  exact?: boolean;
   categorie?: string;
   prestation?: string;
   departement?: string;

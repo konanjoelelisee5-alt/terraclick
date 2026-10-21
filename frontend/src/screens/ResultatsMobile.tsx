@@ -6,6 +6,7 @@ import { noterContact, retenirContexteRecherche } from "../lib/contacts";
 import { useApi } from "../lib/useApi";
 import { useApp } from "../state/app";
 import { Icon } from "../components/Icon";
+import { CorrectionRecherche } from "../components/CorrectionRecherche";
 import { PastilleChoix, TRIS, type Tri } from "./Results";
 
 /* Résultats sur téléphone, mis en page comme une page de résultats de moteur de recherche
@@ -47,10 +48,12 @@ export function ResultatsMobile() {
   const total = recherche.donnees?.meta.total ?? 0;
   const demande = etat.filtre.q;
   const compris = demande ? (recherche.donnees?.analyse?.secteurs ?? []) : [];
-  const titre = compris.length ? compris.join(" ou ") : etat.titre;
   // Un secteur est en jeu (plombier, tuyau cassé, onglet Plomberie) : les onglets deviennent
   // ses prestations, pour découvrir tout ce que ses techniciens font. Sinon : les services.
   const analyse = recherche.donnees?.analyse;
+  // Faute de frappe corrigée par l'API : le titre et le conseil reprennent le mot voulu.
+  const correction = demande ? (analyse?.correction ?? null) : null;
+  const titre = compris.length ? compris.join(" ou ") : (correction?.corrigee ?? etat.titre);
   const secteurEnJeu = analyse?.secteur ?? null;
   const prestation = analyse?.prestation ?? null;
   const ongletsPrestations = secteurEnJeu && (analyse?.prestations?.length ?? 0) > 0;
@@ -185,6 +188,8 @@ export function ResultatsMobile() {
         })}
       </nav>
 
+      {correction && <CorrectionRecherche correction={correction} style={{ padding: `14px ${GOUTTIERE}px 0` }} />}
+
       {/* ---- Titre, nombre de résultats, Quartier et Trier ---- */}
       <div data-r="results-head" style={{ display: "flex", alignItems: "center", gap: 10, padding: `14px ${GOUTTIERE}px 4px` }}>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -230,7 +235,7 @@ export function ResultatsMobile() {
             confirme sur place.
           </span>
         )}
-        {compris.length > 0 && demande !== titre ? (
+        {compris.length > 0 && demande !== titre && !correction ? (
           <>
             D'après votre demande « {demande} ». Vous hésitez ?{" "}
           </>

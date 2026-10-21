@@ -245,6 +245,8 @@ export type Resultats = Page<PrestataireApi & { prestation?: PrestationApi | nul
     secteur?: { cle: string; nom: string; categorie: string } | null;
     /** Prestation reconnue dans la recherche (« tuyau cassé ») ou choisie en onglet. */
     prestation?: PrestationApi | null;
+    /** Faute de frappe corrigée : les résultats portent sur `corrigee`. */
+    correction?: { originale: string; corrigee: string } | null;
     /** Prestations du secteur en jeu, proposées en onglets. */
     prestations?: PrestationApi[];
   };
@@ -252,6 +254,7 @@ export type Resultats = Page<PrestataireApi & { prestation?: PrestationApi | nul
 
 export type CriteresRecherche = {
   q?: string;
+  exact?: boolean;
   categorie?: string;
   /** Slug d'une prestation : techniciens qui la proposent, avec leur prix pour elle. */
   prestation?: string;
@@ -356,7 +359,8 @@ async function requete<T>(chemin: string, { methode = "GET", corps, signal }: Op
 function parametres(criteres: CriteresRecherche): string {
   const p = new URLSearchParams();
   for (const [cle, valeur] of Object.entries(criteres)) {
-    if (valeur !== undefined && valeur !== null && valeur !== "") p.set(cle, String(valeur));
+    // Laravel lit 1 / 0 comme booléens, pas « true » / « false ».
+    if (valeur !== undefined && valeur !== null && valeur !== "") p.set(cle, typeof valeur === "boolean" ? (valeur ? "1" : "0") : String(valeur));
   }
   const texte = p.toString();
   return texte ? `?${texte}` : "";

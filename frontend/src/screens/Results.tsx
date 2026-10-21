@@ -6,6 +6,7 @@ import { CONFIG } from "../lib/config";
 import { slugifier, versPrestataire } from "../lib/annuaire";
 import { useApi } from "../lib/useApi";
 import { Icon } from "../components/Icon";
+import { CorrectionRecherche } from "../components/CorrectionRecherche";
 import { MapCanvas } from "../components/MapCanvas";
 import { CARTE, pill, tab } from "../components/ui";
 import { resumeBesoin } from "./besoin/commun";
@@ -229,7 +230,9 @@ function ResultatsCartes() {
   // de titre ; la phrase du client est rappelée dessous.
   const demande = etat.filtre.q;
   const compris = demande ? (recherche.donnees?.analyse?.secteurs ?? []) : [];
-  const titre = recherche.donnees?.analyse?.prestation?.nom ?? (compris.length ? compris.join(" ou ") : etat.titre);
+  // Faute de frappe corrigée par l'API : le titre reprend le mot voulu, la correction est annoncée.
+  const correction = demande ? (recherche.donnees?.analyse?.correction ?? null) : null;
+  const titre = recherche.donnees?.analyse?.prestation?.nom ?? (compris.length ? compris.join(" ou ") : (correction?.corrigee ?? etat.titre));
   // La recherche accompagne le technicien qui sera contacté (onglets).
   const prestationReconnue = recherche.donnees?.analyse?.prestation ?? null;
   useEffect(() => retenirContexteRecherche(demande ?? etat.titre ?? null, prestationReconnue), [demande, etat.titre, prestationReconnue]);
@@ -334,7 +337,8 @@ function ResultatsCartes() {
           <h1 data-r="results-titre" style={{ fontSize: "clamp(22px,4vw,32px)", fontWeight: 800, margin: 0, lineHeight: 1.15 }}>
             {titre}
           </h1>
-          {compris.length > 0 && demande !== titre && (
+          {correction && <CorrectionRecherche correction={correction} style={{ margin: "4px 0" }} />}
+          {!correction && compris.length > 0 && demande !== titre && (
             <p data-r="demande-comprise" style={LIGNE_DISCRETE}>
               D'après votre demande : « {demande} »
             </p>

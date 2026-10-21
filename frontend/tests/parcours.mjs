@@ -531,6 +531,21 @@ const numeroInscrit = numeroNeuf();
   await ctx.close();
 }
 
+// G decies · Faute de frappe : corrigée comme dans Chrome, résultats du mot voulu, « Rechercher plutôt »
+{
+  const { ctx, p } = await neuve(390, 844);
+  await p.getByPlaceholder('Rechercher sur TerraClick').fill('plonbier');
+  await p.locator('[data-r="search-go"]').click();
+  const correction = p.locator('[data-r="correction-recherche"]');
+  ok('faute : « Résultats pour plombier », annoncé en même temps que les résultats',
+     (await apparait(correction)) && /Résultats pour plombier/.test(await correction.textContent()) &&
+       (await apparait(p.locator('[data-r="resultat"]').filter({ hasText: 'Koffi Tanoh' }).first())));
+  await p.locator('[data-r="rechercher-plutot"]').click();
+  ok('faute : « Rechercher plutôt plonbier » relance la saisie telle quelle',
+     (await correction.waitFor({ state: 'detached', timeout: 12000 }).then(() => true, () => false)) && (await apparait(p.getByText(/0 résultat/))));
+  await ctx.close();
+}
+
 // G nonies · Messages sur téléphone : l'en-tête est celui de la conversation, sans flèche retour
 {
   const { ctx, p } = await neuve(390, 844);

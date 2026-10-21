@@ -14,6 +14,8 @@ class RechercherPrestatairesRequest extends FormRequest
         return [
             // Un métier ou une phrase décrivant le problème.
             'q' => ['nullable', 'string', 'max:255'],
+            // Recherche telle que tapée, sans correction d'orthographe.
+            'exact' => ['nullable', 'boolean'],
             'categorie' => ['nullable', 'string', 'exists:categories,slug'],
             // Une prestation précise (« reparation-de-tuyau-casse ») : prix de cette prestation.
             'prestation' => ['nullable', 'string', 'exists:prestations,slug'],

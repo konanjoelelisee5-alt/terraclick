@@ -8,6 +8,7 @@ use App\Http\Resources\PrestataireResource;
 use App\Models\Prestataire;
 use App\Models\Prestation;
 use App\Services\AnalyseurBesoin;
+use App\Services\CorrecteurRecherche;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Str;
@@ -25,7 +26,7 @@ class PrestataireController extends Controller
         'demain', 'matin', 'soir', 'hier', 'probleme', 'quelque', 'chose', 'personne', 'aide', 'aider',
     ];
 
-    public function __construct(private AnalyseurBesoin $analyseur) {}
+    public function __construct(private AnalyseurBesoin $analyseur, private CorrecteurRecherche $correcteur) {}
 
     /** GET /api/prestataires — recherche, filtres, « Autour de moi ». */
     public function index(RechercherPrestatairesRequest $request): AnonymousResourceCollection
@@ -34,7 +35,15 @@ class PrestataireController extends Controller
         $secteurs = [];
         $prestation = ($slug = $request->validated('prestation')) ? Prestation::where('slug', $slug)->first() : null;
 
+        $correction = null;
         if ($q = $request->validated('q')) {
+            // Faute de frappe (« plonbier ») : la recherche porte sur le mot voulu, et le client en
+            // est prévenu ; « exact » force la recherche telle que tapée.
+            if (! $request->boolean('exact') && ($corrigee = $this->correctionUtile($q))) {
+                $correction = ['originale' => $q, 'corrigee' => $corrigee];
+                $q = $corrigee;
+            }
+
             // « plombier », « plomberie » ou « ma douche fuit » : le secteur reconnu prime sur le texte.
             $secteurs = $this->analyseur->analyser($q);
             // « tuyau cassé » : la prestation précise, cherchée dans les secteurs reconnus.
@@ -113,8 +122,23 @@ class PrestataireController extends Controller
             'analyse' => [
                 'secteurs' => array_column($secteurs, 'nom'),
                 ...$this->contexte($prestation, $secteurs, $request->validated('categorie')),
+                // « Résultats pour plombier — rechercher plutôt plonbier ».
+                'correction' => $correction,
             ],
         ]);
+    }
+
+    /**
+     * La recherche corrigée, si la recherche tapée n'est comprise ni comme un service ni comme
+     * une prestation et qu'un de ses mots est une faute de frappe d'un mot connu.
+     */
+    private function correctionUtile(string $q): ?string
+    {
+        if ($this->analyseur->analyser($q) !== [] || $this->analyseur->prestationReconnue($q) !== null) {
+            return null;
+        }
+
+        return $this->correcteur->corriger($q);
     }
 
     /**
