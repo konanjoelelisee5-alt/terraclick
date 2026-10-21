@@ -82,4 +82,10 @@ export const CONFIG = {
    * barre d'actions fixe en bas.
    */
   ficheMobile: "profil" as "profil" | "page",
+  /**
+   * Bouton rond au centre de la barre du bas (téléphone), entre Favoris et Messages : il ouvre
+   * « Mes onglets » (relations conclues). La ligne de la barre plonge en arrondi sous lui.
+   * `false` revient à la barre simple.
+   */
+  ongletCentral: true as boolean,
 } as const;

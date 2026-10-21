@@ -568,8 +568,19 @@ const numeroInscrit = numeroNeuf();
   const raccourcis = () => p.locator('[data-r="raccourcis"] button').allTextContents();
   ok('raccourcis : les six secteurs, dont le pressing', (await raccourcis()).length === 6 && (await raccourcis()).includes('Pressing'));
   ok('fil d’actualité : de vraies activités de la plateforme', await apparait(p.locator('[data-r="actualite"]').first()));
-  const onglets = await p.locator('[data-r="tabbar"] button').allTextContents();
+  const onglets = await p.locator('[data-r="tabbar"] button:not([data-r="onglet-central"])').allTextContents();
   ok('barre du bas : Accueil, Favoris, Messages, Profil', onglets.join('|') === 'Accueil|Favoris|Messages|Profil');
+  const centre = p.locator('[data-r="onglet-central"]');
+  ok('barre du bas : bouton rond central entre Favoris et Messages, surélevé',
+     await p.evaluate(() => {
+       const c = document.querySelector('[data-r="onglet-central"]').getBoundingClientRect();
+       const [fav, msg] = [...document.querySelectorAll('[data-r="tabbar"] button')].filter((b) => /^(Favoris|Messages)$/.test(b.textContent.trim())).map((b) => b.getBoundingClientRect());
+       const barre = document.querySelector('[data-r="tabbar"]').getBoundingClientRect();
+       return c.left > fav.right - 4 && c.right < msg.left + 4 && c.top < barre.top;
+     }));
+  await centre.click();
+  ok('bouton central : ouvre « Mes onglets »', await apparait(p.getByRole('heading', { name: 'Mes onglets' })));
+  await p.goBack();
   ok('accueil mobile : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
 
   // Un secteur cherché passe en tête des raccourcis.

@@ -188,6 +188,10 @@ disponibilités, garanties et documents, et les avis clients en bas. `"page"` re
 d'avant (retour en haut à gauche, barre d'actions fixe en bas). Le **profil client** est épuré
 (`profilComplet: false`) : carte d'identité, tuiles, « Paramètres du compte » et déconnexion.
 
+**Bouton central de la barre du bas** (`ongletCentral: true`, `components/TabBar.tsx`) : sur
+téléphone, un bouton rond orange, surélevé entre Favoris et Messages, ouvre « Mes onglets » ;
+la ligne de la barre plonge en arrondi sous lui. `false` revient à la barre simple.
+
 **Mes onglets : relations abouties** (table `accords`, `GET/POST /api/accords`) : un onglet n'est
 pas une recherche, c'est un accord conclu avec un technicien. Quand le client le contacte
 (appel, WhatsApp, message depuis sa fiche ou les résultats), l'application note le contact

@@ -56,7 +56,7 @@ export function ComposerPack() {
   };
 
   return (
-    <main data-r="composer-pack" style={{ minHeight: "100vh", background: "var(--color-surface)", paddingBottom: "calc(170px + env(safe-area-inset-bottom))" }}>
+    <main data-r="composer-pack" style={{ minHeight: "100vh", background: "var(--color-surface)", paddingBottom: "calc(200px + env(safe-area-inset-bottom))" }}>
       {/* ---- En-tête : le pressing choisi, et quitter ---- */}
       <div style={{ padding: "calc(14px + env(safe-area-inset-top)) 16px 0", display: "flex", alignItems: "flex-start", gap: 12 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -135,7 +135,8 @@ export function ComposerPack() {
           position: "fixed",
           left: 0,
           right: 0,
-          bottom: "calc(68px + env(safe-area-inset-bottom))",
+          // Au-dessus de la barre du bas et de son bouton central surélevé.
+          bottom: "calc(100px + env(safe-area-inset-bottom))",
           zIndex: 30,
           margin: "0 12px",
           padding: "12px 12px 12px 18px",
