@@ -88,7 +88,14 @@ class BesoinController extends Controller
     public function articlesPressing(): JsonResponse
     {
         return response()->json(['data' => collect(config('pressing.articles'))
-            ->map(fn (array $a, string $cle) => ['cle' => $cle, 'nom' => $a['nom'], 'prix' => $a['prix'], 'prix_affichage' => Montant::format($a['prix'])])
+            ->map(fn (array $a, string $cle) => [
+                'cle' => $cle,
+                'nom' => $a['nom'],
+                'prix' => $a['prix'],
+                'prix_affichage' => Montant::format($a['prix']),
+                'categorie' => $a['categorie'],
+                'categorie_nom' => config("pressing.categories.{$a['categorie']}"),
+            ])
             ->values()]);
     }
 }

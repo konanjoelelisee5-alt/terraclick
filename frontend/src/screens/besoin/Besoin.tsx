@@ -7,7 +7,6 @@ import { useApp } from "../../state/app";
 import { Icon } from "../../components/Icon";
 import { VisuelSecteur } from "../../components/VisuelSecteur";
 import { CARTE } from "../../components/ui";
-import { PackPressing } from "./PackPressing";
 import { AIDE, CadreParcours, Choix, QUANDS, TITRE_ETAPE, estUrgent, resumeBesoin } from "./commun";
 
 const AUTRE = "Autre";
@@ -36,6 +35,11 @@ export function Besoin() {
   // Aperçus des photos choisies, libérés quand elles changent.
   const apercus = useMemo(() => b.photos.map((f) => URL.createObjectURL(f)), [b.photos]);
   useEffect(() => () => apercus.forEach((u) => URL.revokeObjectURL(u)), [apercus]);
+
+  // Pressing : la première question est la page « Composer mon pack », une seule pour tout le parcours.
+  useEffect(() => {
+    if (etape === 1 && b.secteur === "pressing") go("pack");
+  }, [etape, b.secteur, go]);
 
   const allerA = (n: number) => {
     set({ besoinEtape: n });
@@ -195,9 +199,6 @@ export function Besoin() {
       progression={etape / 4}
       actions={suivant}
     >
-      {/* Pressing : le client compose son pack plutôt que de choisir un problème. */}
-      {etape === 1 && b.secteur === "pressing" && <PackPressing />}
-
       {etape === 1 && b.secteur !== "pressing" && (
         <>
           <h1 style={TITRE_ETAPE}>Quel est le problème ?</h1>

@@ -169,7 +169,7 @@ export type DemandeApi = {
 };
 
 /** Article du pack pressing et son prix indicatif par pièce. */
-export type ArticlePressing = { cle: string; nom: string; prix: number; prix_affichage: string };
+export type ArticlePressing = { cle: string; nom: string; prix: number; prix_affichage: string; categorie: string; categorie_nom: string };
 
 export type StatutDemande = "envoyee" | "acceptee" | "refusee" | "en_cours" | "terminee" | "confirmee" | "annulee";
 

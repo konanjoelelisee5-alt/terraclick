@@ -520,11 +520,15 @@ const numeroInscrit = numeroNeuf();
   await p.getByPlaceholder('Rechercher sur TerraClick').fill('pressing');
   await p.locator('[data-r="search-go"]').click();
   await p.locator('[data-r="resultat"]').filter({ hasText: 'Pressing Éclat' }).locator('[data-r="titre-resultat"]').click();
-  await p.getByRole('button', { name: 'Demander ce technicien' }).click();
-  ok('pack : le pressing ouvre « Composez votre pack »', await apparait(p.getByRole('heading', { name: 'Composez votre pack' })));
+  ok('pack : la fiche d’un pressing propose « Composer mon pack », pas « Demander »',
+     (await apparait(p.getByRole('button', { name: 'Composer mon pack' }))) && (await p.getByRole('button', { name: 'Demander ce technicien' }).count()) === 0);
+  await p.getByRole('button', { name: 'Composer mon pack' }).click();
+  ok('pack : page dédiée « Mon pack pressing », au nom du pressing',
+     (await apparait(p.getByRole('heading', { name: 'Mon pack pressing' }))) && (await p.locator('[data-r="composer-pack"]').getByText('Pressing Éclat').isVisible()));
   const continuer = p.getByRole('button', { name: 'Continuer', exact: true });
   ok('pack : « Continuer » bloqué tant que le pack est vide', await continuer.isDisabled());
   for (let i = 0; i < 3; i++) await p.getByRole('button', { name: 'Ajouter : Chemise' }).click();
+  await p.getByRole('button', { name: /^Tenues/ }).click();
   await p.getByRole('button', { name: 'Ajouter : Costume (veste et pantalon)' }).click();
   ok('pack : nombre de pièces et total estimé en direct', (await p.locator('[data-r="total-pack"]').textContent()).replace(/\s/g, ' ').includes('4 pièces') &&
      (await p.locator('[data-r="total-pack"]').textContent()).replace(/[\s ]/g, '').includes('4500F'));
@@ -575,7 +579,7 @@ const numeroInscrit = numeroNeuf();
   await apparait(accueil);
   ok('raccourcis : le secteur cherché récemment passe en tête', (await raccourcis())[0] === 'Menuiserie');
   await p.locator('[data-r="actualite"]').first().click();
-  ok('une actualité ouvre la fiche du technicien', await apparait(p.getByRole('button', { name: /Demander ce technicien|Chat/ }).first()));
+  ok('une actualité ouvre la fiche du technicien', await apparait(p.getByRole('button', { name: /Demander ce technicien|Composer mon pack|Chat/ }).first()));
   await ctx.close();
 }
 

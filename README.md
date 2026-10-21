@@ -46,8 +46,10 @@ La première version publique ne couvre que **six secteurs** :
 
 **Pressing et pack** : le pressing se cherche comme les autres services (vocabulaire dans
 `config/secteurs.php`, prestations et prix par pièce dans `PrestationSeeder`). En demandant un
-pressing, le client **compose son pack** (`screens/besoin/PackPressing.tsx`) : chemises,
-pantalons, costumes, bazin, draps… avec − / + et le total estimé. Les articles et leurs prix
+pressing (bouton **« Composer mon pack »** de sa fiche, à la place de « Demander »), le client
+ouvre une page dédiée (`screens/besoin/ComposerPack.tsx`) : catégories Vêtements, Tenues et
+Linge de maison, articles en cartes avec − / +, barre fixe avec le total estimé et « Continuer ».
+L'assistant mène à la même page quand on choisit le pressing. Les articles et leurs prix
 indicatifs par pièce sont dans `config/pressing.php` (**à valider avec les pressings**) ;
 l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
 (`Demande::composerPack`), quel que soit ce que l'application envoie.

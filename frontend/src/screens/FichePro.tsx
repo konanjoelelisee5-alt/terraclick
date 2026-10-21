@@ -57,6 +57,19 @@ export function FichePro() {
       ...(sesSecteurs.length === 1 ? { secteur: sesSecteurs[0] } : { suggestions: sesSecteurs }),
     });
   };
+  /**
+   * Pressing : « Composer mon pack » ouvre la page dédiée, pour ce pressing. Le pack déjà
+   * commencé chez lui est gardé ; un autre pressing repart d'un pack vide.
+   */
+  const composerPack = (p: FicheApi) => {
+    const b = etat.besoin;
+    const memePressing = b.secteur === "pressing" && b.prestataire?.id === p.id;
+    go("pack", {
+      besoin: { ...b, secteur: "pressing", suggestions: [], prestataire: p, mode: "choisi", probleme: null, pack: memePressing ? b.pack : [] },
+    });
+  };
+  const estPressing = (p: FicheApi) => !!p.categories?.some((c) => slugifier(c) === "pressing");
+
   const [essai, setEssai] = useState(0);
   const estMobile = useEstMobile();
 
@@ -105,7 +118,7 @@ export function FichePro() {
   }
 
   // Sur téléphone : profil centré, actions en icônes, bouton pour quitter (CONFIG.ficheMobile).
-  if (estMobile && CONFIG.ficheMobile === "profil") return <FicheMobile p={p} onDemander={() => demanderCeTechnicien(p)} />;
+  if (estMobile && CONFIG.ficheMobile === "profil") return <FicheMobile p={p} onDemander={() => demanderCeTechnicien(p)} onComposerPack={estPressing(p) ? () => composerPack(p) : undefined} />;
 
   const zone = p.zone_intervention ?? [p.quartier?.nom, p.quartier?.ville].filter(Boolean).join(", ");
   // Sans grille tarifaire détaillée, la fourchette de la carte de recherche en tient lieu.
@@ -392,11 +405,11 @@ export function FichePro() {
             </button>
           )}
           <button
-            onClick={() => demanderCeTechnicien(p)}
+            onClick={() => (estPressing(p) ? composerPack(p) : demanderCeTechnicien(p))}
             className="sy-btn sy-btn--primary sy-btn--md"
             style={{ flex: 1, minWidth: 180, justifyContent: "center", minHeight: 48, fontSize: "16px" }}
           >
-            Demander ce technicien
+            {estPressing(p) ? "Composer mon pack" : "Demander ce technicien"}
           </button>
         </div>
       </div>

@@ -25,6 +25,7 @@ import { Recu } from "./screens/Recu";
 import { Results } from "./screens/Results";
 import { Urgence } from "./screens/Urgence";
 import { Favoris } from "./screens/Favoris";
+import { ComposerPack } from "./screens/besoin/ComposerPack";
 import { Historique, OngletAccord, Onglets, OngletsRecents, Parametres, Telechargements } from "./screens/menu/EcransMenu";
 import { ConfirmationAccord } from "./components/ConfirmationAccord";
 import { Besoin } from "./screens/besoin/Besoin";
@@ -86,6 +87,7 @@ const ECRANS: Record<Ecran, () => JSX.Element> = {
   confirmation: Confirmation,
   demandeEnvoyee: DemandeEnvoyee,
   favoris: Favoris,
+  pack: ComposerPack,
   onglets: Onglets,
   accord: OngletAccord,
   historique: Historique,
@@ -134,7 +136,7 @@ function Coque() {
   // grand titre : ni logo ni choix de ville.
   const estMobile = useEstMobile();
   const sansEntete =
-    estMobile && ["home", "clientDashboard", "favoris", "connexion", "inscription", ...(CONFIG.ficheMobile === "profil" ? ["fiche"] : [])].includes(etat.screen);
+    estMobile && ["home", "clientDashboard", "favoris", "connexion", "inscription", "pack", ...(CONFIG.ficheMobile === "profil" ? ["fiche"] : [])].includes(etat.screen);
 
   // Un clic hors du méga-menu le referme. L'écoute porte sur `mousedown` et non
   // sur `click` : le clic qui ouvre le panneau depuis l'en-tête continue de

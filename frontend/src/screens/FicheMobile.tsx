@@ -9,8 +9,8 @@ import { Rating } from "../components/Rating";
 
 /* Fiche du technicien sur téléphone (CONFIG.ficheMobile = « profil ») : un profil centré —
    bouton pour quitter en haut à droite, photo ronde, nom et informations —, puis un bloc
-   présentation et tarifs portant en bas à droite les deux actions en icônes (Contacter,
-   Demander). Les autres blocs suivent ; les avis clients ferment la page. */
+   présentation et tarifs portant en bas à droite les deux actions en icônes (Contacter, et
+   Demander — ou, pour un pressing, Composer mon pack). Les autres blocs suivent ; les avis clients ferment la page. */
 
 const GRIS = "#5C5248";
 
@@ -29,7 +29,7 @@ const STATUT_DOCUMENT = {
   refuse: { texte: "Refusé", classe: "sy-badge--neutral" },
 } as const;
 
-export function FicheMobile({ p, onDemander }: { p: FicheApi; onDemander: () => void }) {
+export function FicheMobile({ p, onDemander, onComposerPack }: { p: FicheApi; onDemander: () => void; /** Pressing : ouvre la page du pack à la place de « Demander ». */ onComposerPack?: () => void }) {
   const { go, ouvrirChat } = useApp();
   const [contact, setContact] = useState(false);
 
@@ -104,9 +104,15 @@ export function FicheMobile({ p, onDemander }: { p: FicheApi; onDemander: () => 
           <Action libelle="Contacter" aria="Contacter directement" variante="contour" onClick={() => setContact(true)}>
             <Icon name="message-circle" size={24} strokeWidth={2} />
           </Action>
-          <Action libelle="Demander" aria="Demander ce technicien" variante="plein" onClick={onDemander}>
-            <Icon name="clipboard-check" size={24} strokeWidth={2} />
-          </Action>
+          {onComposerPack ? (
+            <Action libelle="Mon pack" aria="Composer mon pack" variante="plein" onClick={onComposerPack}>
+              <Icon name="shopping-basket" size={24} strokeWidth={2} />
+            </Action>
+          ) : (
+            <Action libelle="Demander" aria="Demander ce technicien" variante="plein" onClick={onDemander}>
+              <Icon name="calendar-check" size={24} strokeWidth={2} />
+            </Action>
+          )}
         </div>
       </section>
 

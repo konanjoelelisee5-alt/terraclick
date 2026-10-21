@@ -29,6 +29,7 @@ export type Ecran =
   | "inscription"
   /* Parcours de demande : assistant, recommandations, confirmation, accusé d'envoi */
   | "besoin"
+  | "pack"
   | "recommandations"
   | "confirmation"
   | "demandeEnvoyee"
