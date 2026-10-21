@@ -29,7 +29,7 @@ export const VILLES = ["Yamoussoukro", "Abidjan", "Bouaké", "Daloa"];
  * règle (backend/config/mvp.php). `categorie` est le slug de l'annuaire.
  *
  * `image` : photo du secteur (public/images/secteurs/, WebP 800 px). Photos provisoires ;
- * sans image, l'icône prend le relais (plomberie et électricité, en attente de photos).
+ * sans image, l'icône prend le relais (plomberie, en attente de photo).
  */
 export type Secteur = {
   /** Clé partagée avec l'API (config/secteurs.php). */
@@ -45,7 +45,7 @@ const PHOTOS = `${import.meta.env.BASE_URL}images/secteurs/`;
 
 export const SECTEURS: readonly Secteur[] = [
   { cle: "plomberie", nom: "Plomberie", metier: "Plombier", icone: "droplets", categorie: "plombiers" },
-  { cle: "electricite", nom: "Électricité", metier: "Électricien", icone: "zap", categorie: "electriciens" },
+  { cle: "electricite", nom: "Électricité", metier: "Électricien", icone: "zap", categorie: "electriciens", image: `${PHOTOS}electricite.webp` },
   {
     cle: "climatisation",
     nom: "Climatisation",
