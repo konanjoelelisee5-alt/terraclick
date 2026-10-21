@@ -22,12 +22,20 @@ class AccordController extends Controller
         'demande.quartier', 'demande.prestataire.quartier', 'demande.evenements', 'demande.signalements', 'demande.accord',
     ];
 
-    /** GET /api/accords */
+    /**
+     * GET /api/accords?etat=onglets|historique — les onglets (en cours) ou l'historique
+     * (dépannages accomplis, du plus récent au plus ancien) ; sans filtre, tout.
+     */
     public function index(Request $request): AnonymousResourceCollection
     {
-        return AccordResource::collection(
-            Accord::whereBelongsTo($request->user(), 'client')->with(self::RELATIONS)->latest()->latest('id')->get()
-        );
+        $etat = $request->validate(['etat' => ['nullable', Rule::in(['onglets', 'historique'])]])['etat'] ?? null;
+
+        $accords = Accord::whereBelongsTo($request->user(), 'client')->with(self::RELATIONS)
+            ->when($etat === 'historique', fn ($q) => $q->accomplis()->orderByDesc('termine_le'))
+            ->when($etat === 'onglets', fn ($q) => $q->whereNotIn('id', Accord::query()->accomplis()->select('id')))
+            ->latest()->latest('id')->get();
+
+        return AccordResource::collection($accords);
     }
 
     /** POST /api/accords — « Oui, j'ai conclu avec ce technicien ». */

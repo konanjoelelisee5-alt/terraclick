@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -59,6 +60,22 @@ class Accord extends Model
         }
 
         return $accord;
+    }
+
+    /**
+     * Dépannage accompli : terminé et confirmé par le client (demande « confirmee », ou accord
+     * conclu hors application que le client a lui-même marqué terminé). Il quitte les onglets
+     * pour l'historique.
+     */
+    public function scopeAccomplis(Builder $query): void
+    {
+        $query->where('statut', 'termine')
+            ->where(fn (Builder $q) => $q->whereNull('demande_id')->orWhereHas('demande', fn (Builder $d) => $d->where('statut', 'confirmee')));
+    }
+
+    public function estAccompli(): bool
+    {
+        return $this->statut === 'termine' && ($this->demande_id === null || $this->demande?->statut === 'confirmee');
     }
 
     /** Statut de l'onglet selon celui de la demande. */

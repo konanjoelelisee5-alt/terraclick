@@ -125,12 +125,12 @@ export function Onglets() {
   useEffect(() => {
     if (!etat.auth) return;
     const arret = new AbortController();
-    api.accords(arret.signal).then(setAccords, (e) => e?.name !== "AbortError" && setErreur(true));
+    api.accords("onglets", arret.signal).then(setAccords, (e) => e?.name !== "AbortError" && setErreur(true));
     return () => arret.abort();
   }, [etat.auth]);
 
   return (
-    <Page r="onglets" titre="Mes onglets" sousTitre="Vos dépannages conclus avec un technicien, et leurs reçus.">
+    <Page r="onglets" titre="Mes onglets" sousTitre="Vos dépannages en cours, à suivre jusqu'au bout. Une fois confirmés, ils passent dans l'historique.">
       {!etat.auth && (
         <>
           <Vide icone="square-plus" titre="Connectez-vous pour voir vos onglets" texte="Chaque accord conclu avec un technicien y est gardé, avec son reçu." />
@@ -220,7 +220,7 @@ export function OngletAccord() {
   const terminer = async () => {
     try {
       setA(await api.terminerAccord(a.id));
-      toast("Intervention terminée", "Votre reçu est à jour.");
+      toast("Dépannage accompli", "Il quitte vos onglets et se range dans votre historique.");
     } catch (e) {
       toast("Action impossible", messageErreur(e), "danger");
     }
@@ -242,6 +242,8 @@ export function OngletAccord() {
     <Page r="onglet-accord" titre={a.objet} sousTitre={`${a.prestataire.nom} · ${a.statut_libelle}`}>
       {/* À l'impression (« Télécharger le reçu »), seul le reçu est gardé. */}
       <style>{"@media print { body * { visibility: hidden !important; } [data-r='recu-accord'], [data-r='recu-accord'] * { visibility: visible !important; } [data-r='recu-accord'] { position: absolute; inset: 0 auto auto 0; width: 100%; border: 0 !important; } }"}</style>
+
+      {a.accompli && <BandeauHistorique />}
 
       <section aria-label="Étapes" style={{ ...CARTE, padding: "14px 16px" }}>
         <h2 style={{ margin: "0 0 10px", fontSize: "16px" }}>Les étapes</h2>
@@ -308,13 +310,55 @@ export function OngletAccord() {
   );
 }
 
-/** « Historique » : les recherches par jour, et « Supprimer les données de navigation ». */
+/** Sur un dépannage accompli : il n'est plus dans les onglets, mais dans l'historique. */
+export function BandeauHistorique() {
+  const { go } = useApp();
+  return (
+    <div data-r="bandeau-historique" role="status" style={{ ...CARTE, padding: "12px 14px", display: "flex", alignItems: "center", gap: 12, background: "var(--state-success-soft)", border: 0 }}>
+      <Icon name="history" size={20} color="var(--state-success)" />
+      <span style={{ flex: 1, fontSize: "14.5px" }}>
+        <strong>Dépannage accompli.</strong> Il est rangé dans votre historique.
+      </span>
+      <button onClick={() => go("historique")} className="sy-btn sy-btn--ghost sy-btn--sm" style={{ flex: "none" }}>
+        Historique
+      </button>
+    </div>
+  );
+}
+
+/**
+ * « Historique », comme celui de Chrome : une recherche en haut, puis, jour par jour, les
+ * dépannages accomplis (terminés et confirmés, sortis des onglets) ou les recherches, avec
+ * « Supprimer les données de navigation ».
+ */
 export function Historique() {
-  const { etat } = useApp();
+  const { etat, go } = useApp();
   const toast = useToast();
   const [version, setVersion] = useState(0);
-  const { elements } = useHistorique(!!etat.auth, version);
+  const { elements: recherches } = useHistorique(!!etat.auth, version);
   const [confirmer, setConfirmer] = useState(false);
+  // Sans compte, pas de dépannages : l'historique s'ouvre sur les recherches de l'appareil.
+  // (la session peut se recharger après l'ouverture : le choix par défaut la suit).
+  const [choix, setVue] = useState<"depannages" | "recherches" | null>(null);
+  const vue = choix ?? (etat.auth ? "depannages" : "recherches");
+  const [filtre, setFiltre] = useState("");
+  const [accomplis, setAccomplis] = useState<AccordApi[] | null>(null);
+
+  useEffect(() => {
+    if (!etat.auth) {
+      setAccomplis([]);
+      return;
+    }
+    const arret = new AbortController();
+    api.accords("historique", arret.signal).then(setAccomplis, () => setAccomplis([]));
+    return () => arret.abort();
+  }, [etat.auth]);
+
+  // La recherche, comme dans l'historique de Chrome, filtre la liste affichée.
+  const cherche = filtre.trim().toLowerCase();
+  const trouve = (...textes: (string | null | undefined)[]) => !cherche || textes.some((t) => t?.toLowerCase().includes(cherche));
+  const elements = recherches?.filter((r) => trouve(r.texte, secteurDe(r)?.nom, r.ville)) ?? null;
+  const depannages = accomplis?.filter((a) => trouve(a.objet, a.prestataire.nom, a.prestataire.metier)) ?? null;
 
   const jours: { jour: string; liste: RechercheApi[] }[] = [];
   for (const r of elements ?? []) {
@@ -323,17 +367,114 @@ export function Historique() {
     if (groupe) groupe.liste.push(r);
     else jours.push({ jour: j, liste: [r] });
   }
+  const joursDepannages: { jour: string; liste: AccordApi[] }[] = [];
+  for (const a of depannages ?? []) {
+    const j = jour(a.termine_le ?? a.cree_le);
+    const groupe = joursDepannages.find((g) => g.jour === j);
+    if (groupe) groupe.liste.push(a);
+    else joursDepannages.push({ jour: j, liste: [a] });
+  }
 
   return (
-    <Page r="historique" titre="Historique" sousTitre={etat.auth ? "Vos recherches, sur tous vos appareils." : "Vos recherches sur cet appareil."}>
-      {elements && elements.length > 0 && (
+    <Page r="historique" titre="Historique">
+      <label style={{ display: "flex", alignItems: "center", gap: 10, minHeight: 48, padding: "0 16px", borderRadius: 999, background: "var(--color-neutral-100)", border: "1px solid var(--color-divider)" }}>
+        <Icon name="search" size={19} color={GRIS} />
+        <input
+          type="search"
+          value={filtre}
+          onChange={(e) => setFiltre(e.target.value)}
+          placeholder="Rechercher dans l'historique"
+          aria-label="Rechercher dans l'historique"
+          style={{ flex: 1, minWidth: 0, border: 0, outline: 0, background: "none", font: "inherit", fontSize: "15.5px" }}
+        />
+      </label>
+
+      <div role="tablist" aria-label="Historique" style={{ display: "flex", borderBottom: "1px solid var(--color-divider)" }}>
+        {(
+          [
+            ["depannages", "Dépannages"],
+            ["recherches", "Recherches"],
+          ] as const
+        ).map(([cle, nom]) => (
+          <button
+            key={cle}
+            role="tab"
+            aria-selected={vue === cle}
+            onClick={() => setVue(cle)}
+            style={{
+              flex: 1,
+              minHeight: 46,
+              border: 0,
+              borderBottom: `3px solid ${vue === cle ? "var(--color-accent)" : "transparent"}`,
+              background: "none",
+              font: "inherit",
+              fontSize: "15px",
+              fontWeight: vue === cle ? 700 : 500,
+              color: vue === cle ? "var(--color-text)" : GRIS,
+              cursor: "pointer",
+            }}
+          >
+            {nom}
+          </button>
+        ))}
+      </div>
+
+      {vue === "depannages" && (
+        <>
+          {!etat.auth && <Vide icone="history" titre="Connectez-vous pour voir vos dépannages" texte="Chaque dépannage terminé et confirmé y est rangé, avec son reçu." />}
+          {etat.auth && depannages?.length === 0 && (
+            <Vide
+              icone="history"
+              titre={cherche ? "Aucun résultat" : "Aucun dépannage accompli"}
+              texte={cherche ? "Aucun dépannage ne correspond à votre recherche." : "Quand un dépannage est terminé et que vous l'avez confirmé, il quitte vos onglets et se range ici."}
+            />
+          )}
+          {joursDepannages.map((g) => (
+            <section key={g.jour} aria-label={g.jour}>
+              <h2 style={{ margin: "0 0 8px 4px", fontSize: "14px", fontWeight: 600, color: GRIS, textTransform: "capitalize" }}>{g.jour}</h2>
+              <div style={{ ...CARTE, overflow: "hidden" }}>
+                {g.liste.map((a, i) => {
+                  const s = secteurDeCategorie(a.prestataire.categorie, a.demande?.secteur.cle ?? a.prestation?.secteur);
+                  return (
+                    <button
+                      key={a.id}
+                      data-r="depannage-accompli"
+                      onClick={() => {
+                        accordOuvert = a.id;
+                        go("accord");
+                      }}
+                      style={{ ...LIGNE, borderTop: i ? "1px solid var(--color-divider)" : 0 }}
+                    >
+                      <span style={{ width: 44, flex: "none", fontSize: "13px", color: GRIS }}>{heure(a.termine_le ?? a.cree_le)}</span>
+                      <span style={{ width: 36, height: 36, flex: "none", borderRadius: 999, background: "var(--color-surface)", display: "grid", placeItems: "center" }}>
+                        <Icon name={s?.icone ?? "wrench"} size={18} />
+                      </span>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: "block", fontSize: "15.5px", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.objet}</span>
+                        <span style={{ display: "block", fontSize: "13px", color: GRIS, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {[a.prestataire.nom, a.montant_affichage].filter(Boolean).join(" · ")}
+                        </span>
+                      </span>
+                      <Icon name="chevron-right" size={18} color={GRIS} />
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </>
+      )}
+
+      {vue === "recherches" && elements && elements.length > 0 && (
         <button onClick={() => setConfirmer(true)} className="sy-btn sy-btn--outline sy-btn--md" style={{ alignSelf: "flex-start", gap: 8 }}>
           <Icon name="trash-2" size={17} />
           Supprimer les données de navigation
         </button>
       )}
-      {elements && elements.length === 0 && <Vide icone="history" titre="Historique vide" texte="Les services et techniciens que vous cherchez apparaîtront ici." />}
-      {jours.map((g) => (
+      {vue === "recherches" && elements && elements.length === 0 && (
+        <Vide icone="history" titre={cherche ? "Aucun résultat" : "Historique vide"} texte={cherche ? "Aucune recherche ne correspond." : "Les services et techniciens que vous cherchez apparaîtront ici."} />
+      )}
+      {vue === "recherches" && jours.map((g) => (
         <section key={g.jour} aria-label={g.jour}>
           <h2 style={{ margin: "0 0 8px 4px", fontSize: "14px", fontWeight: 600, color: GRIS, textTransform: "capitalize" }}>{g.jour}</h2>
           <div style={{ ...CARTE, overflow: "hidden" }}>

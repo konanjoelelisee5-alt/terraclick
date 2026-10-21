@@ -107,6 +107,9 @@ export type AccordApi = {
   /** Le client a déjà noté ce prestataire (un avis par prestataire). */
   deja_note: boolean;
   etapes: { libelle: string; date: string }[];
+  /** Terminé et confirmé par le client : rangé dans l'historique, plus dans les onglets. */
+  accompli: boolean;
+  termine_le: string | null;
   cree_le: string;
 };
 
@@ -383,7 +386,9 @@ export const api = {
     requete<Resultats>(`/prestataires${parametres(criteres)}`, { signal }),
   vedettes: (signal?: AbortSignal) =>
     requete<{ data: PrestataireApi[] }>("/prestataires/vedettes", { signal }).then((r) => r.data),
-  accords: (signal?: AbortSignal) => requete<{ data: AccordApi[] }>("/accords", { signal }).then((r) => r.data),
+  /** « onglets » : en cours ; « historique » : dépannages terminés et confirmés par le client. */
+  accords: (etat: "onglets" | "historique", signal?: AbortSignal) =>
+    requete<{ data: AccordApi[] }>(`/accords?etat=${etat}`, { signal }).then((r) => r.data),
   accord: (id: number, signal?: AbortSignal) => requete<{ data: AccordApi }>(`/accords/${id}`, { signal }).then((r) => r.data),
   creerAccord: (accord: {
     prestataire_id: number;

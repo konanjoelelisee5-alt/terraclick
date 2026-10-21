@@ -681,9 +681,24 @@ const numeroInscrit = numeroNeuf();
     ok('onglet : note publiée', await apparait(p.locator('[data-r="deja-note"]')));
   }
 
+  ok('onglet : confirmé, le dépannage est accompli et rangé dans l’historique', await apparait(p.locator('[data-r="bandeau-historique"]')));
+
   // Recommander en un toucher : retour à la confirmation, tout pré-rempli
   await p.locator('[data-r="refaire-commande"]').click();
   ok('onglet : « Recommander » reprend la commande à la confirmation', await apparait(p.locator('[data-r="recap-commande"]').getByText(/3 × Chemise/)));
+
+  // Historique, comme celui de Chrome : les dépannages accomplis, jour par jour
+  await p.goto('http://localhost:4173/'); await apparait(p.locator('[data-r="accueil-fil"]'));
+  await p.locator('[data-r="menu-plus-ouvrir"]').click();
+  await p.getByRole('menuitem', { name: /Historique/ }).click();
+  const accompli = p.locator('[data-r="depannage-accompli"]').first();
+  ok('historique : le dépannage accompli y est, en tête, sous « Aujourd’hui »',
+     (await apparait(accompli)) && /Pressing · 4 pièces/.test(await accompli.textContent()) &&
+       (await p.locator('[data-r="historique"] section').first().getByRole('heading').textContent()) === "Aujourd'hui");
+  await p.getByLabel("Rechercher dans l'historique").fill('climatisation introuvable xyz');
+  ok('historique : la recherche filtre la liste', await apparait(p.getByText('Aucun résultat')));
+  await p.getByRole('tab', { name: 'Recherches' }).click();
+  ok('historique : l’onglet « Recherches » garde les recherches', (await p.getByRole('tab', { name: 'Recherches' }).getAttribute('aria-selected')) === 'true');
   await ctx.close();
 }
 

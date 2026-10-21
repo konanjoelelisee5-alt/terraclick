@@ -74,6 +74,9 @@ class AccordResource extends JsonResource
             'demande' => $this->demande ? DemandeResource::make($this->demande) : null,
             'deja_note' => Avis::where('user_id', $this->user_id)->where('prestataire_id', $this->prestataire_id)->exists(),
             'etapes' => $etapes,
+            // Terminé et confirmé par le client : rangé dans l'historique.
+            'accompli' => $this->estAccompli(),
+            'termine_le' => $this->termine_le?->toIso8601String(),
             'cree_le' => $this->created_at?->toIso8601String(),
         ];
     }

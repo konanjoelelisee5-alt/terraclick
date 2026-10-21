@@ -62,6 +62,17 @@ l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
   - Si l'appareil demande moins d'animations, la fenêtre s'efface simplement.
 - `"ecran"` : l'ancien écran « Demande envoyée », avec la facture, « Suivre ma demande » et « Accueil » (`DemandeEnvoyee.tsx`, masqué mais conservé).
 
+**Onglets → Historique** : un dépannage terminé **et confirmé par le client** quitte « Mes onglets » pour l'**Historique**.
+
+- C'est le cas d'une demande confirmée (« Problème résolu », « J'ai reçu mon linge »), ou d'un accord pris hors application que le client a marqué terminé.
+- `GET /api/accords?etat=onglets|historique`, avec `Accord::scopeAccomplis`.
+- L'Historique ressemble à celui de Chrome :
+  - une recherche en haut ;
+  - deux onglets, « Dépannages » et « Recherches » ;
+  - les dépannages accomplis jour par jour, avec l'heure, l'icône du service, l'objet, le prestataire et le montant ;
+  - un toucher rouvre le détail et son reçu.
+- Sans compte, l'Historique s'ouvre sur les recherches de l'appareil.
+
 **Onglets de suivi pour tous les services** : toute demande envoyée à un prestataire (plomberie, électricité, climatisation, serrurerie, menuiserie comme pressing) crée son onglet dès l'envoi (`Accord::pourDemande`). Les demandes plus anciennes sont rattrapées par une migration. Une intervention s'y suit en cinq étapes : envoyée, acceptée, en cours, terminée, confirmée (`config/suivi.php`). Son onglet propose aussi d'annuler, de signaler un problème (retard, technicien pas venu, travail mal fait, prix différent), de recommander, de confirmer « Problème résolu », de noter le technicien et de télécharger le reçu, avec le montant convenu.
 
 **Commande pressing, de bout en bout** :

@@ -173,4 +173,30 @@ class CycleDemandeTest extends TestCase
         $this->assertSame(0, $sans);
         $this->assertSame('annule', Demande::where('statut', 'annulee')->firstOrFail()->accord->statut);
     }
+
+    public function test_un_depannage_confirme_quitte_les_onglets_pour_l_historique(): void
+    {
+        $demande = $this->nouvelleDemande();
+        $id = $demande->accord->id;
+        $onglets = fn () => $this->actingAs($this->client)->getJson('/api/accords?etat=onglets')->assertOk()->json('data.*.id');
+        $historique = fn () => $this->actingAs($this->client)->getJson('/api/accords?etat=historique')->assertOk()->json('data.*.id');
+
+        $this->assertContains($id, $onglets());
+        $this->assertNotContains($id, $historique());
+
+        // Terminé par le technicien : il reste dans les onglets tant que le client n'a pas confirmé.
+        $this->actingAs($this->technicien)->postJson("/api/pro/demandes/{$demande->id}/accepter")->assertOk();
+        $this->actingAs($this->technicien)->postJson("/api/pro/demandes/{$demande->id}/terminer")->assertOk();
+        $this->assertContains($id, $onglets());
+
+        $this->actingAs($this->client)->postJson("/api/demandes/{$demande->id}/confirmer")->assertOk();
+        $this->assertNotContains($id, $onglets());
+        $this->assertSame($id, $historique()[0]);
+        $this->actingAs($this->client)->getJson("/api/accords/{$id}")->assertJsonPath('data.accompli', true);
+
+        // Le dépannage de démonstration déjà confirmé (climatisation) est aussi dans l'historique.
+        $clim = Demande::where('statut', 'confirmee')->where('user_id', $this->client->id)->firstOrFail()->accord->id;
+        $this->assertContains($clim, $historique());
+        $this->actingAs($this->client)->getJson('/api/accords?etat=autre')->assertStatus(422);
+    }
 }

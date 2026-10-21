@@ -6,6 +6,7 @@ import { useApp } from "../../state/app";
 import type { Besoin } from "../../state/types";
 import { Dialogue } from "../../components/Dialogue";
 import { Facture } from "../../components/Facture";
+import { BandeauHistorique } from "./EcransMenu";
 import { Icon } from "../../components/Icon";
 import { useToast } from "../../components/Toast";
 
@@ -127,6 +128,8 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
         </p>
       </div>
 
+      {a.accompli && <BandeauHistorique />}
+
       {/* ---- Suivi ---- */}
       <section data-r="suivi-commande" aria-label="Suivi de la commande" style={{ ...CARTE, padding: "14px 16px" }}>
         <h2 style={{ margin: "0 0 10px", fontSize: "16px" }}>Suivi</h2>
@@ -198,7 +201,7 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
             data-r="confirmer-reception"
             disabled={occupe}
             onClick={() =>
-              agir(() => api.confirmerDemande(d.id), pressing ? "Réception confirmée" : "Fin confirmée", `Merci ! Vous pouvez noter ${a.prestataire.nom}.`)
+              agir(() => api.confirmerDemande(d.id), "Dépannage accompli", `Rangé dans votre historique. Vous pouvez noter ${a.prestataire.nom}.`)
             }
             className="sy-btn sy-btn--primary sy-btn--md"
             style={{ gap: 8 }}
