@@ -21,6 +21,18 @@ const CARTE: React.CSSProperties = {
   borderRadius: 20,
 };
 
+/** Bouton de la colonne d'actions du suivi : pleine largeur, texte sur deux lignes au besoin. */
+const ACTION_SUIVI: React.CSSProperties = {
+  width: "100%",
+  minHeight: 44,
+  gap: 8,
+  justifyContent: "flex-start",
+  textAlign: "left",
+  whiteSpace: "normal",
+  lineHeight: 1.2,
+  padding: "8px 12px",
+};
+
 const CRITERES = [
   { cle: "qualite" as const, nom: "Qualité du nettoyage" },
   { cle: "ponctualite" as const, nom: "Respect du créneau" },
@@ -106,6 +118,8 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
       {/* ---- Suivi ---- */}
       <section data-r="suivi-commande" aria-label="Suivi de la commande" style={{ ...CARTE, padding: "14px 16px" }}>
         <h2 style={{ margin: "0 0 10px", fontSize: "16px" }}>Suivi</h2>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
         {!enCours ? (
           <p style={{ margin: 0, fontSize: "14.5px", color: GRIS }}>
             {d.statut === "refusee" ? "Le pressing n'a pas pu prendre cette commande." : "Commande annulée."}
@@ -139,6 +153,28 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
             })}
           </ol>
         )}
+        </div>
+
+        {/* Actions sur la commande, empilées à droite du suivi. */}
+        <div data-r="actions-suivi" style={{ flex: "none", width: 148, display: "flex", flexDirection: "column", gap: 8 }}>
+          {(d.statut === "envoyee" || d.statut === "acceptee") && (
+            <button onClick={() => setFenetre("annuler")} className="sy-btn sy-btn--outline sy-btn--sm" style={ACTION_SUIVI}>
+              <Icon name="x" size={16} />
+              Annuler la commande
+            </button>
+          )}
+          {enCours && (
+            <button data-r="signaler-probleme" onClick={() => setFenetre("signaler")} className="sy-btn sy-btn--outline sy-btn--sm" style={ACTION_SUIVI}>
+              <Icon name="flag" size={16} />
+              Signaler un problème
+            </button>
+          )}
+          <button data-r="refaire-commande" onClick={refaire} className="sy-btn sy-btn--outline sy-btn--sm" style={ACTION_SUIVI}>
+            <Icon name="rotate-cw" size={16} />
+            Recommander
+          </button>
+        </div>
+        </div>
       </section>
 
       {/* ---- Actions ---- */}
@@ -155,21 +191,6 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
             {c.depot?.cle === "pressing" ? "J'ai récupéré mon linge" : "J'ai reçu mon linge"}
           </button>
         )}
-        {(d.statut === "envoyee" || d.statut === "acceptee") && (
-          <button onClick={() => setFenetre("annuler")} className="sy-btn sy-btn--outline sy-btn--md">
-            Annuler la commande
-          </button>
-        )}
-        {enCours && (
-          <button data-r="signaler-probleme" onClick={() => setFenetre("signaler")} className="sy-btn sy-btn--outline sy-btn--md" style={{ gap: 8 }}>
-            <Icon name="flag" size={16} />
-            Signaler un problème
-          </button>
-        )}
-        <button data-r="refaire-commande" onClick={refaire} className="sy-btn sy-btn--outline sy-btn--md" style={{ gap: 8 }}>
-          <Icon name="rotate-cw" size={16} />
-          Recommander
-        </button>
         {a.prestataire.telephone && (
           <a href={`tel:+225${a.prestataire.telephone.replace(/\D/g, "")}`} className="sy-btn sy-btn--ghost sy-btn--md" style={{ gap: 8 }}>
             <Icon name="phone" size={16} />

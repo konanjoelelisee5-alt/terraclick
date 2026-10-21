@@ -579,6 +579,14 @@ const numeroInscrit = numeroNeuf();
   await p.locator('[data-r="suivre-commande"]').click();
   ok('onglet : la commande s’y suit, en attente du pressing',
      (await apparait(p.locator('[data-r="onglet-commande"]'))) && (await p.locator('[data-r="statut-commande"]').textContent()) === 'En attente du pressing');
+  {
+    const suivi = p.locator('[data-r="suivi-commande"]');
+    const boites = await Promise.all([/Annuler la commande/, /Signaler un problème/, /Recommander/].map((n) => suivi.getByRole('button', { name: n }).boundingBox()));
+    const bloc = await suivi.boundingBox();
+    ok('onglet : annuler, signaler, recommander empilés à droite, dans le bloc de suivi',
+       boites.every(Boolean) && boites.every((x) => Math.abs(x.x - boites[0].x) < 2 && x.x > bloc.x + bloc.width / 2) &&
+       boites[0].y < boites[1].y && boites[1].y < boites[2].y);
+  }
 
   // Le gérant du pressing reçoit la commande, l'accepte et la fait avancer
   const g = await neuve(390, 844);
