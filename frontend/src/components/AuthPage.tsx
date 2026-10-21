@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import type { Canal } from "../lib/useCodeConnexion";
 import { useApp } from "../state/app";
 import { Icon } from "./Icon";
+import { BandeauInstallation } from "./Installer";
 
 /* Pages Connexion et Inscription, plein écran : flèche retour, logo TerraClick avec halo,
    phrase d'accueil, bascule Connexion | Inscription, champs arrondis à
@@ -164,6 +165,9 @@ export function CadreAuth({
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>{children}</div>
+
+        {/* L'application s'ouvre ici : le bouton pour l'installer doit s'y trouver aussi. */}
+        <BandeauInstallation sobre toujours style={{ marginTop: 28, borderRadius: 24, boxShadow: "none" }} />
       </div>
     </main>
   );

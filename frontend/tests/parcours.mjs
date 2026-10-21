@@ -488,6 +488,11 @@ const numeroInscrit = numeroNeuf();
   const p = await ctx.newPage();
   await p.goto('http://localhost:4173/', { waitUntil: 'domcontentloaded' });
   ok('ouverture sans session : formulaire de connexion', await apparait(p.getByRole('tab', { name: 'Connexion', selected: true })));
+  ok('ouverture : « Télécharger l’application » présent dès la page de connexion', await apparait(p.locator('[data-r="page-auth"]').getByRole('button', { name: /Télécharger l.application/ })));
+  // Même après « Ne plus proposer » sur l'accueil, la connexion garde le bouton.
+  await p.evaluate(() => localStorage.setItem('tc.installation-masquee', '1'));
+  await p.reload({ waitUntil: 'domcontentloaded' });
+  ok('installation : toujours proposée à la connexion, même après un ✕ sur l’accueil', await apparait(p.locator('[data-r="page-auth"]').getByRole('button', { name: /Télécharger l.application/ })));
   ok('formulaire plein écran : ni en-tête ni barre du bas',
      (await p.locator('header').count()) === 0 && (await p.locator('[data-r="tabbar"]').count()) === 0);
   await p.getByRole('tab', { name: 'Inscription' }).click();

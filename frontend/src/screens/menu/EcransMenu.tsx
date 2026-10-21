@@ -456,7 +456,7 @@ export function Parametres() {
           </button>
         ))}
       </div>
-      <BandeauInstallation sobre style={{ borderRadius: 20, boxShadow: "none" }} />
+      <BandeauInstallation sobre toujours style={{ borderRadius: 20, boxShadow: "none" }} />
     </Page>
   );
 }

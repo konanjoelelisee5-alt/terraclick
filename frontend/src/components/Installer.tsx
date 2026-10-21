@@ -86,8 +86,12 @@ const CONSIGNES: Record<Appareil, ReactNode[]> = {
   ],
 };
 
-/** `sobre` : bouton neutre au lieu d'orange, pour les pages où l'orange doit rester rare. */
-export function BandeauInstallation({ style, sobre = false }: { style?: React.CSSProperties; sobre?: boolean }) {
+/**
+ * `sobre` : bouton neutre au lieu d'orange, pour les pages où l'orange doit rester rare.
+ * `toujours` : ignore le « Ne plus proposer » de l'accueil (connexion, paramètres), et n'offre
+ * pas de ✕ ; seule une application déjà installée le masque.
+ */
+export function BandeauInstallation({ style, sobre = false, toujours = false }: { style?: React.CSSProperties; sobre?: boolean; toujours?: boolean }) {
   const [evenement, setEvenement] = useState<EvenementInstallation | null>(propositionEnAttente);
   const [installee, setInstallee] = useState(dejaInstallee);
   const [consignes, setConsignes] = useState(false);
@@ -110,7 +114,7 @@ export function BandeauInstallation({ style, sobre = false }: { style?: React.CS
     };
   }, []);
 
-  if (installee || masque) return null;
+  if (installee || (masque && !toujours)) return null;
 
   const type = appareil();
   const telecharger = async () => {
@@ -162,6 +166,7 @@ export function BandeauInstallation({ style, sobre = false }: { style?: React.CS
             {type === "ordinateur" ? "L'appli sur votre ordinateur" : "L'appli sur votre écran d'accueil"}
           </span>
         </span>
+        {!toujours && (
         <button
           onClick={fermer}
           aria-label="Ne plus proposer"
@@ -169,6 +174,7 @@ export function BandeauInstallation({ style, sobre = false }: { style?: React.CS
         >
           <Icon name="x" size={18} />
         </button>
+        )}
       </div>
 
       {/* Pleine largeur : le bouton reste lisible et facile à toucher, même sur petit écran. */}
