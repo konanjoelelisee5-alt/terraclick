@@ -15,6 +15,8 @@ class RechercherPrestatairesRequest extends FormRequest
             // Un métier ou une phrase décrivant le problème.
             'q' => ['nullable', 'string', 'max:255'],
             'categorie' => ['nullable', 'string', 'exists:categories,slug'],
+            // Une prestation précise (« reparation-de-tuyau-casse ») : prix de cette prestation.
+            'prestation' => ['nullable', 'string', 'exists:prestations,slug'],
             'departement' => ['nullable', 'string', 'exists:departements,slug'],
             'ville' => ['nullable', 'string', 'exists:villes,slug'],
             'quartier' => ['nullable', 'integer', 'exists:quartiers,id'],

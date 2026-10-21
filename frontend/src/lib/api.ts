@@ -149,11 +149,26 @@ export type DemandeApi = {
 export type StatutDemande = "envoyee" | "acceptee" | "refusee" | "en_cours" | "terminee" | "confirmee" | "annulee";
 
 /** Résultats de recherche, avec les secteurs que le serveur a reconnus dans la demande. */
-export type Resultats = Page<PrestataireApi> & { analyse?: { secteurs: string[] } };
+/** Une prestation du catalogue et son prix (indicatif, ou celui du technicien). */
+export type PrestationApi = { slug: string; nom: string; prix: { min: number | null; max: number | null; affichage: string | null } };
+
+export type Resultats = Page<PrestataireApi & { prestation?: PrestationApi | null }> & {
+  analyse?: {
+    secteurs: string[];
+    /** Secteur en jeu (recherche, prestation ou catégorie choisie). */
+    secteur?: { cle: string; nom: string; categorie: string } | null;
+    /** Prestation reconnue dans la recherche (« tuyau cassé ») ou choisie en onglet. */
+    prestation?: PrestationApi | null;
+    /** Prestations du secteur en jeu, proposées en onglets. */
+    prestations?: PrestationApi[];
+  };
+};
 
 export type CriteresRecherche = {
   q?: string;
   categorie?: string;
+  /** Slug d'une prestation : techniciens qui la proposent, avec leur prix pour elle. */
+  prestation?: string;
   departement?: string;
   ville?: string;
   quartier?: number;

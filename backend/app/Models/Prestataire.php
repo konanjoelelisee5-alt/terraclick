@@ -48,6 +48,15 @@ class Prestataire extends Model
         return $this->belongsToMany(Categorie::class);
     }
 
+    /**
+     * Prestations proposées (catalogue), avec le prix propre au technicien (pivot) s'il en a
+     * fixé un. À ne pas confondre avec la colonne « prestations » (liste libre de la fiche).
+     */
+    public function offres(): BelongsToMany
+    {
+        return $this->belongsToMany(Prestation::class)->withPivot('prix_min', 'prix_max')->withTimestamps();
+    }
+
     public function documents(): HasMany
     {
         return $this->hasMany(DocumentPrestataire::class);

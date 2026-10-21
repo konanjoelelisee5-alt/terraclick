@@ -228,7 +228,7 @@ function ResultatsCartes() {
   // de titre ; la phrase du client est rappelée dessous.
   const demande = etat.filtre.q;
   const compris = demande ? (recherche.donnees?.analyse?.secteurs ?? []) : [];
-  const titre = compris.length ? compris.join(" ou ") : etat.titre;
+  const titre = recherche.donnees?.analyse?.prestation?.nom ?? (compris.length ? compris.join(" ou ") : etat.titre);
   // Une recherche BTP remplace le bandeau de suivi générique par l'accompagnement construction.
   // L'un et l'autre mènent au module Construction : sans lui (MVP), aucun des deux n'apparaît.
   const estBtp = CONFIG.moduleConstruction && REGEX_BTP.test(etat.titre || "");
@@ -515,7 +515,7 @@ function ResultatsCartes() {
                   {p.verifie && <Icon name="badge-check" size={17} color="var(--state-success)" style={{ flex: "none" }} />}
                 </div>
                 <span style={{ fontSize: "13.5px", color: "var(--color-accent-700)", marginTop: -3 }}>{p.metier}</span>
-                <span style={PRIX}>{p.prix}</span>
+                <span style={PRIX}>{p.prestation ? `${p.prestation} · ${p.prix}` : p.prix}</span>
                 <span style={META}>
                   <Icon name="star" size={14} fill="var(--rating)" color="var(--rating)" />
                   <strong style={{ color: "var(--color-text)" }}>{p.note}</strong> ({p.avis} avis)

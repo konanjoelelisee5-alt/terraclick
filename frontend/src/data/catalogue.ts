@@ -17,6 +17,8 @@ export type Prestataire = {
   desc: string;
   /** Toutes les pièces justificatives ont été contrôlées. */
   verifie?: boolean;
+  /** Prestation recherchée (« Réparation de tuyau cassé ») : `prix` est alors son prix. */
+  prestation?: string;
 };
 
 export const VILLES = ["Yamoussoukro", "Abidjan", "Bouaké", "Daloa"];

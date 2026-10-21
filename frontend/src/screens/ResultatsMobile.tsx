@@ -47,11 +47,31 @@ export function ResultatsMobile() {
   const demande = etat.filtre.q;
   const compris = demande ? (recherche.donnees?.analyse?.secteurs ?? []) : [];
   const titre = compris.length ? compris.join(" ou ") : etat.titre;
-  // Onglet souligné : le service choisi, ou le seul service compris dans la phrase.
-  const ongletActif =
-    SECTEURS.find((s) => s.categorie === etat.filtre.categorie)?.cle ??
-    (compris.length === 1 ? SECTEURS.find((s) => s.nom === compris[0])?.cle : undefined) ??
-    "tous";
+  // Un secteur est en jeu (plombier, tuyau cassé, onglet Plomberie) : les onglets deviennent
+  // ses prestations, pour découvrir tout ce que ses techniciens font. Sinon : les services.
+  const analyse = recherche.donnees?.analyse;
+  const secteurEnJeu = analyse?.secteur ?? null;
+  const prestation = analyse?.prestation ?? null;
+  const ongletsPrestations = secteurEnJeu && (analyse?.prestations?.length ?? 0) > 0;
+  const onglets: { cle: string; nom: string; lancer: () => void }[] = ongletsPrestations
+    ? [
+        { cle: "tous", nom: "Tous", lancer: () => rechercher(secteurEnJeu.nom, { categorie: secteurEnJeu.categorie }) },
+        ...analyse!.prestations!.map((p) => ({
+          cle: p.slug,
+          nom: p.nom,
+          lancer: () => rechercher(p.nom, { categorie: secteurEnJeu.categorie, prestation: p.slug }),
+        })),
+      ]
+    : [
+        { cle: "tous", nom: "Tous", lancer: () => rechercher(demande ?? "") },
+        ...SECTEURS.map((s) => ({ cle: s.cle, nom: s.nom, lancer: () => rechercher(s.nom, { categorie: s.categorie }) })),
+      ];
+  // Onglet souligné : la prestation, sinon le service choisi ou compris dans la phrase.
+  const ongletActif = ongletsPrestations
+    ? (prestation?.slug ?? "tous")
+    : (SECTEURS.find((s) => s.categorie === etat.filtre.categorie)?.cle ??
+      (compris.length === 1 ? SECTEURS.find((s) => s.nom === compris[0])?.cle : undefined) ??
+      "tous");
 
   const chercher = (texte = saisie) => rechercher(texte.trim());
 
@@ -116,21 +136,32 @@ export function ResultatsMobile() {
         )}
       </form>
 
-      {/* ---- Onglets : Tous, puis chaque service ---- */}
-      <nav aria-label="Services" data-r="onglets-resultats" style={{ display: "flex", gap: 22, overflowX: "auto", scrollbarWidth: "none", padding: `14px ${GOUTTIERE + 4}px 0`, borderBottom: "1px solid var(--color-divider)" }}>
-        {[{ cle: "tous", nom: "Tous" }, ...SECTEURS].map((s) => {
+      {/* ---- Onglets : les prestations du secteur en jeu, sinon les services ---- */}
+      <nav
+        aria-label={ongletsPrestations ? `Prestations ${secteurEnJeu!.nom}` : "Services"}
+        data-r="onglets-resultats"
+        style={{ display: "flex", alignItems: "center", gap: 22, overflowX: "auto", scrollbarWidth: "none", padding: `14px ${GOUTTIERE + 4}px 0`, borderBottom: "1px solid var(--color-divider)" }}
+      >
+        {ongletsPrestations && (
+          <button
+            data-r="tous-les-services"
+            onClick={() => rechercher("")}
+            aria-label="Tous les services"
+            title="Tous les services"
+            style={{ flex: "none", width: 36, height: 36, marginBottom: 6, display: "grid", placeItems: "center", border: "1px solid var(--color-divider)", borderRadius: 999, background: "none", color: GRIS, cursor: "pointer" }}
+          >
+            <Icon name="layout-grid" size={17} />
+          </button>
+        )}
+        {onglets.map((s) => {
           const actif = s.cle === ongletActif;
           return (
             <button
               key={s.cle}
+              // L'onglet actif est ramené dans l'écran (« Réparation de tuyau cassé » est loin à droite).
+              ref={actif ? (el) => el?.scrollIntoView({ block: "nearest", inline: "center" }) : undefined}
               aria-current={actif ? "page" : undefined}
-              onClick={() => {
-                if (s.cle === "tous") rechercher(demande ?? "");
-                else {
-                  const secteur = SECTEURS.find((x) => x.cle === s.cle)!;
-                  rechercher(secteur.nom, { categorie: secteur.categorie });
-                }
-              }}
+              onClick={s.lancer}
               style={{
                 flex: "none",
                 padding: "6px 0 10px",
@@ -153,8 +184,8 @@ export function ResultatsMobile() {
       {/* ---- Titre, nombre de résultats, Quartier et Trier ---- */}
       <div data-r="results-head" style={{ display: "flex", alignItems: "center", gap: 10, padding: `14px ${GOUTTIERE}px 4px` }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 data-r="results-titre" style={{ margin: 0, fontSize: "18px", fontWeight: 800, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            {titre}
+          <h1 data-r="results-titre" style={{ margin: 0, fontSize: "18px", fontWeight: 800, lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+            {prestation?.nom ?? titre}
           </h1>
           <span role="status" style={{ fontSize: "13px", color: GRIS }}>
             {recherche.chargement ? "Recherche en cours…" : `${total} résultat${total > 1 ? "s" : ""} · ${ville}`}
@@ -189,6 +220,12 @@ export function ResultatsMobile() {
 
       {/* ---- Conseil ---- */}
       <p data-r="conseil" style={{ margin: 0, padding: `6px ${GOUTTIERE}px 14px`, fontSize: "15px", lineHeight: 1.5, color: GRIS }}>
+        {prestation?.prix.affichage && (
+          <span data-r="prix-indicatif" style={{ display: "block", marginBottom: 4 }}>
+            Prix indicatif : <strong style={{ color: "var(--color-text)" }}>{prestation.prix.affichage}</strong>. Chaque technicien affiche le sien et le
+            confirme sur place.
+          </span>
+        )}
         {compris.length > 0 && demande !== titre ? (
           <>
             D'après votre demande « {demande} ». Vous hésitez ?{" "}
@@ -243,8 +280,16 @@ export function ResultatsMobile() {
               </div>
 
               <button onClick={voirFiche} data-r="titre-resultat" style={{ display: "block", width: "100%", margin: "10px 0 0", padding: 0, border: 0, background: "none", font: "inherit", textAlign: "left", cursor: "pointer", fontSize: "20px", lineHeight: 1.3, fontWeight: 500, color: "var(--color-accent-700)" }}>
-                {p.metier}
-                {p.quartier ? ` à ${p.quartier}` : ""} · {p.prix}
+                {p.prestation ? (
+                  <>
+                    {p.prestation} · {p.prix}
+                  </>
+                ) : (
+                  <>
+                    {p.metier}
+                    {p.quartier ? ` à ${p.quartier}` : ""} · {p.prix}
+                  </>
+                )}
               </button>
               {p.desc && (
                 <p style={{ margin: "6px 0 0", fontSize: "15px", lineHeight: 1.5, color: GRIS, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{p.desc}</p>

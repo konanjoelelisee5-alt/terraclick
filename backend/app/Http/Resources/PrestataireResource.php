@@ -29,6 +29,21 @@ class PrestataireResource extends JsonResource
                 'max' => $this->prix_max,
                 'affichage' => Montant::fourchette($this->prix_min, $this->prix_max),
             ],
+            // Recherche d'une prestation précise : son prix chez ce technicien (le sien s'il l'a
+            // fixé, sinon le prix indicatif de la prestation).
+            'prestation' => $this->whenLoaded('offres', function () {
+                $p = $this->offres->first();
+
+                return $p ? [
+                    'slug' => $p->slug,
+                    'nom' => $p->nom,
+                    'prix' => [
+                        'min' => $p->pivot->prix_min ?? $p->prix_min,
+                        'max' => $p->pivot->prix_max ?? $p->prix_max,
+                        'affichage' => $p->prixAffiche($p->pivot->prix_min, $p->pivot->prix_max),
+                    ],
+                ] : null;
+            }),
             'delai_reponse' => [
                 'minutes' => $this->delai_reponse_minutes,
                 'affichage' => Montant::delai($this->delai_reponse_minutes),

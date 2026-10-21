@@ -6,10 +6,11 @@ use App\Http\Requests\Annuaire\RechercherPrestatairesRequest;
 use App\Http\Resources\FicheProResource;
 use App\Http\Resources\PrestataireResource;
 use App\Models\Prestataire;
+use App\Models\Prestation;
 use App\Services\AnalyseurBesoin;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Str;
 
 class PrestataireController extends Controller
 {
@@ -31,10 +32,17 @@ class PrestataireController extends Controller
     {
         $requete = $this->requeteDeBase()->with(['categories' => fn ($c) => $c->ouvertes()]);
         $secteurs = [];
+        $prestation = ($slug = $request->validated('prestation')) ? Prestation::where('slug', $slug)->first() : null;
 
         if ($q = $request->validated('q')) {
             // « plombier », « plomberie » ou « ma douche fuit » : le secteur reconnu prime sur le texte.
             $secteurs = $this->analyseur->analyser($q);
+            // « tuyau cassé » : la prestation précise, cherchée dans les secteurs reconnus.
+            $prestation ??= $this->analyseur->prestationReconnue($q, array_column($secteurs, 'cle'));
+            // Plusieurs secteurs possibles (« porte bloquée ») : la prestation tranche.
+            if ($prestation && count($secteurs) > 1) {
+                $secteurs = array_values(array_filter($secteurs, fn (array $s) => $s['cle'] === $prestation->secteur)) ?: $secteurs;
+            }
 
             if ($secteurs !== []) {
                 $slugs = array_merge(...array_column($secteurs, 'categories'));
@@ -48,6 +56,12 @@ class PrestataireController extends Controller
         // exerce aussi un métier ouvert.
         if ($categorie = $request->validated('categorie')) {
             $requete->whereHas('categories', fn (Builder $c) => $c->ouvertes()->where('slug', $categorie));
+        }
+
+        // Une prestation précise : les techniciens qui la proposent, avec leur prix pour elle.
+        if ($prestation) {
+            $requete->whereHas('offres', fn (Builder $p) => $p->whereKey($prestation->id))
+                ->with(['offres' => fn ($p) => $p->whereKey($prestation->id)]);
         }
 
         if ($departement = $request->validated('departement')) {
@@ -94,9 +108,40 @@ class PrestataireController extends Controller
         return PrestataireResource::collection(
             $requete->orderBy('id')->paginate($request->validated('par_page') ?? 20)->withQueryString()
         )->additional([
-            // Ce que la recherche a compris de la demande, pour l'annoncer au client.
-            'analyse' => ['secteurs' => array_column($secteurs, 'nom')],
+            // Ce que la recherche a compris de la demande, pour l'annoncer au client, et les
+            // prestations du secteur en jeu, que l'application propose en onglets.
+            'analyse' => [
+                'secteurs' => array_column($secteurs, 'nom'),
+                ...$this->contexte($prestation, $secteurs, $request->validated('categorie')),
+            ],
         ]);
+    }
+
+    /**
+     * Le secteur en jeu (prestation, secteur reconnu unique ou catégorie choisie), la
+     * prestation reconnue et les prestations de ce secteur.
+     *
+     * @param  array<int, array{cle: string}>  $secteurs
+     * @return array{secteur: ?array{cle: string, nom: string}, prestation: ?array<string, mixed>, prestations: list<array<string, mixed>>}
+     */
+    private function contexte(?Prestation $prestation, array $secteurs, ?string $categorie): array
+    {
+        $ouverts = $this->analyseur->secteursOuverts();
+        $cle = $prestation?->secteur
+            ?? (count($secteurs) === 1 ? $secteurs[0]['cle'] : null)
+            ?? ($categorie ? (collect($ouverts)->search(fn (array $s) => in_array($categorie, $s['categories'], true)) ?: null) : null);
+
+        $enTableau = fn (Prestation $p) => [
+            'slug' => $p->slug,
+            'nom' => $p->nom,
+            'prix' => ['min' => $p->prix_min, 'max' => $p->prix_max, 'affichage' => $p->prixAffiche()],
+        ];
+
+        return [
+            'secteur' => $cle && isset($ouverts[$cle]) ? ['cle' => $cle, 'nom' => $ouverts[$cle]['nom'], 'categorie' => $ouverts[$cle]['categories'][0]] : null,
+            'prestation' => $prestation ? $enTableau($prestation) : null,
+            'prestations' => $cle ? Prestation::where('secteur', $cle)->orderBy('ordre')->get()->map($enTableau)->all() : [],
+        ];
     }
 
     /**

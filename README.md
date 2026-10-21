@@ -169,6 +169,15 @@ commentaires » sont affichés, marqués « Bientôt ». Chaque recherche est en
 (`POST /api/recherches`, table `recherches`) ; « Supprimer les données de navigation » la
 masque pour l'utilisateur (`efface_le`) mais l'administration la garde.
 
+**Prestations et prix** (table `prestations`, `database/seeders/PrestationSeeder.php`) : chaque
+secteur a ses prestations (plomberie : fuite, tuyau cassé, débouchage, robinet, chauffe-eau,
+pompe, installation sanitaire…), avec des mots-clés pondérés et un **prix indicatif à valider
+avec les techniciens**. Une recherche précise (« tuyau cassé ») reconnaît la prestation, montre
+les techniciens qui la proposent (`prestataire_prestation`) et affiche son prix chez chacun (le
+sien s'il l'a fixé, sinon l'indicatif). Les onglets des résultats deviennent les prestations du
+secteur en jeu. API : `GET /api/prestataires?q=…` ou `?prestation=slug`, réponse `analyse.secteur`,
+`analyse.prestation`, `analyse.prestations`.
+
 **Résultats sur téléphone** (`resultatsMobile: "moteur"`) : la page de résultats suit la mise en
 page d'un moteur de recherche (`screens/ResultatsMobile.tsx`) : barre de recherche (effacer,
 micro), onglets Tous puis les services, conseil, puis chaque technicien en résultat (nom en

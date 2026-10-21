@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Prestation;
 use Illuminate\Support\Str;
 
 /**
@@ -14,7 +15,7 @@ class AnalyseurBesoin
 {
     /**
      * @return array<int, array{cle: string, nom: string, categories: list<string>, score: int}>
-     *         Les secteurs retenus (ex æquo au meilleur score), vide si rien n'est reconnu.
+     *                                                                                           Les secteurs retenus (ex æquo au meilleur score), vide si rien n'est reconnu.
      */
     public function analyser(string $demande): array
     {
@@ -79,6 +80,40 @@ class AnalyseurBesoin
         }
 
         return null;
+    }
+
+    /**
+     * La prestation que la demande décrit le mieux (« tuyau cassé » → « Réparation de tuyau
+     * cassé »), parmi celles des secteurs donnés (tous les secteurs ouverts sinon). Il faut au
+     * moins un mot propre à la prestation (score de 3 : « porte » seul ne suffit pas) ; à égalité, la première du catalogue l'emporte.
+     *
+     * @param  list<string>  $secteurs  clés de secteurs où chercher
+     */
+    public function prestationReconnue(string $demande, array $secteurs = []): ?Prestation
+    {
+        $texte = $this->normaliser($demande);
+        if ($texte === '') {
+            return null;
+        }
+        $mots = explode(' ', $texte);
+        $ouverts = array_keys($this->secteursOuverts());
+        $candidats = $secteurs !== [] ? array_values(array_intersect($secteurs, $ouverts)) : $ouverts;
+
+        $meilleure = null;
+        $meilleurScore = 2;
+        foreach (Prestation::whereIn('secteur', $candidats)->orderBy('secteur')->orderBy('ordre')->get() as $prestation) {
+            $score = 0;
+            foreach ($prestation->mots as $motCle => $poids) {
+                if ($this->reconnait($motCle, $texte, $mots)) {
+                    $score += $poids;
+                }
+            }
+            if ($score > $meilleurScore) {
+                [$meilleure, $meilleurScore] = [$prestation, $score];
+            }
+        }
+
+        return $meilleure;
     }
 
     /** Minuscules, sans accents ; apostrophes, tirets et ponctuation deviennent des espaces. */

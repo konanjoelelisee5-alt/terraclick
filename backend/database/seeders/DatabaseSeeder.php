@@ -11,7 +11,8 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        $this->call(CatalogueSeeder::class);
+        // Référentiels : catalogue de l'annuaire et prestations des secteurs (prix indicatifs).
+        $this->call([CatalogueSeeder::class, PrestationSeeder::class]);
 
         // Contenu fictif : à ne pas charger en production.
         if (! app()->isProduction()) {

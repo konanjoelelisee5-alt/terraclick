@@ -1,10 +1,11 @@
 import type { Prestataire } from "../data/catalogue";
-import type { PrestataireApi } from "./api";
+import type { PrestataireApi, PrestationApi } from "./api";
 
 /** Une recherche : ce qui est envoyé à l'API, à côté du titre affiché. */
 export type Filtre = {
   q?: string;
   categorie?: string;
+  prestation?: string;
   departement?: string;
   tri?: "pertinence" | "note" | "avis" | "distance" | "reponse";
 };
@@ -28,7 +29,7 @@ export function noteFr(note: number): string {
  * Convertit un prestataire de l'API vers la carte utilisée par les écrans
  * (résultats, carte, messagerie), qui manipulent des libellés prêts à afficher.
  */
-export function versPrestataire(p: PrestataireApi): Prestataire {
+export function versPrestataire(p: PrestataireApi & { prestation?: PrestationApi | null }): Prestataire {
   return {
     id: p.id,
     ini: p.initiales,
@@ -36,7 +37,9 @@ export function versPrestataire(p: PrestataireApi): Prestataire {
     metier: p.metier,
     note: noteFr(p.note),
     avis: p.nombre_avis,
-    prix: p.prix.affichage ?? "Sur devis",
+    // Recherche d'une prestation précise : son prix chez ce technicien, à la place de sa fourchette générale.
+    prix: p.prestation?.prix.affichage ?? p.prix.affichage ?? "Sur devis",
+    prestation: p.prestation?.nom,
     delai: p.delai_reponse.affichage ?? "",
     quartier: p.quartier?.nom ?? "",
     dist: p.distance_km !== undefined ? `${String(p.distance_km).replace(".", ",")} km` : "",

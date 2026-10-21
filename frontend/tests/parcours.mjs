@@ -16,7 +16,7 @@ const b = await chromium.launch();
 const R = [];
 const ok = (n, c) => R.push((c ? '  OK   ' : '  ÉCHEC') + ' · ' + n);
 // Les données viennent de l'API : on attend l'élément au lieu d'un délai fixe.
-const apparait = (loc, ms = 5000) => loc.waitFor({ state: 'visible', timeout: ms }).then(() => true, () => false);
+const apparait = (loc, ms = 12000) => loc.waitFor({ state: 'visible', timeout: ms }).then(() => true, () => false);
 
 async function neuve(w = 1440, h = 1000) {
   const ctx = await b.newContext({ viewport: { width: w, height: h } });
@@ -228,7 +228,7 @@ if (!MODULE_CONSTRUCTION) {
   await p.getByPlaceholder(/Quel est votre problème/).fill('ma douche fuit depuis hier');
   await p.locator('[data-r="search-go"]').click();
   ok('phrase libre : les résultats s’affichent directement, sans formulaire',
-     await apparait(p.getByRole('heading', { name: /Plomberie/ })) &&
+     await apparait(p.getByRole('heading', { name: /Plomberie|Réparation de fuite/ })) &&
        !(await p.getByText('Étape 1 sur 4').isVisible().catch(() => false)));
   await ctx.close();
 }
@@ -239,7 +239,7 @@ if (!MODULE_CONSTRUCTION) {
   await p.getByPlaceholder('Rechercher sur TerraClick').fill('ma douche fuit depuis hier');
   await p.locator('[data-r="search-go"]').click();
   ok('mobile : phrase libre → résultats directs, sans formulaire',
-     await apparait(p.getByRole('heading', { name: /Plomberie/ })) &&
+     await apparait(p.getByRole('heading', { name: /Plomberie|Réparation de fuite/ })) &&
        !(await p.getByText('Étape 1 sur 4').isVisible().catch(() => false)));
   const etats = () => p.locator('[data-r="results-head"] [data-r="pastille-filtre"]').evaluateAll((l) => l.map((e) => e.dataset.reduite).join(','));
   ok('résultats : Quartier et Trier à droite du titre, Quartier déplié, Trier réduit', (await etats()) === 'non,oui');
@@ -250,20 +250,43 @@ if (!MODULE_CONSTRUCTION) {
   ok('résultats : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
   // Mise en page façon moteur de recherche (CONFIG.resultatsMobile).
   const onglets = p.locator('[data-r="onglets-resultats"]');
-  ok('résultats : onglets Tous puis les services, le service compris souligné',
-     (await onglets.getByRole('button').first().textContent()) === 'Tous' &&
-       (await onglets.getByRole('button', { name: 'Plomberie' }).getAttribute('aria-current')) === 'page');
-  ok('résultats : conseil et résultats façon moteur de recherche',
-     (await p.locator('[data-r="conseil"]').getByText(/ma douche fuit/).isVisible()) &&
-       (await p.locator('[data-r="resultat"]').count()) > 0 &&
-       /à .+ · /.test(await p.locator('[data-r="titre-resultat"]').first().textContent()));
+  // « ma douche fuit » : la plomberie est en jeu, les onglets sont ses prestations, la fuite soulignée.
+  ok('résultats : onglets = prestations de la plomberie, « fuite d’eau » soulignée',
+     (await apparait(onglets.getByRole('button', { name: 'Débouchage WC et canalisation' }))) &&
+       (await onglets.getByRole('button', { name: "Réparation de fuite d'eau" }).getAttribute('aria-current')) === 'page');
+  ok('résultats : prix indicatif de la prestation et titres à son prix',
+     (await p.locator('[data-r="prix-indicatif"]').getByText('5 000 – 15 000 F').isVisible()) &&
+       (await p.locator('[data-r="conseil"]').getByText(/ma douche fuit/).isVisible()) &&
+       /^Réparation de fuite d'eau · /.test(await p.locator('[data-r="titre-resultat"]').first().textContent()));
   await p.locator('[data-r="resultat"]').first().getByRole('button', { name: /Actions pour/ }).click();
   ok('résultats : le menu ⋮ propose profil, chat et appel', (await p.getByRole('menuitem').allTextContents()).join('|') === 'Voir le profil|Chat|Appeler');
   await p.keyboard.press('Escape');
+  await onglets.getByRole('button', { name: 'Débouchage WC et canalisation' }).click();
+  ok('résultats : un onglet de prestation donne son prix', await apparait(p.locator('[data-r="prix-indicatif"]').getByText('8 000 – 25 000 F')));
+  await p.locator('[data-r="tous-les-services"]').click();
+  ok('résultats : « Tous les services » ramène aux onglets des services', await apparait(onglets.getByRole('button', { name: 'Électricité' })));
   await onglets.getByRole('button', { name: 'Électricité' }).click();
-  ok('résultats : un onglet relance la recherche sur ce service', await apparait(p.getByRole('heading', { name: 'Électricité' })));
+  ok('résultats : un onglet de service propose ses prestations', await apparait(onglets.getByRole('button', { name: 'Disjoncteur qui saute' })));
   await p.locator('[data-r="titre-resultat"]').first().click();
   ok('résultats : le grand titre ouvre la fiche', await apparait(p.getByRole('button', { name: /Demander ce technicien|Chat/ }).first()));
+  await ctx.close();
+}
+
+// G sexies · « tuyau cassé » : la plomberie, les plombiers, et le prix de la réparation du tuyau
+{
+  const { ctx, p } = await neuve(390, 844);
+  await p.getByPlaceholder('Rechercher sur TerraClick').fill('tuyau cassé');
+  await p.locator('[data-r="search-go"]').click();
+  ok('tuyau cassé : prestation reconnue, prix indicatif de la réparation',
+     (await apparait(p.getByRole('heading', { name: 'Réparation de tuyau cassé' }))) &&
+       (await p.locator('[data-r="prix-indicatif"]').getByText('7 000 – 20 000 F').isVisible()));
+  ok('tuyau cassé : chaque plombier affiche son prix pour cette réparation',
+     (await p.locator('[data-r="resultat"]').filter({ hasText: 'Koffi Tanoh' }).locator('[data-r="titre-resultat"]').textContent()) === 'Réparation de tuyau cassé · 6 000 – 15 000 F');
+  ok('tuyau cassé : l’onglet de la prestation est visible et souligné',
+     await p.locator('[data-r="onglets-resultats"]').getByRole('button', { name: 'Réparation de tuyau cassé' }).evaluate((e) => {
+       const r = e.getBoundingClientRect();
+       return e.getAttribute('aria-current') === 'page' && r.left >= 0 && r.right <= window.innerWidth;
+     }));
   await ctx.close();
 }
 

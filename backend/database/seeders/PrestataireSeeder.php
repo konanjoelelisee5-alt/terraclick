@@ -148,5 +148,8 @@ class PrestataireSeeder extends Seeder
                 $prestataire->realisations()->updateOrCreate(['legende' => $legende], ['ordre' => $ordre]);
             }
         }
+
+        // Les techniciens ajoutés reçoivent les prestations de leurs secteurs.
+        $this->call(PrestationSeeder::class);
     }
 }
