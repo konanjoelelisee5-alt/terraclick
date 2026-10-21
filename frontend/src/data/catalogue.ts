@@ -28,8 +28,8 @@ export const VILLES = ["Yamoussoukro", "Abidjan", "Bouaké", "Daloa"];
  * masqués, pas supprimés : le README en tient la liste, et l'API applique la même
  * règle (backend/config/mvp.php). `categorie` est le slug de l'annuaire.
  *
- * `image` : photo du secteur (public/images/secteurs/, WebP 800 px). Photos provisoires ;
- * sans image, l'icône prend le relais (plomberie, en attente de photo).
+ * `image` : photo du secteur (public/images/secteurs/, WebP 800 px). Les six secteurs ont
+ * leur photo ; sans image, l'icône prendrait le relais.
  */
 export type Secteur = {
   /** Clé partagée avec l'API (config/secteurs.php). */
@@ -44,7 +44,7 @@ export type Secteur = {
 const PHOTOS = `${import.meta.env.BASE_URL}images/secteurs/`;
 
 export const SECTEURS: readonly Secteur[] = [
-  { cle: "plomberie", nom: "Plomberie", metier: "Plombier", icone: "droplets", categorie: "plombiers" },
+  { cle: "plomberie", nom: "Plomberie", metier: "Plombier", icone: "droplets", categorie: "plombiers", image: `${PHOTOS}plomberie.webp` },
   { cle: "electricite", nom: "Électricité", metier: "Électricien", icone: "zap", categorie: "electriciens", image: `${PHOTOS}electricite.webp` },
   {
     cle: "climatisation",
