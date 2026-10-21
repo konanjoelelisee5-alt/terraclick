@@ -34,9 +34,12 @@ export const CONFIG = {
   /**
    * Accueil sur téléphone (screens/home/AccueilMobile.tsx) :
    *  - « epuree » : accroche, recherche, deux actions, services, prestataires à la une, confiance ;
-   *  - « riche »  : la même chose, plus problèmes fréquents, « Comment ça marche » et l'appel aux techniciens.
+   *  - « riche »  : la même chose, plus problèmes fréquents, « Comment ça marche » et l'appel aux techniciens ;
+   *  - « fil »    : disposition d'une page d'accueil de navigateur (screens/home/AccueilFil.tsx) :
+   *                 nom TerraClick au centre, grande barre de recherche, raccourcis des secteurs
+   *                 récents, puis le fil d'actualité de la plateforme.
    */
-  accueilMobile: "epuree" as "epuree" | "riche",
+  accueilMobile: "fil" as "epuree" | "riche" | "fil",
   /**
    * Boutons « Urgence » et « Programmer » sous l'en-tête de l'accueil mobile. Masqués pour
    * le moment (voir le README) ; `true` les rebranche.

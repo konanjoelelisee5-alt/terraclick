@@ -86,6 +86,19 @@ export type Utilisateur = {
 /** Session ouverte par l'API : le jeton à garder et le compte. */
 export type Session = { token: string; utilisateur: Utilisateur };
 
+/** Élément du fil d'actualité de l'accueil (GET /api/actualites). */
+export type ActualiteApi = {
+  id: string;
+  type: "nouveau" | "avis" | "realisation";
+  titre: string;
+  texte: string | null;
+  note: number | null;
+  date: string;
+  /** « 8 h », « 3 j » : prêt à afficher. */
+  date_relative: string;
+  prestataire: { id: number; nom: string; metier: string; initiales: string; quartier: string | null; categorie: string | null };
+};
+
 export type Page<T> = { data: T[]; meta: { total: number; current_page: number; last_page: number } };
 
 /** Un service ouvert et ses problèmes types (première question de l'assistant). */
@@ -251,6 +264,8 @@ export const api = {
     requete<Resultats>(`/prestataires${parametres(criteres)}`, { signal }),
   vedettes: (signal?: AbortSignal) =>
     requete<{ data: PrestataireApi[] }>("/prestataires/vedettes", { signal }).then((r) => r.data),
+  actualites: (page: number, signal?: AbortSignal) =>
+    requete<{ data: ActualiteApi[]; meta: { page: number; suivante: number | null } }>(`/actualites?page=${page}`, { signal }),
   fiche: (id: number, signal?: AbortSignal) =>
     requete<{ data: FicheApi }>(`/prestataires/${id}`, { signal }).then((r) => r.data),
   /* Assistant de besoin et demandes */

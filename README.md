@@ -150,6 +150,15 @@ L'accueil reste en mode recherche.
 La vue carte (`components/MapCanvas.tsx`) plaçait les prestataires trouvés sur une carte
 au-dessus de la liste, et elle était réservée aux clients inscrits.
 
+**Accueil mobile précédent** (`accueilMobile: "fil"`) : l'accueil sur téléphone suit
+désormais la disposition d'une page d'accueil de navigateur (`screens/home/AccueilFil.tsx`) :
+ville, cloche et photo en haut ; nom TerraClick au centre ; grande barre de recherche (logo,
+micro, appareil photo) ; raccourcis des secteurs, les plus cherchés récemment sur l'appareil
+d'abord ; entrée « Devenir partenaire » ; puis le fil d'actualité de la plateforme
+(`GET /api/actualites` : nouveaux techniciens, avis, réalisations, chargé au défilement).
+L'accueil précédent (en-tête orange « Salut, … », filtres de ville, prestataires à la une,
+besoin guidé) reste dans `screens/home/AccueilMobile.tsx` : `"epuree"` ou `"riche"` le rebranche.
+
 **Boutons « Urgence » et « Programmer » de l'accueil mobile** (`actionsAccueilMobile: false`) :
 les deux boutons côte à côte sous l'en-tête orange (`screens/home/AccueilMobile.tsx`) sont
 masqués pour le moment. « Urgence » ouvrait l'assistant de demande avec une intervention

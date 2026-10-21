@@ -236,7 +236,7 @@ if (!MODULE_CONSTRUCTION) {
 // G quinquies · Sur téléphone aussi, la recherche affiche directement les résultats
 {
   const { ctx, p } = await neuve(390, 844);
-  await p.getByPlaceholder('Rechercher un artisan...').fill('ma douche fuit depuis hier');
+  await p.getByPlaceholder('Rechercher sur TerraClick').fill('ma douche fuit depuis hier');
   await p.locator('[data-r="search-go"]').click();
   ok('mobile : phrase libre → résultats directs, sans formulaire',
      await apparait(p.getByRole('heading', { name: /Plomberie/ })) &&
@@ -453,35 +453,40 @@ const numeroInscrit = numeroNeuf();
   await p.getByRole('tab', { name: 'Inscription' }).click();
   ok('bascule vers l’inscription', await apparait(p.getByRole('button', { name: /Créer mon compte/ })));
   await p.getByRole('button', { name: "Retour à l'accueil", exact: true }).click();
-  ok('flèche retour : accueil en visiteur', await apparait(p.locator('[data-r="accueil-mobile"]')));
+  ok('flèche retour : accueil en visiteur', await apparait(p.locator('[data-r="accueil-fil"]')));
   await ctx.close();
 }
 
-// K bis · Accueil mobile : logo seulement dans l'en-tête, deux actions, 4 onglets, rien qui déborde
+// K bis · Accueil mobile « fil » (CONFIG.accueilMobile) : nom au centre, recherche, raccourcis, fil d'actualité
 {
   const { ctx, p } = await neuve(390, 844);
-  await p.waitForTimeout(500);
-  const accueil = p.locator('[data-r="accueil-mobile"]');
-  ok('accueil mobile : en-tête orange avec salutation et accroche, sans logo',
-     (await accueil.getByRole('heading', { name: /Salut/ }).isVisible()) &&
-       (await accueil.getByText("Trouvez l'artisan qu'il vous faut !").isVisible()) &&
-       (await accueil.locator('[data-r="hero-marque"]').count()) === 0);
-  ok('accueil mobile : pas de menu des catégories dans la recherche', (await p.locator('[data-r="search-depts"]').count()) === 0);
-  ok('accueil mobile : « Urgence » et « Programmer » masqués pour le moment',
-     await p.evaluate(() => ![...document.querySelectorAll('[data-r="accueil-mobile"] button')].some((b) => /^(Urgence|Programmer)$/.test(b.textContent.trim()))));
+  const accueil = p.locator('[data-r="accueil-fil"]');
+  ok('accueil fil : nom TerraClick au centre, sans autre en-tête',
+     (await apparait(accueil.getByRole('heading', { level: 1, name: 'TerraClick' }))) && (await p.locator('header').count()) === 0);
+  ok('accueil fil : ville, cloche et profil en haut',
+     (await accueil.getByLabel(/Votre ville/).count()) === 1 &&
+       (await accueil.getByRole('button', { name: 'Notifications' }).isVisible()) &&
+       (await p.locator('[data-r="fil-avatar"]').isVisible()));
+  ok('accueil fil : barre de recherche avec logo et appareil photo',
+     (await accueil.getByPlaceholder('Rechercher sur TerraClick').isVisible()) &&
+       (await accueil.getByRole('button', { name: 'Montrer le problème en photo' }).isVisible()));
+  ok('accueil fil : ni « Urgence » ni « Programmer »',
+     await p.evaluate(() => ![...document.querySelectorAll('[data-r="accueil-fil"] button')].some((b) => /^(Urgence|Programmer)$/.test(b.textContent.trim()))));
+  const raccourcis = () => p.locator('[data-r="raccourcis"] button').allTextContents();
+  ok('raccourcis : les cinq secteurs', (await raccourcis()).length === 5);
+  ok('fil d’actualité : de vraies activités de la plateforme', await apparait(p.locator('[data-r="actualite"]').first()));
   const onglets = await p.locator('[data-r="tabbar"] button').allTextContents();
   ok('barre du bas : Accueil, Favoris, Messages, Profil', onglets.join('|') === 'Accueil|Favoris|Messages|Profil');
-  ok('en-tête de l’accueil : cloche, recherche « Rechercher un artisan... » et bouton Filtres',
-     (await accueil.getByRole('button', { name: 'Notifications' }).isVisible()) &&
-       (await accueil.getByPlaceholder('Rechercher un artisan...').isVisible()) &&
-       (await p.locator('[data-r="ouvrir-filtres"]').isVisible()) &&
-       (await p.locator('header').getByText('TerraClick').count()) === 0);
-  await p.locator('[data-r="ouvrir-filtres"]').click();
-  ok('Filtres : les 4 villes au choix', (await p.locator('[data-r="filtre-villes"] [role="radio"]').count()) === 4);
-  await p.locator('[data-r="filtre-villes"]').getByRole('radio', { name: 'Abidjan' }).click();
-  await p.getByRole('button', { name: 'Appliquer' }).click();
-  ok('Filtres : la ville choisie est appliquée', (await p.locator('[data-r="ouvrir-filtres"]').getAttribute('aria-label')) === 'Filtres (ville : Abidjan)');
   ok('accueil mobile : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+
+  // Un secteur cherché passe en tête des raccourcis.
+  await p.locator('[data-r="raccourcis"]').getByRole('button', { name: 'Menuiserie' }).click();
+  ok('raccourci : résultats du secteur', await apparait(p.getByRole('heading', { name: 'Menuiserie' })));
+  await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Accueil/ }).click();
+  await apparait(accueil);
+  ok('raccourcis : le secteur cherché récemment passe en tête', (await raccourcis())[0] === 'Menuiserie');
+  await p.locator('[data-r="actualite"]').first().click();
+  ok('une actualité ouvre la fiche du technicien', await apparait(p.getByRole('button', { name: /Demander ce technicien|Chat/ }).first()));
   await ctx.close();
 }
 
@@ -517,8 +522,8 @@ const numeroInscrit = numeroNeuf();
   ok('photo de profil ajoutée', await apparait(profil.locator('[data-r="carte-identite"] img')));
   await p.reload({ waitUntil: 'domcontentloaded' });
   await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Accueil/ }).click();
-  ok('accueil connecté : « Salut, Aya » dans l’en-tête orange', await apparait(p.locator('[data-r="salutation"]').getByRole('heading', { name: /Salut, Aya/ })));
-  await p.locator('[data-r="salutation"]').click();
+  ok('accueil connecté : la photo de profil en haut à droite', await apparait(p.locator('[data-r="fil-avatar"] img')));
+  await p.locator('[data-r="fil-avatar"]').click();
   ok('photo gardée en base : visible dans le profil après rechargement', await apparait(profil.locator('[data-r="carte-identite"] img')));
   await p.getByRole('button', { name: 'Retirer la photo' }).click();
   ok('photo retirée : les initiales reviennent', await apparait(p.locator('[data-r="carte-identite"]').getByText('AK')));

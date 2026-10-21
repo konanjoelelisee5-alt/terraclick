@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActualiteController;
 use App\Http\Controllers\AnnuaireController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AvisController;
@@ -33,6 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Assistant de besoin, en accès libre jusqu'à la confirmation
+Route::get('actualites', [ActualiteController::class, 'index']);
 Route::get('secteurs', [BesoinController::class, 'secteurs']);
 Route::get('analyse', [BesoinController::class, 'analyse']);
 Route::get('recommandations', [BesoinController::class, 'recommandations']);

@@ -73,7 +73,8 @@ const CONSIGNES: Record<Appareil, ReactNode[]> = {
   ],
 };
 
-export function BandeauInstallation({ style }: { style?: React.CSSProperties }) {
+/** `sobre` : bouton neutre au lieu d'orange, pour les pages où l'orange doit rester rare. */
+export function BandeauInstallation({ style, sobre = false }: { style?: React.CSSProperties; sobre?: boolean }) {
   const [evenement, setEvenement] = useState<EvenementInstallation | null>(propositionEnAttente);
   const [installee, setInstallee] = useState(dejaInstallee);
   const [consignes, setConsignes] = useState(false);
@@ -161,7 +162,7 @@ export function BandeauInstallation({ style }: { style?: React.CSSProperties }) 
       <button
         onClick={telecharger}
         aria-expanded={evenement ? undefined : consignes}
-        className="sy-btn sy-btn--primary sy-btn--md"
+        className={`sy-btn ${sobre ? "sy-btn--outline" : "sy-btn--primary"} sy-btn--md`}
         style={{ minHeight: 46, gap: 8, justifyContent: "center", boxShadow: "none" }}
       >
         <Icon name="download" size={18} strokeWidth={2.25} />

@@ -14,6 +14,7 @@ import { VisuelSecteur } from "../components/VisuelSecteur";
 import { ModeCarte } from "./home/ModeCarte";
 import { ModeBox } from "./home/ModeBox";
 import { AccueilMobile } from "./home/AccueilMobile";
+import { AccueilFil } from "./home/AccueilFil";
 import { BandeauInstallation } from "../components/Installer";
 import { useEstMobile } from "../lib/useEstMobile";
 
@@ -37,7 +38,7 @@ export function Home() {
 
   // Téléphone et tablette : un accueil propre au format mobile (logo seulement dans l'en-tête).
   const estMobile = useEstMobile();
-  if (estMobile) return <AccueilMobile />;
+  if (estMobile) return CONFIG.accueilMobile === "fil" ? <AccueilFil /> : <AccueilMobile />;
 
   return (
     <main>
