@@ -433,11 +433,11 @@ const numeroInscrit = numeroNeuf();
   await ancien.ctx.close();
 }
 
-// K · Sur téléphone, la photo de profil de l'en-tête mène à la page de connexion pour un visiteur
+// K · Sur téléphone, l'onglet « Profil » mène à la page de connexion pour un visiteur
 {
   const { ctx, p } = await neuve(390, 844);
-  await p.locator('[data-r="fil-avatar"]').click();
-  ok('mobile : la photo de profil ouvre la page Connexion', await apparait(p.getByRole('tab', { name: 'Connexion', selected: true })));
+  await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Profil/ }).click();
+  ok('mobile : l’onglet Profil ouvre la page Connexion', await apparait(p.getByRole('tab', { name: 'Connexion', selected: true })));
   ok('mobile : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
   await ctx.close();
 }
@@ -457,14 +457,14 @@ const numeroInscrit = numeroNeuf();
   await ctx.close();
 }
 
-// K bis · Accueil mobile « fil » (CONFIG.accueilMobile) : logo en haut, recherche, raccourcis, fil d'actualité
+// K bis · Accueil mobile « fil » (CONFIG.accueilMobile) : nom au centre, recherche, raccourcis, fil d'actualité
 {
   const { ctx, p } = await neuve(390, 844);
   const accueil = p.locator('[data-r="accueil-fil"]');
-  ok('accueil fil : logo TerraClick en haut, sans autre en-tête',
+  ok('accueil fil : nom TerraClick au centre, sans autre en-tête',
      (await apparait(accueil.getByRole('heading', { level: 1, name: 'TerraClick' }))) && (await p.locator('header').count()) === 0);
   ok('accueil fil : ville, cloche et profil en haut',
-     (await accueil.getByLabel(/Choisir la ville/).count()) === 1 &&
+     (await accueil.getByLabel(/Votre ville/).count()) === 1 &&
        (await accueil.getByRole('button', { name: 'Notifications' }).isVisible()) &&
        (await p.locator('[data-r="fil-avatar"]').isVisible()));
   ok('accueil fil : barre de recherche avec logo et appareil photo',
@@ -476,14 +476,14 @@ const numeroInscrit = numeroNeuf();
   ok('raccourcis : les cinq secteurs', (await raccourcis()).length === 5);
   ok('fil d’actualité : de vraies activités de la plateforme', await apparait(p.locator('[data-r="actualite"]').first()));
   const onglets = await p.locator('[data-r="tabbar"] button').allTextContents();
-  ok('barre du bas : Favoris et Messages seulement', onglets.join('|') === 'Favoris|Messages');
+  ok('barre du bas : Accueil, Favoris, Messages, Profil', onglets.join('|') === 'Accueil|Favoris|Messages|Profil');
   ok('accueil mobile : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
 
-  // Un secteur cherché passe en tête des raccourcis ; le logo de l'en-tête ramène à l'accueil.
+  // Un secteur cherché passe en tête des raccourcis.
   await p.locator('[data-r="raccourcis"]').getByRole('button', { name: 'Menuiserie' }).click();
   ok('raccourci : résultats du secteur', await apparait(p.getByRole('heading', { name: 'Menuiserie' })));
-  await p.getByRole('button', { name: "TerraClick, retour à l'accueil" }).click();
-  ok('le logo de l’en-tête ramène à l’accueil', await apparait(accueil));
+  await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Accueil/ }).click();
+  await apparait(accueil);
   ok('raccourcis : le secteur cherché récemment passe en tête', (await raccourcis())[0] === 'Menuiserie');
   await p.locator('[data-r="actualite"]').first().click();
   ok('une actualité ouvre la fiche du technicien', await apparait(p.getByRole('button', { name: /Demander ce technicien|Chat/ }).first()));
@@ -493,7 +493,7 @@ const numeroInscrit = numeroNeuf();
 // K ter · Profil sur téléphone : grand titre sans logo ni ville, carte d'identité, menu, titre réduit au défilement
 {
   const { ctx, p } = await neuve(390, 844);
-  await p.locator('[data-r="fil-avatar"]').click();
+  await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Profil/ }).click();
   await connecterPage(p);
   const profil = p.locator('[data-r="profil-mobile"]');
   ok('profil mobile : écran Profil après connexion', await apparait(profil));
@@ -521,8 +521,7 @@ const numeroInscrit = numeroNeuf();
   await profil.locator('[data-r="carte-identite"] input[type="file"]').setInputFiles({ name: 'moi.png', mimeType: 'image/png', buffer: png });
   ok('photo de profil ajoutée', await apparait(profil.locator('[data-r="carte-identite"] img')));
   await p.reload({ waitUntil: 'domcontentloaded' });
-  // Avec une session, l'application rouvre l'accueil ; sinon, le bouton « Accueil » y mène.
-  if (!(await apparait(p.locator('[data-r="accueil-fil"]'), 1500))) await p.getByRole('button', { name: 'Accueil', exact: true }).click();
+  await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Accueil/ }).click();
   ok('accueil connecté : la photo de profil en haut à droite', await apparait(p.locator('[data-r="fil-avatar"] img')));
   await p.locator('[data-r="fil-avatar"]').click();
   ok('photo gardée en base : visible dans le profil après rechargement', await apparait(profil.locator('[data-r="carte-identite"] img')));

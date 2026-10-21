@@ -57,7 +57,6 @@ recense ce qui est masqué et dit comment le rouvrir.
 | Frontend | `frontend/src/lib/config.ts` : `modesAccueil` | `false` masque la bascule Recherche / Autour de moi / Box intelligente de l'accueil et l'onglet « Carte » de la barre mobile (voir plus bas), `true` les rebranche. |
 | Frontend | `frontend/src/lib/config.ts` : `carteResultats` | `false` masque la bascule Liste / Carte des résultats, qui restent en liste ; `true` la rebranche. |
 | Frontend | `frontend/src/lib/config.ts` : `motDePasse` | `true` : comptes avec mot de passe. `false` rebranche la connexion par code seul, sans mot de passe (voir « Compte avec mot de passe »). |
-| Frontend | `frontend/src/lib/config.ts` : `ongletsAccueilProfil` | `false` retire « Accueil » et « Profil » de la barre du bas sur téléphone (il reste Favoris et Messages) : le logo de l'en-tête mène à l'accueil, la photo de profil au profil, et les pages Profil et Favoris ont un bouton « Accueil ». `true` les remet dans la barre. |
 | Frontend | `frontend/src/lib/config.ts` : `actionsAccueilMobile` | `false` masque les boutons « Urgence » et « Programmer » sous l'en-tête de l'accueil mobile (voir plus bas), `true` les rebranche. |
 | Frontend | `frontend/src/data/catalogue.ts` : `SECTEURS` | Les cinq secteurs de l'accueil (raccourcis et cartes), du formulaire de devis et, via `pro.ts`, des services d'un prestataire. |
 | Tests | `frontend/tests/parcours.mjs` : `MODULE_CONSTRUCTION` | Réactive les règles C à F (assistant, contrat, PV, bloc BTP). |

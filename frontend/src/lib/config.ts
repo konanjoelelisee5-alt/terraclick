@@ -46,12 +46,6 @@ export const CONFIG = {
    */
   actionsAccueilMobile: false as boolean,
   /**
-   * Onglets « Accueil » et « Profil » de la barre du bas sur téléphone. Masqués : l'accueil se
-   * rejoint par le logo de l'en-tête, le profil par la photo ; la barre garde Favoris et
-   * Messages (voir le README). `true` les rebranche.
-   */
-  ongletsAccueilProfil: false as boolean,
-  /**
    * À l'ouverture, sans session mémorisée sur l'appareil : la page de connexion d'abord
    * (la flèche retour mène à l'accueil en visiteur). Avec une session, l'accueil directement.
    */

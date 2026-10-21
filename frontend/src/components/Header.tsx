@@ -62,14 +62,25 @@ export function Header() {
       }}
     >
       <div data-r="container" data-bloc="entete" style={{ minHeight: 72, display: "flex", alignItems: "center", gap: 26 }}>
-        {/* Le logo mène à l'accueil (sur téléphone, il remplace l'onglet « Accueil »). */}
-        <button
-          onClick={() => go("home")}
-          style={{ ...LIEN, display: "flex", alignItems: "center", gap: 10 }}
-          aria-label="TerraClick, retour à l'accueil"
-        >
-          <Wordmark />
-        </button>
+        {/* Accueil sur téléphone : la photo de profil à la place du logo, un toucher ouvre le profil. */}
+        {estMobile && etat.screen === "home" ? (
+          <button
+            data-r="avatar-entete"
+            onClick={() => (etat.auth ? go("clientDashboard") : go("connexion", { telDraft: "", apresConnexion: "clientDashboard" }))}
+            aria-label={etat.auth ? "Mon profil" : "Se connecter"}
+            style={{ ...LIEN, display: "flex", alignItems: "center", borderRadius: 999 }}
+          >
+            <Avatar compte={etat.auth} taille={44} />
+          </button>
+        ) : (
+          <button
+            onClick={() => go("home")}
+            style={{ ...LIEN, display: "flex", alignItems: "center", gap: 10 }}
+            aria-label="TerraClick, retour à l'accueil"
+          >
+            <Wordmark />
+          </button>
+        )}
 
         <nav
           data-r="nav-links"
@@ -123,17 +134,6 @@ export function Header() {
         >
           <Icon name="bell" size={20} />
         </button>
-        {/* Sur téléphone, la photo de profil remplace l'onglet « Profil » de la barre du bas. */}
-        {estMobile && (
-          <button
-            data-r="avatar-entete"
-            onClick={() => (etat.auth ? go("clientDashboard") : go("connexion", { telDraft: "", apresConnexion: "clientDashboard" }))}
-            aria-label={etat.auth ? "Mon profil" : "Se connecter"}
-            style={{ ...LIEN, display: "flex", alignItems: "center", flex: "none", borderRadius: 999, marginLeft: -14 }}
-          >
-            <Avatar compte={etat.auth} taille={40} />
-          </button>
-        )}
 
         <div data-r="nav-auth" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
           {connecte && (

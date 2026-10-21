@@ -135,7 +135,7 @@ export function ProfilMobile() {
   if (!auth) {
     return (
       <main style={{ paddingBottom: 32 }}>
-        <GrandTitre titre="Profil" onAccueil={() => go("home")} />
+        <GrandTitre titre="Profil" />
         <div style={{ padding: "16px 24px 0" }}>
           <p style={{ margin: "0 0 16px", fontSize: "15px", color: GRIS }}>Connectez-vous pour suivre vos demandes.</p>
           <button onClick={() => go("connexion", { telDraft: "", apresConnexion: "clientDashboard" })} className="sy-btn sy-btn--primary sy-btn--md" style={{ minHeight: 48 }}>
@@ -149,7 +149,7 @@ export function ProfilMobile() {
 
   return (
     <main data-r="profil-mobile" style={{ paddingBottom: 40 }}>
-      <GrandTitre titre="Profil" actions={cloche} onAccueil={() => go("home")} />
+      <GrandTitre titre="Profil" actions={cloche} />
 
       <div style={{ padding: "24px 24px 0", display: "flex", flexDirection: "column", gap: 16 }}>
         {/* 1 · Carte d'identité : toute la carte mène à « Voir mon profil » ; l'appareil photo
