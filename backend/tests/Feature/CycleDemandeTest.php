@@ -132,4 +132,45 @@ class CycleDemandeTest extends TestCase
         $this->assertNotContains($demande->id, $this->actingAs($autreTechnicien)->getJson('/api/pro/demandes')->assertOk()->json('data.*.id'));
         $this->actingAs($autreTechnicien)->postJson("/api/pro/demandes/{$demande->id}/accepter")->assertNotFound();
     }
+
+    public function test_toute_demande_a_son_onglet_et_s_y_suit(): void
+    {
+        $demande = $this->nouvelleDemande();
+        $accord = $demande->accord;
+
+        // L'onglet existe dès l'envoi, en attente du technicien, avec le suivi de l'intervention.
+        $this->assertNotNull($accord);
+        $this->actingAs($this->client)->getJson("/api/accords/{$accord->id}")->assertOk()
+            ->assertJsonPath('data.objet', 'Fuite d\'eau')
+            ->assertJsonPath('data.statut_libelle', 'En attente du technicien')
+            ->assertJsonPath('data.demande.commande', null)
+            ->assertJsonPath('data.demande.suivi.0.fait', true)
+            ->assertJsonPath('data.demande.suivi.1.libelle', 'Acceptée par le technicien')
+            ->assertJsonPath('data.demande.suivi.1.fait', false)
+            ->assertJsonPath('data.demande.motifs_signalement.1.nom', 'Le technicien n\'est pas venu');
+
+        // L'estimation du technicien devient le montant de l'onglet ; le suivi avance.
+        $this->actingAs($this->technicien)->postJson("/api/pro/demandes/{$demande->id}/accepter", ['estimation' => 15000])->assertOk();
+        $this->actingAs($this->client)->getJson("/api/accords/{$accord->id}")
+            ->assertJsonPath('data.montant', 15000)
+            ->assertJsonPath('data.statut_libelle', 'Acceptée')
+            ->assertJsonPath('data.demande.suivi.1.fait', true);
+
+        // Signalement avec les motifs d'une intervention.
+        $this->actingAs($this->client)->postJson("/api/demandes/{$demande->id}/signalements", ['motif' => 'absent'])
+            ->assertCreated()->assertJsonPath('data.signalements.0.motif_libelle', 'Le technicien n\'est pas venu');
+        $this->actingAs($this->client)->postJson("/api/demandes/{$demande->id}/signalements", ['motif' => 'manquant'])->assertStatus(422);
+
+        $this->actingAs($this->technicien)->postJson("/api/pro/demandes/{$demande->id}/terminer")->assertOk();
+        $this->actingAs($this->client)->postJson("/api/demandes/{$demande->id}/confirmer")->assertOk();
+        $this->assertSame('termine', $accord->refresh()->statut);
+        $this->assertSame(1, $demande->accord()->count());
+    }
+
+    public function test_les_demandes_de_demonstration_ont_leur_onglet(): void
+    {
+        $sans = Demande::whereNotNull('prestataire_id')->whereDoesntHave('accord')->count();
+        $this->assertSame(0, $sans);
+        $this->assertSame('annule', Demande::where('statut', 'annulee')->firstOrFail()->accord->statut);
+    }
 }

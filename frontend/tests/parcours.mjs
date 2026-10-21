@@ -324,6 +324,17 @@ if (!MODULE_CONSTRUCTION) {
   await connecter(p);
   ok('demande envoyée par l’API, avec sa référence',
      await apparait(p.getByRole('heading', { name: 'Demande envoyée' }), 8000) && (await p.getByText(/Référence DEM-\d{4}-\d{5}/).isVisible()));
+  // Comme une commande pressing, la demande d'intervention se suit dans son onglet.
+  await p.getByRole('button', { name: 'Suivre ma demande' }).click();
+  const suivi = p.locator('[data-r="suivi-commande"]');
+  ok('onglet : la demande d’intervention s’y suit, en attente du technicien',
+     (await apparait(suivi)) && (await p.locator('[data-r="statut-commande"]').textContent()) === 'En attente du technicien' &&
+       (await p.locator('[data-r="etape-suivi"]').count()) === 5 && (await p.locator('[data-r="etape-suivi"][data-fait]').count()) === 1);
+  ok('onglet : annuler, signaler, recommander, et le reçu',
+     (await suivi.getByRole('button', { name: /Annuler la demande/ }).isVisible()) && (await suivi.getByRole('button', { name: /Signaler un problème/ }).isVisible()) &&
+       (await suivi.getByRole('button', { name: /Recommander/ }).isVisible()) && (await p.locator('[data-r="facture"]').getByText('Reçu', { exact: true }).isVisible()));
+  await suivi.getByRole('button', { name: /Signaler un problème/ }).click();
+  ok('onglet : motifs d’une intervention pour signaler', await apparait(p.getByRole('radio', { name: 'Le technicien n’est pas venu'.replace('’', "'") })));
   await ctx.close();
 }
 

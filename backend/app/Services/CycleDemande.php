@@ -66,18 +66,9 @@ class CycleDemande
 
             $this->suivreAccord($demande, $vers);
 
-            // Fin confirmée par le client : la relation a abouti, elle rejoint ses onglets.
-            if ($vers === 'confirmee' && $demande->prestataire_id && ! Accord::where('demande_id', $demande->id)->exists()) {
-                Accord::create([
-                    'user_id' => $demande->user_id,
-                    'prestataire_id' => $demande->prestataire_id,
-                    'demande_id' => $demande->id,
-                    'objet' => $demande->probleme,
-                    'canal' => 'demande',
-                    'montant' => $demande->estimation,
-                    'statut' => 'termine',
-                    'termine_le' => now(),
-                ]);
+            // Demande plus ancienne que les onglets de suivi : elle les rejoint maintenant.
+            if ($demande->prestataire_id) {
+                Accord::pourDemande($demande);
             }
 
             return $demande;
@@ -124,10 +115,13 @@ class CycleDemande
             return;
         }
 
-        if (in_array($statut, ['refusee', 'annulee'], true)) {
-            $accord->update(['statut' => 'annule']);
-        } elseif (in_array($statut, ['terminee', 'confirmee'], true) && $accord->statut !== 'termine') {
-            $accord->update(['statut' => 'termine', 'termine_le' => now()]);
+        $nouveau = Accord::statutPour($statut);
+        if ($nouveau !== $accord->statut && $nouveau !== 'conclu') {
+            $accord->update(['statut' => $nouveau, 'termine_le' => $nouveau === 'termine' ? now() : null]);
+        }
+        // L'estimation donnée à l'acceptation devient le montant de l'onglet.
+        if ($accord->montant === null && $demande->estimation !== null) {
+            $accord->update(['montant' => $demande->estimation]);
         }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Accord;
 use App\Models\Avis;
 use App\Models\Demande;
 use App\Models\Prestataire;
@@ -149,6 +150,8 @@ class DemoSeeder extends Seeder
                     'message' => $message,
                 ]);
             }
+            // Chaque demande a son onglet, comme celles envoyées depuis l'application.
+            Accord::pourDemande($demande->refresh());
         }
 
         $this->travelTo(null);

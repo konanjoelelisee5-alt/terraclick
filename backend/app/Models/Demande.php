@@ -90,6 +90,12 @@ class Demande extends Model
         return $this->secteur === 'pressing';
     }
 
+    /** Ce que le client peut signaler : motifs du pressing, ou ceux d'une intervention. */
+    public function motifsSignalement(): array
+    {
+        return $this->estPressing() ? config('pressing.motifs_signalement') : config('suivi.motifs_signalement');
+    }
+
     /** Étapes du suivi de cette commande pressing, selon son mode de dépôt. */
     public function etapesPressing(): array
     {

@@ -4,8 +4,9 @@ import { Icon } from "./Icon";
 import type { LigneFacture } from "../lib/pressing";
 
 /* Facture d'une commande pressing : avant la validation (estimative) et après (avec sa
-   référence). « Télécharger » passe par l'impression du navigateur, qui propose
-   « Enregistrer en PDF » ; seule la facture est imprimée. */
+   référence). Sans articles, c'est le reçu d'une intervention, avec le montant convenu.
+   « Télécharger » passe par l'impression du navigateur, qui propose « Enregistrer en PDF » ;
+   seule la facture est imprimée. */
 
 const GRIS = "#5C5248";
 
@@ -16,7 +17,10 @@ export function Facture(props: {
   /** Service, express, dépôt, créneau, adresse, paiement… en couples libellé / valeur. */
   details: [string, string | null | undefined][];
   date?: string;
+  /** Reçu d'intervention : montant convenu (estimation du technicien), s'il est connu. */
+  montant?: string | null;
 }) {
+  const recu = props.lignes.length === 0;
   const total = props.lignes.reduce((n, l) => n + l.total, 0);
   const pieces = props.lignes.reduce((n, l) => n + l.quantite, 0);
 
@@ -36,12 +40,18 @@ export function Facture(props: {
             <span style={{ fontSize: "13px", color: GRIS }}>{props.pressing}</span>
           </span>
           <span style={{ textAlign: "right", fontSize: "13px", color: GRIS }}>
-            <span style={{ display: "block", fontWeight: 700, color: "var(--color-text)" }}>{props.reference ? "Facture" : "Facture estimative"}</span>
+            <span style={{ display: "block", fontWeight: 700, color: "var(--color-text)" }}>{recu ? "Reçu" : props.reference ? "Facture" : "Facture estimative"}</span>
             {props.reference && <span style={{ display: "block" }}>{props.reference}</span>}
             <span style={{ display: "block" }}>{new Date(props.date ?? Date.now()).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</span>
           </span>
         </div>
 
+        {recu ? (
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "10px 0", borderTop: "2px solid var(--color-text)", borderBottom: "1px solid var(--color-divider)" }}>
+            <span style={{ fontWeight: 700 }}>Montant convenu</span>
+            <strong data-r="total-facture" style={{ fontSize: "16px" }}>{props.montant ?? "À convenir avec le technicien"}</strong>
+          </div>
+        ) : (
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
           <thead>
             <tr style={{ color: GRIS, fontSize: "12.5px", textAlign: "left" }}>
@@ -72,6 +82,7 @@ export function Facture(props: {
             </tr>
           </tfoot>
         </table>
+        )}
 
         <dl style={{ margin: "8px 0 0", display: "grid", gridTemplateColumns: "auto 1fr", gap: "6px 14px", fontSize: "13.5px" }}>
           {props.details
@@ -85,11 +96,13 @@ export function Facture(props: {
         </dl>
 
         <p style={{ margin: "12px 0 0", fontSize: "12.5px", lineHeight: 1.5, color: GRIS }}>
-          Prix indicatifs, confirmés par le pressing à la réception du linge. Le paiement se fait directement au pressing ; TerraClick ne perçoit pas ce montant.
+          {recu
+            ? "Le paiement se fait directement au technicien ; TerraClick ne perçoit pas ce montant."
+            : "Prix indicatifs, confirmés par le pressing à la réception du linge. Le paiement se fait directement au pressing ; TerraClick ne perçoit pas ce montant."}
         </p>
         <button data-r="telecharger-facture" onClick={() => window.print()} className="sy-btn sy-btn--outline sy-btn--md" style={{ marginTop: 12, gap: 8 }}>
           <Icon name="download" size={17} />
-          Télécharger la facture
+          {recu ? "Télécharger le reçu" : "Télécharger la facture"}
         </button>
       </section>
     </>

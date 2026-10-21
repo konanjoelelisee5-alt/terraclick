@@ -164,7 +164,13 @@ export type DemandeApi = {
   pack: { articles: { cle: string; nom: string; quantite: number; prix_unitaire: number; total: number }[]; pieces: number; total: number; total_affichage: string } | null;
   /** Commande pressing : service, dépôt, créneau, adresse, suivi et signalements. */
   commande: CommandePressing | null;
-  /** L'onglet de la commande (présent à la création et sur le détail). */
+  /** Suivi d'une intervention (hors pressing : celui-ci est dans `commande`). */
+  suivi: { cle: string; libelle: string; fait: boolean; date: string | null }[] | null;
+  /** Problèmes signalés (présents sur le détail et dans les onglets). */
+  signalements?: { id: number; motif: string; motif_libelle: string; message: string | null; statut: string; date: string }[];
+  /** Ce que le client peut signaler : motifs du pressing ou d'une intervention. */
+  motifs_signalement: { cle: string; nom: string }[];
+  /** L'onglet de la demande (présent à la création et sur le détail). */
   accord_id?: number | null;
   statut: StatutDemande;
   /** « Envoyée », « Marquée terminée »… */

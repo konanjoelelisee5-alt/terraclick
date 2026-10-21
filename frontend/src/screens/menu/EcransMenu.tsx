@@ -214,8 +214,8 @@ export function OngletAccord() {
     );
   }
 
-  // Commande au pressing : son suivi, sa facture et ses actions.
-  if (a.demande?.commande) return <OngletCommande a={a} onMaj={setA} />;
+  // Demande faite dans l'application (tout service, pressing compris) : son suivi et ses actions.
+  if (a.demande) return <OngletCommande a={a} onMaj={setA} />;
 
   const terminer = async () => {
     try {

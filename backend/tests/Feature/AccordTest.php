@@ -32,7 +32,7 @@ class AccordTest extends TestCase
 
     public function test_le_client_confirme_un_accord_conclu_par_whatsapp(): void
     {
-        $this->actingAs($this->client)->postJson('/api/accords', [
+        $id = $this->actingAs($this->client)->postJson('/api/accords', [
             'prestataire_id' => $this->koffi,
             'prestation' => 'reparation-de-tuyau-casse',
             'recherche' => 'tuyau cassé',
@@ -45,9 +45,11 @@ class AccordTest extends TestCase
             ->assertJsonPath('data.statut_libelle', 'Accord conclu')
             ->assertJsonPath('data.etapes.0.libelle', 'Recherche « tuyau cassé »')
             ->assertJsonPath('data.etapes.1.libelle', 'Contact : WhatsApp')
-            ->assertJsonPath('data.prestataire.nom', 'Koffi Tanoh');
+            ->assertJsonPath('data.prestataire.nom', 'Koffi Tanoh')
+            ->json('data.id');
 
-        $accord = Accord::firstOrFail();
+        // Les demandes de démonstration ont aussi leurs onglets : on reprend celui-ci.
+        $accord = Accord::findOrFail($id);
         $this->assertMatchesRegularExpression('/^ACC-\d{4}-\d{5}$/', $accord->reference);
 
         $this->actingAs($this->client)->postJson("/api/accords/{$accord->id}/terminer")

@@ -49,10 +49,13 @@ class AccordResource extends JsonResource
             'date_intervention' => $this->date_intervention?->toDateString(),
             'statut' => $this->statut,
             'statut_libelle' => match (true) {
-                $this->statut === 'termine' => 'Terminé',
-                $this->statut === 'annule' => 'Annulé',
+                // Demande faite dans l'application : son propre statut, ou l'étape du pressing.
+                $this->demande !== null && in_array($this->demande->statut, ['refusee', 'annulee'], true) => DemandeResource::libelleStatut($this->demande->statut),
                 $commande && $this->demande->etape !== null => DemandeResource::libelleStatut($this->demande->etape),
                 $commande => $this->demande->statut === 'envoyee' ? 'En attente du pressing' : 'Confirmée',
+                $this->demande !== null => $this->demande->statut === 'envoyee' ? 'En attente du technicien' : DemandeResource::libelleStatut($this->demande->statut),
+                $this->statut === 'termine' => 'Terminé',
+                $this->statut === 'annule' => 'Annulé',
                 default => 'Accord conclu',
             },
             'prestation' => $this->prestation ? ['slug' => $this->prestation->slug, 'nom' => $this->prestation->nom, 'secteur' => $this->prestation->secteur] : null,
@@ -66,8 +69,9 @@ class AccordResource extends JsonResource
                 'categorie' => $pro->categories->first()?->slug,
             ],
             'demande_reference' => $this->demande?->reference,
-            // Commande pressing : tout le détail, son suivi et ses signalements.
-            'demande' => $commande ? DemandeResource::make($this->demande) : null,
+            // Demande envoyée dans l'application (commande pressing ou intervention) : tout le
+            // détail, son suivi et ses signalements.
+            'demande' => $this->demande ? DemandeResource::make($this->demande) : null,
             'deja_note' => Avis::where('user_id', $this->user_id)->where('prestataire_id', $this->prestataire_id)->exists(),
             'etapes' => $etapes,
             'cree_le' => $this->created_at?->toIso8601String(),

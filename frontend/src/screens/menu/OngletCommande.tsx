@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { api, messageErreur, type AccordApi, type DemandeApi } from "../../lib/api";
 import { creneauLisible } from "../../lib/pressing";
-import { useApi } from "../../lib/useApi";
+import { SECTEURS } from "../../data/catalogue";
 import { useApp } from "../../state/app";
 import type { Besoin } from "../../state/types";
 import { Dialogue } from "../../components/Dialogue";
@@ -9,9 +9,10 @@ import { Facture } from "../../components/Facture";
 import { Icon } from "../../components/Icon";
 import { useToast } from "../../components/Toast";
 
-/* Onglet d'une commande au pressing : le suivi étape par étape (collectée, reçue, en
-   traitement, prête, en livraison, livrée), la facture, puis ce que le client fait après
-   coup : confirmer la réception, noter le service, signaler un problème, recommander. */
+/* Onglet d'une demande envoyée dans l'application, quel que soit le service : le suivi étape
+   par étape (intervention : envoyée, acceptée, en cours, terminée, confirmée ; pressing :
+   collectée, reçue, en traitement, prête, en livraison, livrée), la facture ou le reçu, puis
+   ce que le client fait après coup : confirmer, noter, signaler un problème, recommander. */
 
 const GRIS = "#5C5248";
 
@@ -33,27 +34,32 @@ const ACTION_SUIVI: React.CSSProperties = {
   padding: "8px 12px",
 };
 
-const CRITERES = [
-  { cle: "qualite" as const, nom: "Qualité du nettoyage" },
-  { cle: "ponctualite" as const, nom: "Respect du créneau" },
+const criteres = (pressing: boolean) => [
+  { cle: "qualite" as const, nom: pressing ? "Qualité du nettoyage" : "Qualité du travail" },
+  { cle: "ponctualite" as const, nom: pressing ? "Respect du créneau" : "Ponctualité" },
   { cle: "prix" as const, nom: "Prix" },
 ];
+
+const LIBELLES_QUAND: Record<string, string> = { maintenant: "Maintenant", aujourdhui: "Aujourd'hui", demain: "Demain" };
 
 const date = (iso: string) =>
   new Date(iso).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).replace(":", " h ");
 
-/** Le besoin d'une nouvelle commande identique, au même créneau horaire, demain. */
+/**
+ * Le besoin d'une nouvelle demande identique : commande pressing demain au même créneau
+ * horaire ; intervention au même moment (aujourd'hui si la date choisie est passée).
+ */
 function besoinRecommande(d: DemandeApi): Besoin {
   const demain = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
   return {
-    secteur: "pressing",
+    secteur: d.secteur.cle,
     suggestions: [],
     probleme: d.probleme,
     precision: d.precision ?? "",
     quartier: d.quartier?.id ?? null,
     repere: d.repere ?? "",
-    quand: "date",
-    date: demain,
+    quand: d.commande ? "date" : d.quand === "date" ? "aujourdhui" : d.quand,
+    date: d.commande ? demain : "",
     photos: [],
     pack: (d.pack?.articles ?? []).map((a) => ({ cle: a.cle, quantite: a.quantite })),
     mode: "choisi",
@@ -71,8 +77,13 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
   const { go } = useApp();
   const toast = useToast();
   const d = a.demande!;
-  const c = d.commande!;
-  const { donnees: options } = useApi(() => api.optionsPressing(), []);
+  // Commande pressing : service, dépôt, créneau ; absente pour une intervention.
+  const c = d.commande;
+  const pressing = c !== null;
+  const suivi = c?.suivi ?? d.suivi ?? [];
+  const signalements = d.signalements ?? c?.signalements ?? [];
+  const secteur = SECTEURS.find((s) => s.cle === d.secteur.cle);
+  const nom = pressing ? "commande" : "demande";
   const [fenetre, setFenetre] = useState<"signaler" | "annuler" | null>(null);
   const [motif, setMotif] = useState<string | null>(null);
   const [message, setMessage] = useState("");
@@ -98,7 +109,8 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
 
   const livree = d.statut === "terminee" || d.statut === "confirmee";
   const enCours = !["refusee", "annulee"].includes(d.statut);
-  const actuelle = [...c.suivi].reverse().find((e) => e.fait)?.cle;
+  const actuelle = [...suivi].reverse().find((e) => e.fait)?.cle;
+  const quand = d.quand === "date" ? creneauLisible(d.date_souhaitee, null) : LIBELLES_QUAND[d.quand];
 
   const refaire = () => go("confirmation", { besoin: besoinRecommande(d) });
 
@@ -106,7 +118,7 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
     <main data-r="onglet-commande" style={{ maxWidth: 640, margin: "0 auto", padding: "20px 16px 48px", display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: "13.5px", color: GRIS }}>
-          <Icon name="shirt" size={15} />
+          <Icon name={secteur?.icone ?? "wrench"} size={15} />
           {a.prestataire.nom}
         </span>
         <h1 style={{ margin: "4px 0 0", fontSize: "28px", lineHeight: 1.2 }}>{a.objet}</h1>
@@ -122,11 +134,13 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
         <div style={{ flex: 1, minWidth: 0 }}>
         {!enCours ? (
           <p style={{ margin: 0, fontSize: "14.5px", color: GRIS }}>
-            {d.statut === "refusee" ? "Le pressing n'a pas pu prendre cette commande." : "Commande annulée."}
+            {d.statut === "refusee"
+              ? `${a.prestataire.nom} n'a pas pu prendre cette ${nom}.`
+              : `${pressing ? "Commande annulée" : "Demande annulée"}.`}
           </p>
         ) : (
           <ol style={{ listStyle: "none", margin: 0, padding: 0 }}>
-            {c.suivi.map((e, i) => {
+            {suivi.map((e, i) => {
               const courante = e.cle === actuelle;
               return (
                 <li key={e.cle} data-r="etape-suivi" data-fait={e.fait || undefined} aria-current={courante ? "step" : undefined} style={{ display: "flex", gap: 12 }}>
@@ -142,7 +156,7 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
                         boxShadow: courante ? "0 0 0 4px var(--state-success-soft)" : "none",
                       }}
                     />
-                    {i < c.suivi.length - 1 && <span style={{ flex: 1, width: 2, background: e.fait ? "var(--state-success)" : "var(--color-divider)", margin: "3px 0" }} />}
+                    {i < suivi.length - 1 && <span style={{ flex: 1, width: 2, background: e.fait ? "var(--state-success)" : "var(--color-divider)", margin: "3px 0" }} />}
                   </span>
                   <span style={{ paddingBottom: 12 }}>
                     <span style={{ display: "block", fontWeight: courante ? 700 : 600, fontSize: "14.5px", color: e.fait ? "var(--color-text)" : GRIS }}>{e.libelle}</span>
@@ -160,7 +174,7 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
           {(d.statut === "envoyee" || d.statut === "acceptee") && (
             <button onClick={() => setFenetre("annuler")} className="sy-btn sy-btn--outline sy-btn--sm" style={ACTION_SUIVI}>
               <Icon name="x" size={16} />
-              Annuler la commande
+              Annuler la {nom}
             </button>
           )}
           {enCours && (
@@ -183,12 +197,14 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
           <button
             data-r="confirmer-reception"
             disabled={occupe}
-            onClick={() => agir(() => api.confirmerDemande(d.id), "Réception confirmée", "Merci ! Vous pouvez noter le pressing.")}
+            onClick={() =>
+              agir(() => api.confirmerDemande(d.id), pressing ? "Réception confirmée" : "Fin confirmée", `Merci ! Vous pouvez noter ${a.prestataire.nom}.`)
+            }
             className="sy-btn sy-btn--primary sy-btn--md"
             style={{ gap: 8 }}
           >
             <Icon name="circle-check" size={17} />
-            {c.depot?.cle === "pressing" ? "J'ai récupéré mon linge" : "J'ai reçu mon linge"}
+            {!c ? "Problème résolu, je confirme" : c.depot?.cle === "pressing" ? "J'ai récupéré mon linge" : "J'ai reçu mon linge"}
           </button>
         )}
         {a.prestataire.telephone && (
@@ -204,7 +220,7 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
         <section data-r="noter-service" aria-label="Noter le service" style={{ ...CARTE, padding: "16px" }}>
           <h2 style={{ margin: "0 0 4px", fontSize: "17px" }}>Notez {a.prestataire.nom}</h2>
           <p style={{ margin: "0 0 12px", fontSize: "14px", color: GRIS }}>Votre avis aide les autres clients à choisir.</p>
-          {CRITERES.map((k) => (
+          {criteres(pressing).map((k) => (
             <div key={k.cle} role="radiogroup" aria-label={k.nom} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: 44 }}>
               <span style={{ fontSize: "14.5px" }}>{k.nom}</span>
               <span style={{ display: "flex" }}>
@@ -230,7 +246,7 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
             maxLength={1000}
             value={commentaire}
             onChange={(e) => setCommentaire(e.target.value)}
-            placeholder="Linge bien repassé, livré à l'heure…"
+            placeholder={pressing ? "Linge bien repassé, livré à l'heure…" : "Travail propre, venu à l'heure…"}
             style={{ marginTop: 10, borderRadius: 14 }}
           />
           <button
@@ -240,7 +256,7 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
               agir(
                 () => api.publierAvis(a.prestataire.id, { ...notes, commentaire: commentaire.trim() || undefined }),
                 "Merci pour votre avis",
-                "Il est publié sur la fiche du pressing.",
+                `Il est publié sur la fiche de ${a.prestataire.nom}.`,
               )
             }
             className="sy-btn sy-btn--primary sy-btn--md"
@@ -253,15 +269,15 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
       {livree && a.deja_note && (
         <p data-r="deja-note" style={{ margin: 0, display: "flex", alignItems: "center", gap: 8, fontSize: "14.5px", color: GRIS }}>
           <Icon name="star" size={17} color="var(--color-accent)" />
-          Vous avez noté ce pressing. Merci !
+          Vous avez noté {a.prestataire.nom}. Merci !
         </p>
       )}
 
       {/* ---- Signalements ---- */}
-      {c.signalements && c.signalements.length > 0 && (
+      {signalements.length > 0 && (
         <section aria-label="Problèmes signalés" style={{ ...CARTE, padding: "14px 16px" }}>
           <h2 style={{ margin: "0 0 8px", fontSize: "16px" }}>Problèmes signalés</h2>
-          {c.signalements.map((s) => (
+          {signalements.map((s) => (
             <div key={s.id} data-r="signalement" style={{ padding: "8px 0", borderTop: "1px solid var(--color-divider)" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: "14.5px" }}>
                 <Icon name="flag" size={15} color="var(--state-danger)" />
@@ -277,8 +293,27 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
         </section>
       )}
 
-      {/* ---- Facture ---- */}
-      {d.pack && (
+      {/* ---- Facture (pressing) ou reçu (intervention) ---- */}
+      {!c && (
+        <Facture
+          reference={d.reference}
+          date={d.cree_le}
+          pressing={`${a.prestataire.nom} · ${a.prestataire.metier}`}
+          lignes={[]}
+          montant={a.montant_affichage}
+          details={[
+            ["Service", d.secteur.nom],
+            ["Problème", d.probleme === "Autre" ? d.precision : d.probleme],
+            ["Détail", d.probleme === "Autre" ? null : d.precision],
+            ["Adresse", [d.quartier?.nom, d.repere].filter(Boolean).join(" · ")],
+            ["Souhaitée", quand],
+            ["Créneau proposé", d.creneau],
+            ["Paiement", d.paiement_libelle],
+            ["Statut", a.statut_libelle],
+          ]}
+        />
+      )}
+      {c && d.pack && (
         <Facture
           reference={d.reference}
           date={d.cree_le}
@@ -299,7 +334,7 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
       {fenetre === "signaler" && (
         <Dialogue
           titre="Signaler un problème"
-          description="Le pressing et TerraClick reçoivent votre signalement et reviennent vers vous."
+          description={`${a.prestataire.nom} et TerraClick reçoivent votre signalement et reviennent vers vous.`}
           icone="flag"
           fond="var(--state-danger-soft)"
           encre="var(--state-danger)"
@@ -310,7 +345,7 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
               toast("Choisissez un motif", "Dites-nous ce qui ne va pas.", "danger");
               return;
             }
-            const ok = await agir(() => api.signaler(d.id, { motif, message: message.trim() || undefined }), "Signalement envoyé", "Le pressing va le traiter.");
+            const ok = await agir(() => api.signaler(d.id, { motif, message: message.trim() || undefined }), "Signalement envoyé", `${a.prestataire.nom} va le traiter.`);
             if (ok) {
               setFenetre(null);
               setMotif(null);
@@ -319,7 +354,7 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
           }}
         >
           <div role="radiogroup" aria-label="Motif" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {options?.motifs.map((m) => (
+            {d.motifs_signalement.map((m) => (
               <button
                 key={m.cle}
                 type="button"
@@ -349,7 +384,7 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
             maxLength={1000}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder={motif === "autre" ? "Décrivez le problème" : "Détails (facultatif) : quel article, quand…"}
+            placeholder={motif === "autre" ? "Décrivez le problème" : pressing ? "Détails (facultatif) : quel article, quand…" : "Détails (facultatif) : ce qui s'est passé, quand…"}
             style={{ marginTop: 12, borderRadius: 14 }}
           />
         </Dialogue>
@@ -357,16 +392,16 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
 
       {fenetre === "annuler" && (
         <Dialogue
-          titre="Annuler la commande ?"
-          description="Le pressing est prévenu. Vous pourrez recommander plus tard en un toucher."
+          titre={`Annuler la ${nom} ?`}
+          description={`${a.prestataire.nom} est prévenu. Vous pourrez recommander plus tard en un toucher.`}
           icone="x"
           fond="var(--state-danger-soft)"
           encre="var(--state-danger)"
-          confirmer="Annuler la commande"
+          confirmer={`Annuler la ${nom}`}
           annuler="Garder"
           onFermer={() => setFenetre(null)}
           onConfirmer={async () => {
-            if (await agir(() => api.annulerDemande(d.id, null), "Commande annulée", "Le pressing est prévenu.")) setFenetre(null);
+            if (await agir(() => api.annulerDemande(d.id, null), pressing ? "Commande annulée" : "Demande annulée", `${a.prestataire.nom} est prévenu.`)) setFenetre(null);
           }}
         />
       )}

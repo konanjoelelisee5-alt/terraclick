@@ -9,8 +9,8 @@ import { CadreParcours } from "./commun";
 import { CarteTechnicien } from "./CarteTechnicien";
 
 /**
- * Accusé d'envoi : la demande est enregistrée, voici sa référence et ce qui va suivre. Une
- * commande au pressing montre sa facture et mène à son onglet, où elle se suit.
+ * Accusé d'envoi : la demande est enregistrée, voici sa référence et ce qui va suivre. Elle se
+ * suit dans son onglet ; une commande au pressing montre en plus sa facture.
  */
 export function DemandeEnvoyee() {
   const { etat, go } = useApp();
@@ -29,8 +29,8 @@ export function DemandeEnvoyee() {
       retour={() => go("home")}
       actions={
         <>
-          <button data-r="suivre-commande" onClick={commande ? suivre : () => go("clientDemandes")} className="sy-btn sy-btn--primary sy-btn--md" style={{ flex: 1, minHeight: 50, justifyContent: "center" }}>
-            {commande ? "Suivre ma commande" : "Suivre mes demandes"}
+          <button data-r="suivre-commande" onClick={suivre} className="sy-btn sy-btn--primary sy-btn--md" style={{ flex: 1, minHeight: 50, justifyContent: "center" }}>
+            {commande ? "Suivre ma commande" : "Suivre ma demande"}
           </button>
           <button onClick={() => go("home")} className="sy-btn sy-btn--outline sy-btn--md" style={{ flex: 1, minHeight: 50, justifyContent: "center" }}>
             Accueil

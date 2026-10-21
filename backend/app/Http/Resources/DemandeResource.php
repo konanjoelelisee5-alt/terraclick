@@ -84,6 +84,24 @@ class DemandeResource extends JsonResource
         ];
     }
 
+    /**
+     * Suivi d'une intervention (hors pressing) : envoyée, acceptée, en cours, terminée,
+     * confirmée. Refusée ou annulée, le suivi s'arrête là.
+     */
+    private function suiviIntervention(): array
+    {
+        $dates = $this->relationLoaded('evenements') ? $this->evenements->pluck('created_at', 'statut') : collect();
+        $ordre = array_keys(config('suivi.etapes'));
+        $position = array_search($this->statut, $ordre, true);
+
+        return collect(config('suivi.etapes'))->map(fn (string $libelle, string $cle) => [
+            'cle' => $cle,
+            'libelle' => $libelle,
+            'fait' => $dates->has($cle) || ($position !== false && array_search($cle, $ordre, true) <= $position),
+            'date' => $dates->get($cle)?->toIso8601String(),
+        ])->values()->all();
+    }
+
     private function etapeSuivante(): ?array
     {
         if (! in_array($this->statut, ['acceptee', 'en_cours'], true)) {
@@ -125,6 +143,17 @@ class DemandeResource extends JsonResource
                 'total_affichage' => Montant::format(array_sum(array_column($this->articles, 'total'))),
             ] : null,
             'commande' => $this->estPressing() && $this->articles ? $this->commande() : null,
+            // Intervention : son suivi (une commande pressing a le sien, dans `commande`).
+            'suivi' => $this->estPressing() && $this->articles ? null : $this->suiviIntervention(),
+            'signalements' => $this->whenLoaded('signalements', fn () => $this->signalements->map(fn ($s) => [
+                'id' => $s->id,
+                'motif' => $s->motif,
+                'motif_libelle' => $this->motifsSignalement()[$s->motif] ?? $s->motif,
+                'message' => $s->message,
+                'statut' => $s->statut,
+                'date' => $s->created_at?->toIso8601String(),
+            ])),
+            'motifs_signalement' => collect($this->motifsSignalement())->map(fn (string $nom, string $cle) => ['cle' => $cle, 'nom' => $nom])->values(),
             // L'onglet de la commande, où le client la suit.
             'accord_id' => $this->whenLoaded('accord', fn () => $this->accord?->id),
             'statut' => $this->statut,

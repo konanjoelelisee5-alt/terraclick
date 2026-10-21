@@ -31,6 +31,46 @@ class Accord extends Model
         });
     }
 
+    /**
+     * L'onglet d'une demande envoyée dans l'application (tout service) : créé avec la demande,
+     * son statut suit celui de la demande. Sert aussi à rattraper les demandes plus anciennes.
+     */
+    public static function pourDemande(Demande $demande): self
+    {
+        $pieces = $demande->articles ? array_sum(array_column($demande->articles, 'quantite')) : 0;
+        // Juste créée, la demande n'a pas encore relu son statut par défaut (« envoyee »).
+        $statut = self::statutPour($demande->statut ?? 'envoyee');
+
+        $accord = self::firstOrCreate(['demande_id' => $demande->id], [
+            'user_id' => $demande->user_id,
+            'prestataire_id' => $demande->prestataire_id,
+            'objet' => $demande->articles
+                ? "Pressing · {$pieces} pièces"
+                : mb_substr($demande->probleme === 'Autre' && $demande->precision ? $demande->precision : $demande->probleme, 0, 160),
+            'canal' => 'demande',
+            'montant' => $demande->articles ? array_sum(array_column($demande->articles, 'total')) : $demande->estimation,
+            'date_intervention' => $demande->date_souhaitee ?? $demande->created_at,
+            'statut' => $statut,
+            'termine_le' => $statut === 'termine' ? $demande->updated_at : null,
+        ]);
+        // Créé sans événements de modèle (seeders) : la référence est posée ici.
+        if ($accord->reference === null) {
+            $accord->forceFill(['reference' => self::referencePour($accord)])->saveQuietly();
+        }
+
+        return $accord;
+    }
+
+    /** Statut de l'onglet selon celui de la demande. */
+    public static function statutPour(string $statutDemande): string
+    {
+        return match ($statutDemande) {
+            'refusee', 'annulee' => 'annule',
+            'terminee', 'confirmee' => 'termine',
+            default => 'conclu',
+        };
+    }
+
     /** « ACC-2026-00042 » : unique et lisible au téléphone. */
     public static function referencePour(Accord $accord): string
     {

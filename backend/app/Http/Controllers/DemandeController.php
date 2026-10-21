@@ -43,17 +43,10 @@ class DemandeController extends Controller
                 $demande->update(['photos' => $photos]);
             }
 
-            // Commande au pressing validée : elle rejoint aussitôt les onglets, où le client la suit.
-            if ($demande->articles && $demande->prestataire_id) {
-                Accord::create([
-                    'user_id' => $demande->user_id,
-                    'prestataire_id' => $demande->prestataire_id,
-                    'demande_id' => $demande->id,
-                    'objet' => 'Pressing · '.array_sum(array_column($demande->articles, 'quantite')).' pièces',
-                    'canal' => 'demande',
-                    'montant' => array_sum(array_column($demande->articles, 'total')),
-                    'date_intervention' => $demande->date_souhaitee ?? now(),
-                ]);
+            // Toute demande envoyée à un prestataire (dépannage ou commande pressing) rejoint
+            // aussitôt les onglets, où le client la suit jusqu'au bout.
+            if ($demande->prestataire_id) {
+                Accord::pourDemande($demande);
             }
 
             return $demande;
@@ -106,7 +99,7 @@ class DemandeController extends Controller
     {
         $this->verifierAuteur($request, $demande);
         $donnees = $request->validate([
-            'motif' => ['required', Rule::in(array_keys(config('pressing.motifs_signalement')))],
+            'motif' => ['required', Rule::in(array_keys($demande->motifsSignalement()))],
             'message' => [Rule::requiredIf($request->input('motif') === 'autre'), 'nullable', 'string', 'max:1000'],
         ], [
             'motif.required' => 'Choisissez ce qui ne va pas.',
