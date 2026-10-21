@@ -4,7 +4,7 @@ import { MONO, TITRE_CARTE, badge } from "../pro/EspacePro";
 import { useEstMobile } from "../../lib/useEstMobile";
 import { ProfilMobile } from "./ProfilMobile";
 import { EspaceClient } from "./EspaceClient";
-import { useEtatClient } from "./store";
+import { modifierClient, useDemandesClient } from "./store";
 
 const LIGNE: React.CSSProperties = {
   border: "1px solid var(--border-subtle)",
@@ -30,9 +30,9 @@ const ACTIONS: Record<string, { icone: string; titre: string; bouton: string; fo
     fond: "var(--state-warning-soft)",
     encre: "var(--state-warning)",
   },
-  "Réponse reçue": {
+  Acceptée: {
     icone: "reply",
-    titre: "Répondre à une estimation",
+    titre: "Le technicien a accepté votre demande",
     bouton: "Voir la réponse",
     fond: "var(--kola-100)",
     encre: "var(--kola-700)",
@@ -41,8 +41,12 @@ const ACTIONS: Record<string, { icone: string; titre: string; bouton: string; fo
 };
 
 export function ClientDashboard() {
-  const { etat, go } = useApp();
-  const { demandes } = useEtatClient();
+  const { etat, go, demarrerBesoin } = useApp();
+  const { demandes } = useDemandesClient(etat.auth?.tel ?? null);
+  const ouvrir = (id?: number) => {
+    modifierClient({ suivie: id ?? null });
+    go("clientSuivi");
+  };
   const prenom = etat.auth?.prenom.split(" ")[0] ?? "";
   const aFaire = demandes.filter((d) => ACTIONS[d.statut]);
 
@@ -52,7 +56,7 @@ export function ClientDashboard() {
 
   const RACCOURCIS = [
     { icone: "search", libelle: "Rechercher un prestataire", action: () => go("home") },
-    { icone: "file-text", libelle: "Demander un devis", action: () => go("clientDevis") },
+    { icone: "file-text", libelle: "Faire une demande", action: () => demarrerBesoin() },
     { icone: "inbox", libelle: "Mes demandes", action: () => go("clientDemandes") },
     { icone: "user", libelle: "Mon profil", action: () => go("clientProfil") },
   ];
@@ -67,9 +71,8 @@ export function ClientDashboard() {
           )}
           {aFaire.map((d) => {
             const a = ACTIONS[d.statut];
-            const cible = d.statut === "Terminée" ? "avis" : "clientSuivi";
             return (
-              <button key={d.ref} type="button" onClick={() => go(cible)} style={LIGNE}>
+              <button key={d.ref} type="button" onClick={() => (d.statut === "Terminée" ? go("avis") : ouvrir(d.id))} style={LIGNE}>
                 <span
                   style={{
                     width: 36,
@@ -124,7 +127,7 @@ export function ClientDashboard() {
             </button>
           </div>
           {demandes.slice(0, 4).map((d) => (
-            <button key={d.ref} type="button" onClick={() => go("clientSuivi")} style={LIGNE}>
+            <button key={d.ref} type="button" onClick={() => ouvrir(d.id)} style={LIGNE}>
               <span style={{ minWidth: 160, flex: 1 }}>
                 <span style={{ display: "block", fontSize: "14px", fontWeight: 700 }}>{d.prestataire}</span>
                 <span style={{ display: "block", fontSize: "13px", color: "var(--text-muted)", marginTop: 2 }}>

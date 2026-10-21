@@ -107,6 +107,14 @@ class CycleDemandeTest extends TestCase
             ->assertJsonPath('errors.statut.0', 'Cette demande a été annulée.');
     }
 
+    public function test_le_compte_de_demonstration_a_une_demande_a_chaque_etape(): void
+    {
+        $statuts = $this->actingAs($this->client)->getJson('/api/demandes')->assertOk()->json('data.*.statut');
+
+        $this->assertEqualsCanonicalizing(['terminee', 'acceptee', 'confirmee', 'envoyee', 'annulee'], $statuts);
+        $this->actingAs($this->technicien)->getJson('/api/pro/demandes?statut=terminee')->assertOk()->assertJsonCount(1, 'data');
+    }
+
     public function test_chacun_ne_voit_que_ses_demandes(): void
     {
         $demande = $this->nouvelleDemande();
@@ -121,7 +129,7 @@ class CycleDemandeTest extends TestCase
         // Un autre technicien ne voit pas la demande adressée à Koffi Tanoh.
         $autreTechnicien = User::factory()->create();
         Prestataire::where('nom', 'Ali Diomandé')->update(['user_id' => $autreTechnicien->id]);
-        $this->actingAs($autreTechnicien)->getJson('/api/pro/demandes')->assertOk()->assertJsonCount(0, 'data');
+        $this->assertNotContains($demande->id, $this->actingAs($autreTechnicien)->getJson('/api/pro/demandes')->assertOk()->json('data.*.id'));
         $this->actingAs($autreTechnicien)->postJson("/api/pro/demandes/{$demande->id}/accepter")->assertNotFound();
     }
 }

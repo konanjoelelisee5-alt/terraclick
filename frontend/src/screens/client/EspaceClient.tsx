@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useApp } from "../../state/app";
 import { Icon } from "../../components/Icon";
 import type { Ecran } from "../../state/types";
-import { useEtatClient } from "./store";
+import { useDemandesClient } from "./store";
 
 /* Espace client, intégré au site public (en-tête et pied de page conservés) :
    une rangée d'onglets commune à ses écrans, page « Mon compte » comprise. */
@@ -20,7 +20,7 @@ const RATTACHEMENT: Partial<Record<Ecran, Ecran>> = { clientSuivi: "clientDemand
 
 export function OngletsClient() {
   const { etat, go } = useApp();
-  const { demandes, notificationsLues } = useEtatClient();
+  const { demandes, notificationsLues } = useDemandesClient(etat.auth?.tel ?? null);
   const courant = RATTACHEMENT[etat.screen] ?? etat.screen;
   const comptes: Partial<Record<Ecran, number>> = {
     clientDemandes: demandes.filter((d) => ["Rendez-vous", "Réponses reçues"].includes(d.groupe)).length,

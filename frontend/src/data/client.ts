@@ -1,10 +1,12 @@
-/* Espace client : données de démonstration reprises de la maquette servis-yakro-app,
-   avec les prestataires de l'annuaire réel. Les demandes ne sont pas encore
-   enregistrées par l'API ; le profil, lui, l'est. */
+/* Espace client : types et données de démonstration reprises de la maquette. Les demandes
+   affichées viennent désormais de l'API (screens/client/store.ts) ; DEMANDES_CLIENT et SUIVI
+   ne servent plus qu'à l'écran « Demander un devis », masqué au profit de l'assistant. */
 
 import type { Ton } from "./pro";
 
 export type DemandeClient = {
+  /** Identifiant dans l'API (absent des données de démonstration). */
+  id?: number;
   ref: string;
   prestataire: string;
   initiales: string;

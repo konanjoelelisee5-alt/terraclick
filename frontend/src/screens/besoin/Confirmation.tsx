@@ -6,7 +6,7 @@ import { useApi } from "../../lib/useApi";
 import { useApp } from "../../state/app";
 import { Icon } from "../../components/Icon";
 import { CARTE } from "../../components/ui";
-import { modifierClient } from "../client/store";
+import { modifierClient, versDemandeClient } from "../client/store";
 import { AIDE, CadreParcours, Choix, TITRE_ETAPE, resumeBesoin } from "./commun";
 import { CarteTechnicien } from "./CarteTechnicien";
 
@@ -58,24 +58,8 @@ export function Confirmation() {
 
     try {
       const { data } = await api.creerDemande(f);
-      // « Mes demandes » affiche aussitôt la nouvelle demande.
-      modifierClient((e) => ({
-        demandes: [
-          {
-            ref: data.reference,
-            prestataire: technicien.nom,
-            initiales: technicien.initiales,
-            portee: [data.secteur.nom, data.quartier?.nom].filter(Boolean).join(" · "),
-            statut: "Envoyée",
-            groupe: "En attente",
-            ton: "neutral",
-            date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long" }),
-            estimation: "—",
-            prochaine: "Attendre la réponse du technicien",
-          },
-          ...e.demandes,
-        ],
-      }));
+      // « Mes demandes » affiche aussitôt la nouvelle demande, telle qu'enregistrée.
+      modifierClient((e) => ({ demandes: [versDemandeClient(data), ...e.demandes.filter((d) => d.id !== data.id)] }));
       go("demandeEnvoyee", { demandeEnvoyee: data });
     } catch (e) {
       const champs = e instanceof ErreurApi ? Object.values(e.champs)[0]?.[0] : undefined;

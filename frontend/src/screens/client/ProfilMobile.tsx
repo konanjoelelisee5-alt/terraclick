@@ -7,7 +7,7 @@ import { useApp } from "../../state/app";
 import type { Ecran } from "../../state/types";
 import { BoutonRond, GrandTitre } from "../../components/GrandTitre";
 import { Icon } from "../../components/Icon";
-import { useEtatClient } from "./store";
+import { useDemandesClient } from "./store";
 
 /* Profil sur téléphone. Marges de 24 px, 16 px entre les cartes, 32 px avant le menu.
    Seules les cartes mises en avant ont une ombre ; le menu est posé sur le fond.
@@ -88,7 +88,7 @@ function LigneMenu({ l, onClick }: { l: Ligne; onClick: () => void }) {
 
 export function ProfilMobile() {
   const { etat, set, go, exigerCompte, deconnecter } = useApp();
-  const { demandes, notificationsLues } = useEtatClient();
+  const { demandes, notificationsLues } = useDemandesClient(etat.auth?.tel ?? null);
   const auth = etat.auth;
   const [envoiPhoto, setEnvoiPhoto] = useState(false);
   const [erreurPhoto, setErreurPhoto] = useState<string | null>(null);
@@ -122,7 +122,7 @@ export function ProfilMobile() {
 
   const nonLues = notificationsLues ? 0 : NOTIFICATIONS_CLIENT.filter((n) => n.nouveau).length;
   // Demandes qui attendent quelque chose du client (confirmer, répondre).
-  const aTraiter = demandes.filter((d) => ["Marquée terminée", "Réponse reçue"].includes(d.statut)).length;
+  const aTraiter = demandes.filter((d) => ["Marquée terminée", "Acceptée"].includes(d.statut)).length;
   // Une prestation terminée attend un avis : c'est ce que « Nouveau » signale.
   const avisEnAttente = demandes.some((d) => d.statut === "Terminée");
 

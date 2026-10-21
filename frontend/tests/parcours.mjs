@@ -728,28 +728,64 @@ if (!MODES_ACCUEIL) {
   ok('client : en-tête et pied de page du site conservés',
      (await p.getByText('Tous droits réservés', { exact: false }).count()) === 1);
 
+  // Deux demandes réelles pour ce passage : l'une que le technicien (Koffi Tanoh) accepte puis
+  // termine par l'API, l'autre laissée en attente pour l'annulation.
+  const refs = await p.evaluate(async (mdp) => {
+    const appel = async (chemin, methode = 'GET', corps, jeton = localStorage.getItem('sy.jeton')) => {
+      const r = await fetch('/api' + chemin, {
+        method: methode,
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: 'Bearer ' + jeton },
+        body: corps ? JSON.stringify(corps) : undefined,
+      });
+      return r.json();
+    };
+    const villes = (await appel('/villes')).data;
+    const habitat = villes.flatMap((v) => v.quartiers).find((q) => q.slug === 'habitat').id;
+    const koffi = (await appel('/recommandations?secteur=plomberie&quartier=' + habitat)).data.find((t) => t.nom === 'Koffi Tanoh').id;
+    const demande = { secteur: 'plomberie', probleme: "Fuite d'eau", quartier_id: habitat, quand: 'maintenant', mode: 'choisi', prestataire_id: koffi, paiement: 'especes' };
+    const a = (await appel('/demandes', 'POST', demande)).data;
+    const b = (await appel('/demandes', 'POST', { ...demande, probleme: 'Robinet cassé' })).data;
+    const tech = (await appel('/auth/connexion', 'POST', { telephone: '07 07 07 07 07', mot_de_passe: mdp })).token;
+    await appel(`/pro/demandes/${a.id}/accepter`, 'POST', { message: 'Je passe dans 30 minutes.', estimation: 20000, creneau: "Aujourd'hui, 15 h" }, tech);
+    await appel(`/pro/demandes/${a.id}/terminer`, 'POST', {}, tech);
+    return { terminee: a.reference, attente: b.reference };
+  }, MDP);
+  await p.reload({ waitUntil: 'domcontentloaded' });
+  await p.getByRole('button', { name: 'Mon espace' }).click();
+  ok('client : la fin marquée par le technicien attend une confirmation', await apparait(p.getByText('Confirmer une fin de prestation').first()));
+
   const onglets = p.getByRole('navigation', { name: 'Espace client' });
   await onglets.getByRole('button', { name: /Mes demandes/ }).click();
+  await apparait(p.locator('[data-r="demande-client"]').first());
+  ok('client : « Mes demandes » vient de la base, avec ses statuts réels',
+     (await p.locator('[data-r="demande-client"]').filter({ hasText: refs.terminee }).filter({ hasText: 'Marquée terminée' }).count()) === 1 &&
+       (await p.locator('[data-r="demande-client"]').filter({ hasText: refs.attente }).filter({ hasText: 'Envoyée' }).count()) === 1);
   await p.getByRole('button', { name: 'Terminées', exact: true }).click();
-  ok('client : filtre « Terminées »', (await p.getByRole('button', { name: 'Voir la demande' }).count()) === 1);
+  ok('client : filtre « Terminées »', (await p.getByRole('button', { name: 'Voir la demande' }).count()) >= 1);
   await p.getByRole('button', { name: 'Toutes', exact: true }).click();
-  await p.getByRole('button', { name: 'Voir la demande' }).first().click();
-  ok('client : suivi de la demande', await apparait(p.getByRole('heading', { name: /Fuite sous l'évier/ })));
+  await p.locator('[data-r="demande-client"]').filter({ hasText: refs.terminee }).getByRole('button', { name: 'Voir la demande' }).click();
+  ok('client : suivi réel, réponse et estimation du technicien',
+     (await apparait(p.getByRole('heading', { name: "Fuite d'eau · Plomberie" }))) &&
+       (await p.getByText('« Je passe dans 30 minutes. »').isVisible()) && (await p.getByText('20 000 F').first().isVisible()));
   await p.getByRole('button', { name: 'Signaler un problème' }).click();
   ok('client : fenêtre de signalement avec motif', await apparait(p.getByLabel('Motif')));
   await p.keyboard.press('Escape');
   await p.getByRole('button', { name: 'Confirmer la fin de prestation' }).click();
   await p.getByRole('dialog').getByRole('button', { name: 'Confirmer la fin de prestation' }).click();
-  ok('client : fin confirmée, « Laisser un avis » proposé', await apparait(p.getByRole('button', { name: 'Laisser un avis' })));
+  ok('client : fin confirmée et enregistrée, « Laisser un avis » proposé',
+     (await apparait(p.getByRole('button', { name: 'Laisser un avis' }))) && (await p.locator('[data-r="statut-suivi"]').textContent()) === 'Terminée');
+
+  await onglets.getByRole('button', { name: /Mes demandes/ }).click();
+  await p.locator('[data-r="demande-client"]').filter({ hasText: refs.attente }).getByRole('button', { name: 'Voir la demande' }).click();
+  await p.getByRole('button', { name: 'Annuler la demande' }).click();
+  await p.getByRole('dialog').getByRole('button', { name: 'Annuler la demande' }).click();
+  ok('client : demande en attente annulée', await apparait(p.locator('[data-r="statut-suivi"]').getByText('Annulée')));
 
   await onglets.getByRole('button', { name: /Mes demandes/ }).click();
   await p.getByRole('button', { name: 'Nouvelle demande' }).click();
-  await apparait(p.getByRole('heading', { name: 'Demander un devis' }));
-  await p.getByLabel('Prestataire').selectOption({ label: 'Élec Yakro · Électricien' });
-  await p.getByLabel('Décrivez votre besoin').fill('Le disjoncteur saute dès que la clim démarre.');
-  await p.getByRole('button', { name: 'Envoyer ma demande' }).click();
-  ok('client : demande envoyée à Élec Yakro, visible en tête', await apparait(p.getByText('Demande envoyée')) &&
-     (await p.locator('.sy-card').filter({ hasText: 'Élec Yakro' }).filter({ hasText: 'En attente' }).count()) >= 1);
+  ok('client : « Nouvelle demande » ouvre l’assistant de demande', await apparait(p.getByRole('heading', { name: 'De quel service avez-vous besoin ?' })));
+  await p.goBack();
+  await p.goBack();
 
   await onglets.getByRole('button', { name: /Mon profil/ }).click();
   const email = `aya.${Date.now()}@exemple.ci`;

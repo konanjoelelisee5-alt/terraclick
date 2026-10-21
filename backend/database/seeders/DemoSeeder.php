@@ -3,10 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\Avis;
+use App\Models\Demande;
 use App\Models\Prestataire;
 use App\Models\Quartier;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
 
 /**
  * Comptes et avis de démonstration. Le numéro 07 58 42 19 03 est celui que le
@@ -44,6 +46,8 @@ class DemoSeeder extends Seeder
             }
         }
 
+        $this->demandesDeDemonstration($aya, $koffi);
+
         // Avis affichés sur la fiche de l'Ent. Bakayoko. Ils ne modifient pas ses agrégats
         // (4,8 sur 34 avis), qui représentent l'historique antérieur à la plateforme.
         $bakayoko = Prestataire::where('nom', 'Ent. Bakayoko')->firstOrFail();
@@ -66,5 +70,86 @@ class DemoSeeder extends Seeder
             );
             $ligne->forceFill(['created_at' => $date, 'updated_at' => $date])->save();
         }
+    }
+
+    /**
+     * Demandes d'Aya à chaque étape du cycle, pour que « Mes demandes » et le suivi montrent de
+     * vraies données. Posées une seule fois : celles que le compte crée ensuite s'y ajoutent.
+     */
+    private function demandesDeDemonstration(User $aya, User $koffi): void
+    {
+        if (Demande::where('user_id', $aya->id)->exists()) {
+            return;
+        }
+
+        $scenarios = [
+            // [technicien, secteur, problème, jours écoulés, statuts franchis (statut => [auteur, message]), estimation, créneau]
+            ['Koffi Tanoh', 'plomberie', 'Fuite d\'eau', 6, [
+                'acceptee' => ['technicien', 'Je peux passer mardi matin. Le joint et le siphon sont à changer.'],
+                'en_cours' => ['technicien', null],
+                'terminee' => ['technicien', 'Joint et siphon remplacés, plus de fuite.'],
+            ], 25000, 'Mardi, 9 h'],
+            ['Élec Yakro', 'electricite', 'Disjoncteur qui saute', 4, [
+                'acceptee' => ['technicien', 'Je viens vérifier le tableau électrique demain après-midi.'],
+            ], 18000, 'Demain, 15 h'],
+            ['ClimaCool CI', 'climatisation', 'Entretien ou recharge de gaz', 12, [
+                'acceptee' => ['technicien', 'Recharge et nettoyage des filtres.'],
+                'en_cours' => ['technicien', null],
+                'terminee' => ['technicien', null],
+                'confirmee' => ['client', null],
+            ], 12000, 'Samedi, 10 h'],
+            ['Serrurerie N\'Guessan', 'serrurerie', 'Changer une serrure', 1, [], null, null],
+            ['Ali Diomandé', 'plomberie', 'WC bouché', 15, [
+                'annulee' => ['client', 'Problème réglé entre-temps.'],
+            ], null, null],
+        ];
+
+        foreach ($scenarios as [$nom, $secteur, $probleme, $jours, $etapes, $estimation, $creneau]) {
+            $pro = Prestataire::where('nom', $nom)->first();
+            if (! $pro) {
+                continue;
+            }
+
+            $date = now()->subDays($jours)->setTime(9, 0);
+            $this->travelTo($date);
+            $demande = Demande::create([
+                'user_id' => $aya->id,
+                'secteur' => $secteur,
+                'probleme' => $probleme,
+                'quartier_id' => $pro->quartier_id ?? $aya->quartier_id,
+                'quand' => 'aujourdhui',
+                'mode' => 'choisi',
+                'prestataire_id' => $pro->id,
+                'paiement' => 'especes',
+                'estimation' => $estimation,
+                'creneau' => $creneau,
+                'statut' => array_key_last($etapes) ?? 'envoyee',
+            ]);
+            // Lancé depuis DatabaseSeeder, les événements de modèle sont coupés (WithoutModelEvents) :
+            // la référence et la première étape sont alors posées ici.
+            if ($demande->reference === null) {
+                $demande->forceFill(['reference' => sprintf('DEM-%s-%05d', $demande->created_at->format('Y'), $demande->id)])->saveQuietly();
+                $demande->evenements()->create(['user_id' => $aya->id, 'auteur' => 'client', 'statut' => 'envoyee']);
+            }
+
+            foreach ($etapes as $statut => [$auteur, $message]) {
+                $date = $date->copy()->addHours(5);
+                $this->travelTo($date);
+                $demande->evenements()->create([
+                    'user_id' => $auteur === 'client' ? $aya->id : ($nom === 'Koffi Tanoh' ? $koffi->id : null),
+                    'auteur' => $auteur,
+                    'statut' => $statut,
+                    'message' => $message,
+                ]);
+            }
+        }
+
+        $this->travelTo(null);
+    }
+
+    /** Date courante simulée, pour dater les demandes et leurs étapes dans le passé. */
+    private function travelTo(?\DateTimeInterface $date): void
+    {
+        Carbon::setTestNow($date);
     }
 }

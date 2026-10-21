@@ -135,9 +135,18 @@ export type DemandeApi = {
   prestataire: PrestataireApi | null;
   paiement: "especes" | "mobile_money";
   photos: string[];
-  statut: string;
+  statut: StatutDemande;
+  /** « Envoyée », « Marquée terminée »… */
+  statut_libelle: string;
+  /** Réponse du technicien quand il accepte. */
+  estimation: number | null;
+  creneau: string | null;
+  /** Journal de suivi (présent sur le détail d'une demande). */
+  evenements?: { statut: StatutDemande; libelle: string; auteur: "client" | "technicien" | "systeme"; message: string | null; date: string }[];
   cree_le: string;
 };
+
+export type StatutDemande = "envoyee" | "acceptee" | "refusee" | "en_cours" | "terminee" | "confirmee" | "annulee";
 
 /** Résultats de recherche, avec les secteurs que le serveur a reconnus dans la demande. */
 export type Resultats = Page<PrestataireApi> & { analyse?: { secteurs: string[] } };
@@ -295,6 +304,11 @@ export const api = {
   },
   creerDemande: (formulaire: FormData) =>
     requete<{ data: DemandeApi; message: string }>("/demandes", { methode: "POST", corps: formulaire }),
+  mesDemandes: (signal?: AbortSignal) => requete<Page<DemandeApi>>("/demandes", { signal }).then((r) => r.data),
+  demande: (id: number, signal?: AbortSignal) => requete<{ data: DemandeApi }>(`/demandes/${id}`, { signal }).then((r) => r.data),
+  annulerDemande: (id: number, motif: string | null) =>
+    requete<{ data: DemandeApi }>(`/demandes/${id}/annuler`, { methode: "POST", corps: { motif } }).then((r) => r.data),
+  confirmerDemande: (id: number) => requete<{ data: DemandeApi }>(`/demandes/${id}/confirmer`, { methode: "POST" }).then((r) => r.data),
 
   publierAvis: (id: number, avis: { ponctualite: number; qualite: number; prix: number; commentaire?: string }) =>
     requete<{ data: AvisApi }>(`/prestataires/${id}/avis`, { methode: "POST", corps: avis }).then((r) => r.data),

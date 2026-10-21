@@ -105,7 +105,7 @@ class DemandeTest extends TestCase
             ->assertJsonPath('data.statut', 'envoyee')
             ->assertJsonPath('message', 'Votre demande est envoyée. Vous recevrez une réponse dans environ 10 minutes.');
 
-        $demande = Demande::first();
+        $demande = Demande::whereBelongsTo($client, 'client')->firstOrFail();
         $this->assertMatchesRegularExpression('/^DEM-\d{4}-\d{5}$/', $demande->reference);
         $this->assertCount(1, $demande->photos);
         Storage::disk('public')->assertExists($demande->photos[0]);
