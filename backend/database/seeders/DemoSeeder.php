@@ -14,6 +14,8 @@ use Illuminate\Database\Seeder;
  */
 class DemoSeeder extends Seeder
 {
+    public const MOT_DE_PASSE_DEMO = 'terraclick2026';
+
     public function run(): void
     {
         $habitat = Quartier::where('slug', 'habitat')->first();
@@ -26,6 +28,14 @@ class DemoSeeder extends Seeder
             ['telephone' => '+2250102030405'],
             ['nom' => 'Moussa Touré', 'telephone_verifie_le' => now()],
         );
+
+        // Mot de passe de démonstration, posé une seule fois : un changement fait depuis
+        // l'application n'est pas écrasé au déploiement suivant.
+        foreach ([$aya, $moussa] as $compte) {
+            if (! $compte->aUnMotDePasse()) {
+                $compte->forceFill(['password' => self::MOT_DE_PASSE_DEMO])->save();
+            }
+        }
 
         // Avis affichés sur la fiche de l'Ent. Bakayoko. Ils ne modifient pas ses agrégats
         // (4,8 sur 34 avis), qui représentent l'historique antérieur à la plateforme.

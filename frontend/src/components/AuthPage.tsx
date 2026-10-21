@@ -5,8 +5,9 @@ import { Icon } from "./Icon";
 
 /* Pages Connexion et Inscription, plein écran : flèche retour, logo TerraClick avec halo,
    « Bienvenue », pastille « Espace Client », bascule Connexion | Inscription, champs arrondis à
-   étiquette flottante et icône dans une pastille orange, grand bouton orange. Pas de mot de
-   passe : le numéro est prouvé par un code reçu par SMS ou WhatsApp. */
+   étiquette flottante et icône dans une pastille orange, grand bouton orange. Connexion par
+   numéro et mot de passe ; le numéro est prouvé par un code reçu par SMS ou WhatsApp à
+   l'inscription et pour « Mot de passe oublié » (CONFIG.motDePasse). */
 
 /** Code de démonstration (le backend l'impose en local) ; vide en production. */
 const CODE_DEMO = import.meta.env.VITE_CODE_DEMO ?? "";
@@ -258,6 +259,72 @@ export function ChampTelephone({ valeur, onChange, onValider }: { valeur: string
         style={SAISIE}
       />
     </ChampIcone>
+  );
+}
+
+/** Mot de passe, avec l'œil pour l'afficher. */
+export function ChampMotDePasse({
+  id,
+  libelle,
+  valeur,
+  onChange,
+  onValider,
+  nouveau = false,
+}: {
+  id: string;
+  libelle: string;
+  valeur: string;
+  onChange: (v: string) => void;
+  onValider?: () => void;
+  /** Mot de passe à créer : le gestionnaire de mots de passe du téléphone peut en proposer un. */
+  nouveau?: boolean;
+}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <ChampIcone
+      id={id}
+      libelle={libelle}
+      icone="lock"
+      droite={
+        <button
+          type="button"
+          onClick={() => setVisible((v) => !v)}
+          aria-label={visible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+          style={{ flex: "none", width: 44, height: 44, display: "grid", placeItems: "center", border: 0, background: "none", color: GRIS, cursor: "pointer" }}
+        >
+          <Icon name={visible ? "eye" : "eye-off"} size={22} />
+        </button>
+      }
+    >
+      <input
+        id={id}
+        type={visible ? "text" : "password"}
+        value={valeur}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && onValider?.()}
+        autoComplete={nouveau ? "new-password" : "current-password"}
+        placeholder="••••••••"
+        style={SAISIE}
+      />
+    </ChampIcone>
+  );
+}
+
+/** Mêmes règles que le serveur : 8 caractères au moins, une lettre et un chiffre. */
+export function erreurMotDePasse(motDePasse: string, confirmation: string): string | null {
+  if (motDePasse.length < 8) return "Le mot de passe doit faire au moins 8 caractères.";
+  if (!/\p{L}/u.test(motDePasse)) return "Le mot de passe doit contenir au moins une lettre.";
+  if (!/\d/.test(motDePasse)) return "Le mot de passe doit contenir au moins un chiffre.";
+  if (motDePasse !== confirmation) return "Les deux mots de passe ne sont pas identiques.";
+  return null;
+}
+
+/** Lien orange discret (« Mot de passe oublié ? »). */
+export function LienAuth({ children, onClick }: { children: ReactNode; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} style={LIEN_ORANGE}>
+      {children}
+    </button>
   );
 }
 

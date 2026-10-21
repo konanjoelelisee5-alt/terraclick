@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useApp } from "../state/app";
 import { api, ErreurApi, jeton, messageErreur } from "../lib/api";
+import { CONFIG } from "../lib/config";
 import { useApi } from "../lib/useApi";
 import { canal } from "./ui";
 import { Icon } from "./Icon";
@@ -9,6 +10,18 @@ const TOUCHES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "←"];
 
 /** Code de démonstration (le backend l'impose en local) ; vide en production. */
 const CODE_DEMO = import.meta.env.VITE_CODE_DEMO ?? "";
+
+const LIEN_FEUILLE: React.CSSProperties = {
+  minHeight: 40,
+  padding: 0,
+  background: "none",
+  border: 0,
+  cursor: "pointer",
+  font: "inherit",
+  fontSize: "14px",
+  fontWeight: 600,
+  color: "var(--color-accent-700)",
+};
 
 const ALERTE: React.CSSProperties = {
   fontSize: "13.5px",
@@ -23,14 +36,17 @@ const ALERTE: React.CSSProperties = {
 /**
  * Feuille d'authentification.
  *
- * Un seul parcours : le système regarde si le numéro existe déjà et décide
+ * Avec CONFIG.motDePasse : numéro et mot de passe ; « Mot de passe oublié » et « Créer un
+ * compte » mènent aux pages dédiées. Sinon (connexion par code seul, masquée) :
+ * un seul parcours : le système regarde si le numéro existe déjà et décide
  * lui-même s'il s'agit d'une inscription ou d'une connexion. Pas de mot de passe,
  * donc pas de « mot de passe oublié » ni d'écran « déjà un compte ? ». Le mur ne
  * tombe qu'au moment d'agir — chercher et consulter restent libres.
  */
 export function AuthSheet() {
-  const { etat, set, terminerAuth } = useApp();
+  const { etat, set, go, terminerAuth } = useApp();
   const [erreur, setErreur] = useState<string | null>(null);
+  const [motDePasse, setMotDePasse] = useState("");
   /** Information non bloquante, par exemple le passage de WhatsApp au SMS. */
   const [info, setInfo] = useState<string | null>(null);
   const [occupe, setOccupe] = useState(false);
@@ -101,6 +117,30 @@ export function AuthSheet() {
     appeler(async () => {
       terminerAuth(await api.modifierProfil({ nom: etat.prenomDraft.trim(), quartier_id: quartier?.id ?? null }));
     }, "nom");
+  };
+
+  /** Avec mot de passe : numéro et mot de passe, puis l'action interrompue reprend. */
+  const seConnecter = () => {
+    if (chiffres.length < 8) {
+      setErreur("Saisissez les 10 chiffres de votre numéro.");
+      return;
+    }
+    if (!motDePasse) {
+      setErreur("Saisissez votre mot de passe.");
+      return;
+    }
+    appeler(async () => {
+      const { token, utilisateur } = await api.connecter(etat.telDraft, motDePasse);
+      jeton.ecrire(token);
+      setMotDePasse("");
+      terminerAuth(utilisateur);
+    }, "mot_de_passe");
+  };
+
+  /** « Mot de passe oublié » et « Créer un compte » ouvrent les pages dédiées, puis ramènent ici. */
+  const versPage = (ecran: "connexion" | "inscription") => {
+    setErreur(null);
+    go(ecran, { authOpen: false, apresConnexion: etat.screen });
   };
 
   const taper = (d: string) => {
@@ -188,7 +228,68 @@ export function AuthSheet() {
           </button>
         </div>
 
-        {etat.authStep === "tel" && (
+        {etat.authStep === "tel" && CONFIG.motDePasse && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, letterSpacing: "-0.025em", fontSize: "26px", margin: 0 }}>
+              Connectez-vous pour continuer
+            </h2>
+            <p style={{ fontSize: "14.5px", lineHeight: 1.5, margin: 0, color: "var(--text-muted)" }}>
+              Votre numéro et votre mot de passe TerraClick.
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <span style={{ display: "flex", alignItems: "center", padding: "0 14px", border: "1.5px solid var(--border-subtle)", borderRadius: "var(--radius-md)", fontSize: "15px", whiteSpace: "nowrap" }}>
+                +225
+              </span>
+              <input
+                className="sy-input"
+                value={etat.telDraft}
+                onChange={(e) => {
+                  setErreur(null);
+                  set({ telDraft: e.target.value });
+                }}
+                placeholder="07 00 00 00 00"
+                inputMode="numeric"
+                autoComplete="tel-national"
+                aria-label="Votre numéro de téléphone"
+                style={{ flex: 1, minHeight: 50, fontSize: "16px" }}
+              />
+            </div>
+            <input
+              className="sy-input"
+              type="password"
+              value={motDePasse}
+              onChange={(e) => {
+                setErreur(null);
+                setMotDePasse(e.target.value);
+              }}
+              onKeyDown={(e) => e.key === "Enter" && seConnecter()}
+              placeholder="Mot de passe"
+              autoComplete="current-password"
+              aria-label="Votre mot de passe"
+              style={{ minHeight: 50, fontSize: "16px" }}
+            />
+            {alerte}
+            <button
+              onClick={seConnecter}
+              disabled={occupe}
+              aria-busy={occupe}
+              className="sy-btn sy-btn--primary sy-btn--md"
+              style={{ justifyContent: "center", minHeight: 50, fontSize: "16px" }}
+            >
+              {occupe ? "Connexion…" : "Se connecter"}
+            </button>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <button onClick={() => versPage("connexion")} style={LIEN_FEUILLE}>
+                Mot de passe oublié ?
+              </button>
+              <button onClick={() => versPage("inscription")} style={LIEN_FEUILLE}>
+                Créer un compte
+              </button>
+            </div>
+          </div>
+        )}
+
+        {etat.authStep === "tel" && !CONFIG.motDePasse && (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <h2
               style={{

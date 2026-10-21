@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Auth\ConnexionRequest;
 use App\Http\Requests\Auth\DemanderCodeRequest;
+use App\Http\Requests\Auth\InscriptionRequest;
 use App\Http\Requests\Auth\ModifierProfilRequest;
+use App\Http\Requests\Auth\ReinitialiserMotDePasseRequest;
 use App\Http\Requests\Auth\VerifierCodeRequest;
 use App\Http\Resources\UtilisateurResource;
 use App\Models\User;
@@ -11,10 +14,13 @@ use App\Services\OtpService;
 use App\Support\Telephone;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 /**
- * Un seul parcours pour l'inscription et la connexion : le numéro est vérifié
- * par code, puis le système crée le compte s'il n'existe pas encore.
+ * Comptes clients. Inscription avec mot de passe (le numéro est prouvé par code), connexion
+ * par numéro et mot de passe, « Mot de passe oublié » par code. La connexion par code seul
+ * (`verifierCode`) reste disponible pour l'interface sans mot de passe, masquée par réglage.
  */
 class AuthController extends Controller
 {
@@ -55,6 +61,88 @@ class AuthController extends Controller
             'nouveau_compte' => $user->wasRecentlyCreated,
             'utilisateur' => UtilisateurResource::make($user->load(['ville', 'quartier'])),
         ], $user->wasRecentlyCreated ? 201 : 200);
+    }
+
+    /**
+     * POST /api/auth/inscription — crée le compte avec son mot de passe. Le code reçu prouve
+     * le numéro ; un compte créé par code seul (sans mot de passe) est complété.
+     */
+    public function inscrire(InscriptionRequest $request): JsonResponse
+    {
+        $telephone = $request->validated('telephone');
+        $existant = User::where('telephone', $telephone)->first();
+
+        if ($existant?->aUnMotDePasse()) {
+            throw ValidationException::withMessages([
+                'telephone' => 'Ce numéro a déjà un compte. Connectez-vous, ou touchez « Mot de passe oublié ».',
+            ]);
+        }
+
+        $this->otp->verifier($telephone, $request->validated('code'));
+
+        $user = $existant ?? new User(['telephone' => $telephone]);
+        $user->fill($request->profil());
+        $user->forceFill([
+            'password' => $request->validated('mot_de_passe'),
+            'telephone_verifie_le' => now(),
+        ])->save();
+
+        return $this->session($user, $request->validated('appareil'), 201);
+    }
+
+    /** POST /api/auth/connexion — numéro et mot de passe. */
+    public function connecter(ConnexionRequest $request): JsonResponse
+    {
+        $user = User::where('telephone', $request->validated('telephone'))->first();
+
+        if ($user && ! $user->aUnMotDePasse()) {
+            throw ValidationException::withMessages([
+                'mot_de_passe' => 'Ce compte n\'a pas encore de mot de passe. Touchez « Mot de passe oublié » pour en créer un.',
+            ]);
+        }
+
+        if (! $user || ! Hash::check($request->validated('mot_de_passe'), $user->password)) {
+            throw ValidationException::withMessages([
+                'mot_de_passe' => 'Numéro ou mot de passe incorrect.',
+            ]);
+        }
+
+        return $this->session($user, $request->validated('appareil'));
+    }
+
+    /**
+     * POST /api/auth/mot-de-passe — « Mot de passe oublié » : le code reçu prouve le numéro,
+     * le nouveau mot de passe remplace l'ancien et les autres sessions sont fermées.
+     */
+    public function reinitialiserMotDePasse(ReinitialiserMotDePasseRequest $request): JsonResponse
+    {
+        $telephone = $request->validated('telephone');
+        $user = User::where('telephone', $telephone)->first();
+
+        if (! $user) {
+            throw ValidationException::withMessages([
+                'telephone' => 'Aucun compte avec ce numéro. Créez votre compte.',
+            ]);
+        }
+
+        $this->otp->verifier($telephone, $request->validated('code'));
+
+        $user->forceFill([
+            'password' => $request->validated('mot_de_passe'),
+            'telephone_verifie_le' => now(),
+        ])->save();
+        $user->tokens()->delete();
+
+        return $this->session($user, $request->validated('appareil'));
+    }
+
+    /** Ouvre une session sur cet appareil et renvoie le jeton avec le compte. */
+    private function session(User $user, ?string $appareil, int $statut = 200): JsonResponse
+    {
+        return response()->json([
+            'token' => $user->createToken($appareil ?? 'web')->plainTextToken,
+            'utilisateur' => UtilisateurResource::make($user->load(['ville', 'quartier'])),
+        ], $statut);
     }
 
     /** GET /api/moi */

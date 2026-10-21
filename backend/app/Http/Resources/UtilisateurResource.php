@@ -23,6 +23,7 @@ class UtilisateurResource extends JsonResource
             'ville' => $this->whenLoaded('ville', fn () => $this->ville ? ['id' => $this->ville->id, 'nom' => $this->ville->nom] : null),
             'quartier' => QuartierResource::make($this->whenLoaded('quartier')),
             'profil_complet' => $this->profilComplet(),
+            'a_mot_de_passe' => $this->aUnMotDePasse(),
         ];
     }
 }

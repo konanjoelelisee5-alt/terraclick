@@ -12,10 +12,13 @@ use Illuminate\Support\Facades\Route;
 | Chercher et consulter restent libres ; seules les actions demandent un compte.
 */
 
-// Compte sans mot de passe
+// Comptes : inscription et connexion avec mot de passe, code pour prouver le numéro
 Route::prefix('auth')->group(function () {
     Route::post('code', [AuthController::class, 'demanderCode'])->middleware('throttle:otp-envoi');
     Route::post('verifier', [AuthController::class, 'verifierCode'])->middleware('throttle:otp-verification');
+    Route::post('inscription', [AuthController::class, 'inscrire'])->middleware('throttle:otp-verification');
+    Route::post('connexion', [AuthController::class, 'connecter'])->middleware('throttle:connexion');
+    Route::post('mot-de-passe', [AuthController::class, 'reinitialiserMotDePasse'])->middleware('throttle:otp-verification');
     Route::post('deconnexion', [AuthController::class, 'deconnexion'])->middleware('auth:sanctum');
 });
 

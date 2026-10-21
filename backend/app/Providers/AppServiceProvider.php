@@ -61,6 +61,18 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('otp-verification', fn (Request $request) => Limit::perMinute(config('otp.verifications_par_ip_minute'))->by('otp-verif:'.$request->ip())
             ->response(fn () => $this->tropDeDemandes('Trop d\'essais. Patientez une minute.')));
+
+        // Mot de passe : on freine les essais en série, par numéro et par adresse IP.
+        RateLimiter::for('connexion', function (Request $request) {
+            $telephone = Telephone::normaliser($request->input('telephone')) ?? 'invalide';
+
+            return [
+                Limit::perMinute(10)->by('connexion-tel:'.$telephone)
+                    ->response(fn () => $this->tropDeDemandes('Trop d\'essais pour ce numéro. Patientez une minute.')),
+                Limit::perMinute(30)->by('connexion-ip:'.$request->ip())
+                    ->response(fn () => $this->tropDeDemandes('Trop d\'essais. Patientez une minute.')),
+            ];
+        });
     }
 
     private function tropDeDemandes(string $message): JsonResponse

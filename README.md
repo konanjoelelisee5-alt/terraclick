@@ -30,7 +30,8 @@ L'application est une **PWA installable** sur ordinateur et téléphone :
 Le déploiement sur Render (API en Docker, interface en site statique, MySQL chez Aiven) est
 décrit dans [`docs/DEPLOIEMENT-RENDER.md`](docs/DEPLOIEMENT-RENDER.md) et dans `render.yaml`.
 Tant qu'aucun fournisseur SMS ou WhatsApp n'est branché, seuls les numéros listés dans
-`OTP_NUMEROS_TEST` peuvent se connecter, avec le code `OTP_CODE_TEST`.
+`OTP_NUMEROS_TEST` reçoivent un code (le code `OTP_CODE_TEST`) : eux seuls peuvent s'inscrire
+ou réinitialiser leur mot de passe. Un compte existant se connecte avec son mot de passe.
 
 ## Périmètre du MVP
 
@@ -55,6 +56,7 @@ recense ce qui est masqué et dit comment le rouvrir.
 | Frontend | `frontend/src/lib/config.ts` : `moduleConstruction` | `false` masque le module Construction (voir plus bas), `true` le rebranche partout. |
 | Frontend | `frontend/src/lib/config.ts` : `modesAccueil` | `false` masque la bascule Recherche / Autour de moi / Box intelligente de l'accueil et l'onglet « Carte » de la barre mobile (voir plus bas), `true` les rebranche. |
 | Frontend | `frontend/src/lib/config.ts` : `carteResultats` | `false` masque la bascule Liste / Carte des résultats, qui restent en liste ; `true` la rebranche. |
+| Frontend | `frontend/src/lib/config.ts` : `motDePasse` | `true` : comptes avec mot de passe. `false` rebranche la connexion par code seul, sans mot de passe (voir « Compte avec mot de passe »). |
 | Frontend | `frontend/src/lib/config.ts` : `actionsAccueilMobile` | `false` masque les boutons « Urgence » et « Programmer » sous l'en-tête de l'accueil mobile (voir plus bas), `true` les rebranche. |
 | Frontend | `frontend/src/data/catalogue.ts` : `SECTEURS` | Les cinq secteurs de l'accueil (raccourcis et cartes), du formulaire de devis et, via `pro.ts`, des services d'un prestataire. |
 | Tests | `frontend/tests/parcours.mjs` : `MODULE_CONSTRUCTION` | Réactive les règles C à F (assistant, contrat, PV, bloc BTP). |
@@ -204,8 +206,8 @@ lancez donc l'API avant le frontend. Pour un déploiement, renseignez `VITE_API_
 
 **Ce qui passe par l'API** :
 
-- le compte : code par SMS ou WhatsApp, profil, session gardée après rechargement,
-  déconnexion ;
+- le compte : inscription avec mot de passe et numéro vérifié par code (SMS ou WhatsApp),
+  connexion, mot de passe oublié, profil, session gardée après rechargement, déconnexion ;
 - le méga-menu ;
 - la recherche et ses filtres de quartier ;
 - les prestataires à la une ;
@@ -288,12 +290,23 @@ filtrent par quartier de Yakro et basculent entre liste et carte.
 interne passe avant tout. La fiche professionnelle réunit réalisations, prestations, tarifs
 indicatifs, disponibilités, garanties, documents vérifiés et avis.
 
-**Compte sans mot de passe.** Un seul parcours : le système regarde si le numéro existe déjà
-et décide lui-même s'il s'agit d'une inscription ou d'une connexion. Chercher et consulter
-restent libres ; le mur ne tombe qu'au moment d'agir, sous forme de feuille basse — numéro,
-canal (SMS ou WhatsApp), code à six chiffres, puis deux champs de profil si le numéro est
-inconnu. L'action interrompue reprend ensuite toute seule.
-Numéro de démonstration reconnu : **07 58 42 19 03**.
+**Compte avec mot de passe** (`motDePasse: true`). L'inscription demande le nom, le
+téléphone, l'e-mail (facultatif), un mot de passe (8 caractères au moins, avec une lettre et
+un chiffre), la ville et le quartier ; le numéro est ensuite vérifié par un code à six
+chiffres (SMS ou WhatsApp) avant la création du compte. La connexion se fait par numéro et
+mot de passe. « Mot de passe oublié » : nouveau mot de passe, confirmé par un code reçu ; les
+autres sessions sont alors fermées. Chercher et consulter restent libres ; le mur ne tombe
+qu'au moment d'agir, sous forme de feuille basse (numéro et mot de passe), et l'action
+interrompue reprend ensuite toute seule.
+Compte de démonstration : **07 58 42 19 03**, mot de passe **terraclick2026**
+(`DemoSeeder::MOT_DE_PASSE_DEMO`, posé une seule fois).
+
+**Connexion par code seul, masquée** (`motDePasse: false`). Le parcours d'origine, sans mot de
+passe : le système regarde si le numéro existe déjà et décide lui-même s'il s'agit d'une
+inscription ou d'une connexion (numéro, canal, code, puis deux champs de profil si le numéro
+est inconnu). Les écrans (`ConnexionParCode`, étapes « code » et « profil » de `AuthSheet`)
+et la route `POST /api/auth/verifier` restent en place. Un compte créé ainsi n'a pas de mot de
+passe : il s'en donne un avec « Mot de passe oublié ».
 
 **Suivi avancé.** Sur les besoins lourds, l'application propose — sans jamais l'imposer — un
 suivi encadré : questionnaire, offres à comparer, séquestre par étape via mobile money,

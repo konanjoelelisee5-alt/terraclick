@@ -30,14 +30,27 @@ async function neuve(w = 1440, h = 1000) {
   }
   return { ctx, p };
 }
-async function connecter(p, tel = '07 58 42 19 03') {
-  await p.getByLabel('Votre numéro de téléphone').fill(tel);
-  await p.getByRole('button', { name: 'Recevoir mon code' }).click();
-  await p.getByText(/appuyer pour remplir/).click();
-  // La feuille se referme (numéro connu) ou passe au profil (numéro inconnu).
-  await apparait(p.getByText('Entrez le code'), 100);
-  await p.getByText('Entrez le code').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+// Comptes avec mot de passe (CONFIG.motDePasse) ; celui de démonstration est posé par DemoSeeder.
+const MDP = 'terraclick2026';
+// Titre de la feuille de connexion qui monte au moment d'agir.
+const MUR = 'Connectez-vous pour continuer';
+
+/** Connexion dans la feuille basse (le mur) : numéro et mot de passe. */
+async function connecter(p, tel = '07 58 42 19 03', mdp = MDP) {
+  const feuille = p.getByRole('dialog', { name: 'Connexion à TerraClick' });
+  await feuille.getByLabel('Votre numéro de téléphone').fill(tel);
+  await feuille.getByLabel('Votre mot de passe').fill(mdp);
+  await feuille.getByRole('button', { name: 'Se connecter', exact: true }).click();
+  await feuille.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   await p.waitForTimeout(150);
+}
+
+/** Connexion sur la page Connexion (plein écran). */
+async function connecterPage(p, tel = '07 58 42 19 03', mdp = MDP) {
+  const page = p.locator('[data-r="page-auth"]');
+  await page.getByLabel('Numéro de téléphone', { exact: true }).fill(tel);
+  await page.getByLabel('Mot de passe', { exact: true }).fill(mdp);
+  await page.getByRole('button', { name: 'Se connecter', exact: true }).click();
 }
 
 // A · Le mur d'authentification n'arrive qu'à l'action, et l'action reprend ensuite
@@ -50,26 +63,29 @@ async function connecter(p, tel = '07 58 42 19 03') {
   ok('chercher reste libre, sans compte', await apparait(p.getByText('Koffi Tanoh').first()));
   await p.getByRole('button', { name: 'Chat', exact: true }).first().click();
   await p.waitForTimeout(300);
-  ok('le mur monte au moment d’agir', await p.getByText('Votre numéro, et c\'est parti').isVisible());
+  ok('le mur monte au moment d’agir', await p.getByText(MUR).isVisible());
   await connecter(p);
-  ok('numéro connu : connexion immédiate, pas d’étape profil',
-     !(await p.getByText('Comment on vous appelle ?').isVisible().catch(() => false)));
+  ok('numéro et mot de passe : la feuille se referme',
+     !(await p.getByRole('dialog', { name: 'Connexion à TerraClick' }).isVisible().catch(() => false)));
   ok('l’action interrompue reprend (le chat s’ouvre)',
      await apparait(p.getByPlaceholder('Écrivez votre message…')));
   await ctx.close();
 }
 
-// B · Numéro inconnu dans la feuille basse (le mur) : création du profil en deux champs
+// B · Dans la feuille basse (le mur) : mauvais mot de passe refusé, « Créer un compte » mène à l'inscription
 {
   const { ctx, p } = await neuve();
   await p.getByPlaceholder(/Quel est votre problème/).fill('Koffi');
   await p.locator('[data-r="search-go"]').click();
   await p.getByRole('button', { name: 'Chat', exact: true }).first().click();
-  await apparait(p.getByText('Votre numéro, et c\'est parti'));
-  await p.getByLabel('Votre numéro de téléphone').fill('07 11 22 33 44');
-  await p.getByRole('button', { name: 'Recevoir mon code' }).click();
-  await p.getByText(/appuyer pour remplir/).click();
-  ok('numéro inconnu : le profil est demandé', await apparait(p.getByText('Comment on vous appelle ?')));
+  await apparait(p.getByText(MUR));
+  const feuille = p.getByRole('dialog', { name: 'Connexion à TerraClick' });
+  await feuille.getByLabel('Votre numéro de téléphone').fill('07 58 42 19 03');
+  await feuille.getByLabel('Votre mot de passe').fill('mauvais2026');
+  await feuille.getByRole('button', { name: 'Se connecter', exact: true }).click();
+  ok('mur : mauvais mot de passe refusé', await apparait(feuille.getByText('Numéro ou mot de passe incorrect.')));
+  await feuille.getByRole('button', { name: 'Créer un compte' }).click();
+  ok('mur : « Créer un compte » ouvre la page Inscription', await apparait(p.getByRole('tab', { name: 'Inscription', selected: true })));
   await ctx.close();
 }
 
@@ -262,10 +278,10 @@ if (!MODULE_CONSTRUCTION) {
   ok('confirmation : résumé, frais, paiement et annulation visibles',
      await apparait(p.getByRole('heading', { name: "Vérifiez avant d'envoyer" })) &&
        (await p.getByText('Frais de déplacement', { exact: true }).isVisible()) && (await p.getByText('Annulation', { exact: true }).isVisible()));
-  ok('aucune inscription demandée avant la confirmation', !(await p.getByText('Votre numéro, et c\'est parti').isVisible().catch(() => false)));
+  ok('aucune inscription demandée avant la confirmation', !(await p.getByText(MUR).isVisible().catch(() => false)));
   await p.getByRole('radio', { name: /Mobile Money/ }).click();
   await p.getByRole('button', { name: 'Confirmer ma demande' }).click();
-  ok('confirmer demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
+  ok('confirmer demande un compte', await apparait(p.getByText(MUR)));
   await connecter(p);
   ok('demande envoyée par l’API, avec sa référence',
      await apparait(p.getByRole('heading', { name: 'Demande envoyée' }), 8000) && (await p.getByText(/Référence DEM-\d{4}-\d{5}/).isVisible()));
@@ -327,63 +343,94 @@ if (!MODULE_CONSTRUCTION) {
 
 const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart(8, '0');
 
-// I · Page Connexion : erreurs du serveur, compte connu, numéro inconnu renvoyé vers l'inscription
+// I · Page Connexion : numéro et mot de passe, erreurs du serveur, compte connu
 {
   const { ctx, p } = await neuve();
   await p.getByRole('button', { name: 'Se connecter' }).click();
   ok('« Se connecter » ouvre la page Connexion', await apparait(p.getByRole('tab', { name: 'Connexion', selected: true })));
-  await p.getByLabel('Numéro de téléphone', { exact: true }).fill('09 12 34 56 78');
-  await p.getByRole('button', { name: 'Recevoir mon code' }).click();
+  ok('page Connexion : numéro, mot de passe et « Mot de passe oublié ? »',
+     (await p.getByLabel('Mot de passe', { exact: true }).isVisible()) &&
+       (await p.getByRole('button', { name: 'Mot de passe oublié ?' }).isVisible()));
+  await connecterPage(p, '09 12 34 56 78');
   ok('numéro refusé par le serveur : le motif s’affiche', await apparait(p.getByText(/pas un numéro ivoirien valide/)));
-
-  await p.getByLabel('Numéro de téléphone', { exact: true }).fill('07 58 42 19 03');
-  await p.getByRole('radio', { name: /WhatsApp/ }).click();
-  await p.getByRole('button', { name: 'Recevoir mon code' }).click();
-  ok('code demandé par WhatsApp : le canal est rappelé', await apparait(p.getByText(/Code reçu par WhatsApp/)));
-  await p.getByText(/appuyer pour remplir/).click();
+  await connecterPage(p, '07 58 42 19 03', 'mauvais2026');
+  ok('mauvais mot de passe : refusé', await apparait(p.getByText('Numéro ou mot de passe incorrect.')));
+  await connecterPage(p);
   ok('compte connu : connexion puis espace client', await apparait(p.getByText('Aya Konan').first()));
   await ctx.close();
-
-  const second = await neuve();
-  await second.p.getByRole('button', { name: 'Se connecter' }).click();
-  await second.p.getByLabel('Numéro de téléphone', { exact: true }).fill(numeroNeuf());
-  await second.p.getByRole('button', { name: 'Recevoir mon code' }).click();
-  await second.p.getByText(/appuyer pour remplir/).click();
-  ok('numéro inconnu : renvoyé vers l’inscription, numéro déjà vérifié',
-     await apparait(second.p.getByText(/vérifié\. Il ne reste qu'à compléter votre profil/)));
-  await second.p.getByLabel('Nom complet').fill('Kouassi Test');
-  await second.p.locator('.sy-choice').click();
-  await second.p.getByRole('button', { name: 'Terminer mon inscription' }).click();
-  ok('profil complété sans nouveau code', await apparait(second.p.getByText('Kouassi Test').first()));
-  await second.ctx.close();
 }
 
-// J · Page Inscription : formulaire, code, puis compte avec e-mail et ville ; session gardée
+// J · Page Inscription : nom, téléphone, e-mail, mot de passe, puis code ; compte enregistré, session gardée
+const numeroInscrit = numeroNeuf();
 {
   const { ctx, p } = await neuve();
   await p.getByRole('button', { name: "S'inscrire" }).click();
   ok('« S’inscrire » ouvre la page Inscription', await apparait(p.getByRole('tab', { name: 'Inscription', selected: true })));
   await p.getByLabel('Nom complet').fill('Awa Test');
+  await p.getByLabel('Mot de passe', { exact: true }).fill('soleil2026');
+  await p.getByLabel('Confirmer le mot de passe').fill('soleil2026');
   await p.getByRole('button', { name: 'Créer mon compte' }).click();
   ok('conditions non acceptées : inscription bloquée', await apparait(p.getByText(/Acceptez les conditions/)));
+  await p.locator('.sy-choice').click();
 
-  const numero = numeroNeuf();
+  await p.getByLabel('Confirmer le mot de passe').fill('autre2026');
+  await p.getByRole('button', { name: 'Créer mon compte' }).click();
+  ok('mots de passe différents : inscription bloquée', await apparait(p.getByText('Les deux mots de passe ne sont pas identiques.')));
+  await p.getByLabel('Mot de passe', { exact: true }).fill('court');
+  await p.getByLabel('Confirmer le mot de passe').fill('court');
+  await p.getByRole('button', { name: 'Créer mon compte' }).click();
+  ok('mot de passe trop court : inscription bloquée', await apparait(p.getByText(/au moins 8 caractères/)));
+
+  const numero = numeroInscrit;
+  await p.getByLabel('Mot de passe', { exact: true }).fill('soleil2026');
+  await p.getByLabel('Confirmer le mot de passe').fill('soleil2026');
   await p.getByLabel('E-mail (facultatif)').fill(`awa.${numero}@exemple.ci`);
   await p.getByLabel('Numéro de téléphone', { exact: true }).fill(numero);
   await p.getByLabel('Quartier').selectOption({ label: 'Kokrenou' });
-  await p.locator('.sy-choice').click();
   await p.getByRole('button', { name: 'Créer mon compte' }).click();
+  ok('numéro vérifié par code avant la création du compte', await apparait(p.getByText(/Code reçu par SMS/)));
   await p.getByText(/appuyer pour remplir/).click();
   ok('compte créé : le nom apparaît dans l’en-tête', await apparait(p.getByText('Awa Test').first()));
   const moi = await p.evaluate(async () => {
     const r = await fetch('/api/moi', { headers: { Accept: 'application/json', Authorization: 'Bearer ' + localStorage.getItem('sy.jeton') } });
     return (await r.json()).data;
   });
-  ok('e-mail, ville et quartier enregistrés',
-     moi?.email === `awa.${numero}@exemple.ci` && moi?.ville?.nom === 'Yamoussoukro' && moi?.quartier?.nom === 'Kokrenou');
+  ok('e-mail, ville, quartier et mot de passe enregistrés',
+     moi?.email === `awa.${numero}@exemple.ci` && moi?.ville?.nom === 'Yamoussoukro' && moi?.quartier?.nom === 'Kokrenou' && moi?.a_mot_de_passe === true);
   await p.reload({ waitUntil: 'domcontentloaded' });
   ok('la session survit au rechargement de la page', await apparait(p.getByText('Awa Test').first()));
   await ctx.close();
+
+  // Le compte se reconnecte avec son mot de passe, sur un autre appareil.
+  const autre = await neuve();
+  await autre.p.getByRole('button', { name: 'Se connecter' }).click();
+  await connecterPage(autre.p, numero, 'soleil2026');
+  ok('nouveau compte : reconnexion avec le mot de passe choisi', await apparait(autre.p.getByText('Awa Test').first()));
+  await autre.ctx.close();
+}
+
+// J bis · « Mot de passe oublié » : nouveau mot de passe, prouvé par le code reçu
+{
+  const { ctx, p } = await neuve();
+  await p.getByRole('button', { name: 'Se connecter' }).click();
+  await p.getByRole('button', { name: 'Mot de passe oublié ?' }).click();
+  ok('« Mot de passe oublié ? » ouvre le formulaire', await apparait(p.getByRole('heading', { name: /Mot de passe oublié/ })));
+  const page = p.locator('[data-r="page-auth"]');
+  await page.getByLabel('Numéro de téléphone', { exact: true }).fill(numeroInscrit);
+  await page.getByLabel('Nouveau mot de passe').fill('lune2027ok');
+  await page.getByLabel('Confirmer le mot de passe').fill('lune2027ok');
+  await page.getByRole('button', { name: 'Recevoir mon code' }).click();
+  await p.getByText(/appuyer pour remplir/).click();
+  ok('mot de passe changé : connecté', await apparait(p.getByText('Awa Test').first()));
+  await ctx.close();
+
+  const ancien = await neuve();
+  await ancien.p.getByRole('button', { name: 'Se connecter' }).click();
+  await connecterPage(ancien.p, numeroInscrit, 'soleil2026');
+  ok('l’ancien mot de passe ne marche plus', await apparait(ancien.p.getByText('Numéro ou mot de passe incorrect.')));
+  await connecterPage(ancien.p, numeroInscrit, 'lune2027ok');
+  ok('le nouveau mot de passe marche', await apparait(ancien.p.getByText('Awa Test').first()));
+  await ancien.ctx.close();
 }
 
 // K · Sur téléphone, l'onglet « Profil » mène à la page de connexion pour un visiteur
@@ -442,9 +489,7 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
 {
   const { ctx, p } = await neuve(390, 844);
   await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Profil/ }).click();
-  await p.getByLabel('Numéro de téléphone', { exact: true }).fill('07 58 42 19 03');
-  await p.getByRole('button', { name: 'Recevoir mon code' }).click();
-  await p.getByText(/appuyer pour remplir/).click();
+  await connecterPage(p);
   const profil = p.locator('[data-r="profil-mobile"]');
   ok('profil mobile : écran Profil après connexion', await apparait(profil));
   ok('profil mobile : grand titre, ni logo, ni ville, ni onglets horizontaux',
@@ -486,7 +531,7 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
 {
   const { ctx, p } = await neuve();
   await p.getByRole('button', { name: 'Devenir partenaire' }).first().click();
-  ok('« Devenir partenaire » demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
+  ok('« Devenir partenaire » demande un compte', await apparait(p.getByText(MUR)));
   await connecter(p);
   ok('après connexion : tableau de bord prestataire', await apparait(p.getByRole('heading', { name: 'Tableau de bord' })));
   ok('espace pro : ni en-tête ni pied de page du site d’annonces',
@@ -588,17 +633,15 @@ if (!MODES_ACCUEIL) {
   const { ctx, p } = await neuve();
   if (MODES_ACCUEIL) {
     await p.getByRole('button', { name: /Box intelligente/ }).click();
-    ok('visiteur : la Box intelligente demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
+    ok('visiteur : la Box intelligente demande un compte', await apparait(p.getByText(MUR)));
     await p.getByRole('button', { name: 'Fermer' }).click();
     ok('visiteur : la Box reste fermée sans compte', !(await p.getByText('Ce que la Box sait faire').isVisible().catch(() => false)));
     await p.getByRole('button', { name: /Autour de moi/ }).click();
-    ok('visiteur : « Autour de moi » demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
+    ok('visiteur : « Autour de moi » demande un compte', await apparait(p.getByText(MUR)));
     await p.getByRole('button', { name: 'Fermer' }).click();
     // Fenêtre refermée : l'action abandonnée ne doit pas se rejouer après une connexion ultérieure.
     await p.getByRole('button', { name: 'Se connecter' }).click();
-    await p.getByLabel('Numéro de téléphone', { exact: true }).fill('07 58 42 19 03');
-    await p.getByRole('button', { name: 'Recevoir mon code' }).click();
-    await p.getByText(/appuyer pour remplir/).click();
+    await connecterPage(p);
     await apparait(p.getByRole('heading', { name: 'Bonjour, Aya' }));
     ok('action abandonnée non rejouée après une autre connexion',
        !(await p.getByText('Ce que la Box sait faire').isVisible().catch(() => false)) &&
@@ -612,7 +655,7 @@ if (!MODES_ACCUEIL) {
   await apparait(p.getByText('Koffi Tanoh').first());
   if (CARTE_RESULTATS) {
     await p.getByRole('button', { name: /^Carte/ }).click();
-    ok('visiteur : la vue carte des résultats demande un compte', await apparait(p.getByText('Votre numéro, et c\'est parti')));
+    ok('visiteur : la vue carte des résultats demande un compte', await apparait(p.getByText(MUR)));
     await connecter(p);
     ok('après connexion : la carte s’ouvre', await apparait(p.locator('[data-r="map-canvas"]')));
   } else {
@@ -628,9 +671,7 @@ if (!MODES_ACCUEIL) {
 {
   const { ctx, p } = await neuve();
   await p.getByRole('button', { name: 'Se connecter' }).click();
-  await p.getByLabel('Numéro de téléphone', { exact: true }).fill('07 58 42 19 03');
-  await p.getByRole('button', { name: 'Recevoir mon code' }).click();
-  await p.getByText(/appuyer pour remplir/).click();
+  await connecterPage(p);
   ok('client : connexion ouvre le tableau de bord', await apparait(p.getByRole('heading', { name: 'Bonjour, Aya' })));
   ok('client : actions à faire', await apparait(p.getByText('Confirmer une fin de prestation')));
   ok('client : en-tête et pied de page du site conservés',

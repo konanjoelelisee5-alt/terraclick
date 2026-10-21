@@ -47,4 +47,10 @@ export const CONFIG = {
    * (la flèche retour mène à l'accueil en visiteur). Avec une session, l'accueil directement.
    */
   connexionAuDemarrage: true as boolean,
+  /**
+   * Comptes avec mot de passe : inscription (nom, téléphone, e-mail, mot de passe, numéro
+   * vérifié par code), connexion par numéro et mot de passe, « Mot de passe oublié » par code.
+   * `false` rebranche la connexion par code seul, sans mot de passe (voir le README).
+   */
+  motDePasse: true as boolean,
 } as const;

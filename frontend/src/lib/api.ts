@@ -79,7 +79,12 @@ export type Utilisateur = {
   ville: { id: number; nom: string } | null;
   quartier: Quartier | null;
   profil_complet: boolean;
+  /** Faux pour un compte créé par code seul : il se donne un mot de passe par « Mot de passe oublié ». */
+  a_mot_de_passe: boolean;
 };
+
+/** Session ouverte par l'API : le jeton à garder et le compte. */
+export type Session = { token: string; utilisateur: Utilisateur };
 
 export type Page<T> = { data: T[]; meta: { total: number; current_page: number; last_page: number } };
 
@@ -279,6 +284,30 @@ export const api = {
     requete<{ token: string; nouveau_compte: boolean; utilisateur: Utilisateur }>("/auth/verifier", {
       methode: "POST",
       corps: { telephone, code, appareil: navigator.userAgent.slice(0, 100) },
+    }),
+  inscrire: (compte: {
+    telephone: string;
+    code: string;
+    nom: string;
+    email: string | null;
+    ville_id: number | null;
+    quartier_id: number | null;
+    mot_de_passe: string;
+    mot_de_passe_confirmation: string;
+  }) =>
+    requete<Session>("/auth/inscription", {
+      methode: "POST",
+      corps: { ...compte, appareil: navigator.userAgent.slice(0, 100) },
+    }),
+  connecter: (telephone: string, mot_de_passe: string) =>
+    requete<Session>("/auth/connexion", {
+      methode: "POST",
+      corps: { telephone, mot_de_passe, appareil: navigator.userAgent.slice(0, 100) },
+    }),
+  reinitialiserMotDePasse: (telephone: string, code: string, mot_de_passe: string, mot_de_passe_confirmation: string) =>
+    requete<Session>("/auth/mot-de-passe", {
+      methode: "POST",
+      corps: { telephone, code, mot_de_passe, mot_de_passe_confirmation, appareil: navigator.userAgent.slice(0, 100) },
     }),
   moi: () => requete<{ data: Utilisateur }>("/moi").then((r) => r.data),
   modifierProfil: (profil: {

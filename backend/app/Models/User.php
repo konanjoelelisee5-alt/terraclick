@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,10 +13,12 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
- * Compte client. Pas de mot de passe : l'accès se prouve par un code
- * envoyé sur le numéro (voir OtpService).
+ * Compte client. Connexion par numéro et mot de passe ; le numéro est prouvé par un
+ * code à l'inscription et à la réinitialisation du mot de passe (voir OtpService).
+ * Les comptes créés par code seul n'ont pas de mot de passe tant qu'ils n'en choisissent pas.
  */
 #[Fillable(['telephone', 'nom', 'email', 'photo', 'ville_id', 'quartier_id', 'telephone_verifie_le'])]
+#[Hidden(['password'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -25,6 +28,7 @@ class User extends Authenticatable
     {
         return [
             'telephone_verifie_le' => 'datetime',
+            'password' => 'hashed',
         ];
     }
 
@@ -49,9 +53,8 @@ class User extends Authenticatable
         return filled($this->nom);
     }
 
-    /** Laravel attend un mot de passe ; ce compte n'en a pas. */
-    public function getAuthPassword(): string
+    public function aUnMotDePasse(): bool
     {
-        return '';
+        return filled($this->password);
     }
 }
