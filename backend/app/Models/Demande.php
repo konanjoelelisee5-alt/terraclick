@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'user_id', 'secteur', 'probleme', 'precision', 'quartier_id', 'repere', 'quand', 'date_souhaitee',
     'mode', 'prestataire_id', 'paiement', 'estimation', 'creneau', 'photos', 'articles', 'statut',
+    'service', 'express', 'depot', 'heure', 'adresse_libelle', 'etape',
 ])]
 class Demande extends Model
 {
@@ -17,7 +19,8 @@ class Demande extends Model
 
     public const MODES = ['recommande', 'choisi'];
 
-    public const PAIEMENTS = ['especes', 'mobile_money'];
+    /** « autre » : moyen à convenir avec le prestataire (virement, carte…). */
+    public const PAIEMENTS = ['especes', 'mobile_money', 'autre'];
 
     /**
      * Cycle de vie : envoyee → acceptee → en_cours → terminee → confirmee.
@@ -36,6 +39,7 @@ class Demande extends Model
             'photos' => 'array',
             'articles' => 'array',
             'estimation' => 'integer',
+            'express' => 'boolean',
         ];
     }
 
@@ -50,24 +54,46 @@ class Demande extends Model
 
     /**
      * Lignes du pack pressing à partir des articles choisis : nom et prix par pièce viennent de
-     * config/pressing.php (jamais du client) ; un même article cité deux fois est regroupé.
+     * config/pressing.php (jamais du client), selon le service et l'express ; un même article
+     * cité deux fois est regroupé.
      *
      * @param  list<array{cle: string, quantite: int}>  $articles
      * @return list<array{cle: string, nom: string, quantite: int, prix_unitaire: int, total: int}>
      */
-    public static function composerPack(array $articles): array
+    public static function composerPack(array $articles, ?string $service = null, bool $express = false): array
     {
         $catalogue = config('pressing.articles');
 
         return collect($articles)
             ->groupBy('cle')
-            ->map(function ($lignes, string $cle) use ($catalogue) {
+            ->map(function ($lignes, string $cle) use ($catalogue, $service, $express) {
                 $quantite = (int) $lignes->sum('quantite');
+                $prix = self::prixPressing($catalogue[$cle]['prix'], $service, $express);
 
-                return ['cle' => $cle, 'nom' => $catalogue[$cle]['nom'], 'quantite' => $quantite, 'prix_unitaire' => $catalogue[$cle]['prix'], 'total' => $quantite * $catalogue[$cle]['prix']];
+                return ['cle' => $cle, 'nom' => $catalogue[$cle]['nom'], 'quantite' => $quantite, 'prix_unitaire' => $prix, 'total' => $quantite * $prix];
             })
             ->values()
             ->all();
+    }
+
+    /** Prix d'une pièce : prix de base × coefficient du service, majoré en express, arrondi à 25 F. */
+    public static function prixPressing(int $base, ?string $service, bool $express): int
+    {
+        $coef = config("pressing.services.{$service}.coef", 100) / 100;
+        $majoration = $express ? 1 + config('pressing.express.majoration') / 100 : 1;
+
+        return (int) (round($base * $coef * $majoration / 25) * 25);
+    }
+
+    public function estPressing(): bool
+    {
+        return $this->secteur === 'pressing';
+    }
+
+    /** Étapes du suivi de cette commande pressing, selon son mode de dépôt. */
+    public function etapesPressing(): array
+    {
+        return config('pressing.etapes.'.($this->depot ?? 'pressing'), []);
     }
 
     public function client(): BelongsTo
@@ -88,5 +114,15 @@ class Demande extends Model
     public function evenements(): HasMany
     {
         return $this->hasMany(DemandeEvenement::class)->orderBy('id');
+    }
+
+    public function signalements(): HasMany
+    {
+        return $this->hasMany(Signalement::class)->latest('id');
+    }
+
+    public function accord(): HasOne
+    {
+        return $this->hasOne(Accord::class);
     }
 }

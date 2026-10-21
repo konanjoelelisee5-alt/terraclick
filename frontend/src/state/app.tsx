@@ -97,6 +97,11 @@ function besoinVide(): Besoin {
     mode: null,
     prestataire: null,
     paiement: "especes",
+    service: "lavage",
+    express: false,
+    depot: null,
+    heure: "",
+    adresse: "",
   };
 }
 

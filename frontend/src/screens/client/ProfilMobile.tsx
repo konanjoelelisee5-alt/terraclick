@@ -1,9 +1,9 @@
 import { useState, type ReactNode } from "react";
-import { NOTIFICATIONS_CLIENT } from "../../data/client";
 import { api, ErreurApi, messageErreur } from "../../lib/api";
 import { CONFIG } from "../../lib/config";
 import { reduirePhoto } from "../../lib/photo";
 import { Avatar } from "../../components/Avatar";
+import { useNotifications } from "../../lib/pressing";
 import { useApp } from "../../state/app";
 import type { Ecran } from "../../state/types";
 import { BoutonRond, GrandTitre } from "../../components/GrandTitre";
@@ -89,7 +89,7 @@ function LigneMenu({ l, onClick }: { l: Ligne; onClick: () => void }) {
 
 export function ProfilMobile() {
   const { etat, set, go, exigerCompte, deconnecter } = useApp();
-  const { demandes, notificationsLues } = useDemandesClient(etat.auth?.tel ?? null);
+  const { demandes } = useDemandesClient(etat.auth?.tel ?? null);
   const auth = etat.auth;
   const [envoiPhoto, setEnvoiPhoto] = useState(false);
   const [erreurPhoto, setErreurPhoto] = useState<string | null>(null);
@@ -121,7 +121,7 @@ export function ProfilMobile() {
     }
   };
 
-  const nonLues = notificationsLues ? 0 : NOTIFICATIONS_CLIENT.filter((n) => n.nouveau).length;
+  const { nonLues } = useNotifications(!!etat.auth);
   // Demandes qui attendent quelque chose du client (confirmer, répondre).
   const aTraiter = demandes.filter((d) => ["Marquée terminée", "Acceptée"].includes(d.statut)).length;
   // Une prestation terminée attend un avis : c'est ce que « Nouveau » signale.

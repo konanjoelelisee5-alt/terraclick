@@ -109,12 +109,14 @@ export function Besoin() {
     const resume = resumeBesoin(b, nomQuartier);
     const urgent = estUrgent(b);
     const metier = secteur?.metier.toLowerCase() ?? "technicien";
+    // Pressing : le résumé suit la page « Ma commande », pas les questions 2 à 4.
+    const retourResume = () => (b.secteur === "pressing" ? go("commandePressing") : allerA(4));
 
     // Technicien déjà choisi depuis sa fiche : il ne reste qu'à confirmer.
     if (b.prestataire) {
       return (
         <CadreParcours
-          retour={() => allerA(4)}
+          retour={retourResume}
           actions={
             <button onClick={() => go("confirmation")} className="sy-btn sy-btn--primary sy-btn--md" style={{ flex: 1, minHeight: 50, justifyContent: "center", fontSize: "16px" }}>
               Continuer avec {b.prestataire.nom}
@@ -154,7 +156,7 @@ export function Besoin() {
     if (!urgent) cartes.reverse();
 
     return (
-      <CadreParcours retour={() => allerA(4)}>
+      <CadreParcours retour={retourResume}>
         <Resume texte={resume} />
         <h2 style={{ fontSize: "20px", margin: "26px 0 12px" }}>Comment voulez-vous trouver votre {metier} ?</h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

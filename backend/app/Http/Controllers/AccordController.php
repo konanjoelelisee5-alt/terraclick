@@ -17,7 +17,10 @@ use Illuminate\Validation\Rule;
  */
 class AccordController extends Controller
 {
-    private const RELATIONS = ['prestataire.quartier', 'prestataire.categories', 'prestation', 'demande'];
+    private const RELATIONS = [
+        'prestataire.quartier', 'prestataire.categories', 'prestation',
+        'demande.quartier', 'demande.prestataire.quartier', 'demande.evenements', 'demande.signalements', 'demande.accord',
+    ];
 
     /** GET /api/accords */
     public function index(Request $request): AnonymousResourceCollection

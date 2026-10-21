@@ -55,6 +55,9 @@ class DemandeTest extends TestCase
             'probleme' => 'Pack pressing',
             'prestataire_id' => $pressing,
             'mode' => 'choisi',
+            'service' => 'lavage',
+            'depot' => 'pressing',
+            'heure' => '10:00',
             // Les prix envoyés par le client sont ignorés ; un article cité deux fois est regroupé.
             'articles' => [
                 ['cle' => 'chemise', 'quantite' => 4, 'prix_unitaire' => 1],

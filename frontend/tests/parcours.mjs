@@ -537,21 +537,109 @@ const numeroInscrit = numeroNeuf();
   await p.getByRole('button', { name: 'Ajouter : Costume (veste et pantalon)' }).click();
   ok('pack : nombre de pièces et total estimé en direct', (await p.locator('[data-r="total-pack"]').textContent()).replace(/\s/g, ' ').includes('4 pièces') &&
      (await p.locator('[data-r="total-pack"]').textContent()).replace(/[\s ]/g, '').includes('4500F'));
+  await p.locator('[data-r="instructions-pack"]').fill('Pas d’amidon sur les chemises.');
   await continuer.click();
+
+  // « Ma commande » : adresse, service, express, dépôt, créneau
+  ok('commande : page « Ma commande » après le pack', await apparait(p.getByRole('heading', { name: 'Ma commande' })));
+  if (await p.getByRole('radio', { name: /Ajouter une adresse/ }).isVisible().catch(() => false)) await p.getByRole('radio', { name: /Ajouter une adresse/ }).click();
+  await p.getByRole('radio', { name: 'Bureau' }).click();
   await p.getByLabel('Quartier à Yamoussoukro').selectOption({ label: 'Habitat' });
+  await p.getByLabel('Adresse ou point de repère (facultatif)').fill('Immeuble bleu, 2e étage');
+  // Pas d'enregistrement à chaque passage du test : dix adresses au plus.
+  await p.getByLabel(/Enregistrer cette adresse/).uncheck();
+  ok('commande : continuer bloqué sans dépôt ni créneau', await continuer.isDisabled());
+  await p.getByRole('radio', { name: /Nettoyage à sec/ }).click();
+  await p.locator('[data-r="express"]').click();
+  await p.getByRole('radio', { name: /Collecte à domicile/ }).click();
+  await p.getByLabel('Date', { exact: true }).fill(new Date(Date.now() + 864e5).toISOString().slice(0, 10));
+  await p.getByRole('radio', { name: '10 h', exact: true }).click();
+  // Chemise 500 F × 150 % × 150 % = 1 125 F (× 3) ; costume 3 000 F → 6 750 F
+  ok('commande : le total suit le service et l’express', (await p.locator('[data-r="total-commande"]').textContent()).replace(/[\s  ]/g, '').includes('10125F'));
   await continuer.click();
-  await p.getByRole('radio', { name: /Demain/ }).click();
-  await continuer.click();
-  await p.getByRole('button', { name: 'Passer cette étape' }).click();
-  await p.getByRole('button', { name: /Continuer avec Pressing Éclat/ }).click();
-  ok('pack : récapitulé à la confirmation', await apparait(p.locator('[data-r="confirmation-pack"]').getByText('3 × Chemise')));
-  await p.getByRole('button', { name: 'Confirmer ma demande' }).click();
-  ok('pack : demande envoyée', await apparait(p.getByRole('heading', { name: 'Demande envoyée' })));
-  const pack = await p.evaluate(async () => {
+
+  // Confirmation : récapitulatif, prix, facture, paiement
+  ok('commande : récapitulée à la confirmation', await apparait(p.locator('[data-r="recap-commande"]').getByText(/3 × Chemise/)));
+  ok('commande : service, express, collecte et créneau au récapitulatif',
+     /Nettoyage à sec · Express/.test(await p.locator('[data-r="recap-commande"]').textContent()) && /à 10 h/.test(await p.locator('[data-r="recap-commande"]').textContent()));
+  await p.locator('[data-r="voir-facture"]').click();
+  ok('commande : facture visible avant de valider', (await apparait(p.locator('[data-r="facture"]'))) && (await p.locator('[data-r="ligne-facture"]').count()) === 2);
+  await p.getByRole('radio', { name: /Autre moyen/ }).click();
+  await p.getByRole('button', { name: /Valider la commande/ }).click();
+  ok('commande : envoyée, avec sa facture', (await apparait(p.getByRole('heading', { name: 'Commande envoyée' }))) && (await p.locator('[data-r="facture"]').isVisible()));
+  const envoyee = await p.evaluate(async () => {
     const r = await fetch('/api/demandes?par_page=1', { headers: { Accept: 'application/json', Authorization: 'Bearer ' + localStorage.getItem('sy.jeton') } });
-    return (await r.json()).data[0].pack;
+    return (await r.json()).data[0];
   });
-  ok('pack : enregistré avec le total recalculé par l’API', pack?.pieces === 4 && pack?.total === 4500);
+  ok('commande : enregistrée avec le total recalculé par l’API',
+     envoyee?.pack?.pieces === 4 && envoyee?.pack?.total === 10125 && envoyee?.commande?.service?.cle === 'nettoyage_sec' && envoyee?.paiement === 'autre');
+  const reference = envoyee.reference;
+
+  // Onglets : la commande s'y suit dès la validation
+  await p.locator('[data-r="suivre-commande"]').click();
+  ok('onglet : la commande s’y suit, en attente du pressing',
+     (await apparait(p.locator('[data-r="onglet-commande"]'))) && (await p.locator('[data-r="statut-commande"]').textContent()) === 'En attente du pressing');
+
+  // Le gérant du pressing reçoit la commande, l'accepte et la fait avancer
+  const g = await neuve(390, 844);
+  await g.p.locator('[data-r="fil-avatar"]').click();
+  await connecterPage(g.p, '07 08 08 08 08');
+  await apparait(g.p.locator('[data-r="profil-mobile"]'));
+  await g.p.goto('http://localhost:4173/'); await apparait(g.p.locator('[data-r="accueil-fil"]'));
+  await g.p.locator('[data-r="menu-plus-ouvrir"]').click();
+  await g.p.getByRole('menuitem', { name: /Paramètres/ }).click();
+  await g.p.locator('[data-r="lien-demandes-recues"]').click();
+  const carte = g.p.locator('[data-r="demande-recue"]').filter({ hasText: reference });
+  ok('gérant : la commande arrive, avec tout le détail',
+     (await apparait(carte)) && /Nettoyage à sec · Express/.test(await carte.textContent()) && /Pas d’amidon/.test(await carte.textContent()) && /Bureau/.test(await carte.textContent()));
+  await carte.locator('[data-r="accepter-demande"]').click();
+  await g.p.getByRole('tab', { name: /En cours/ }).click();
+  for (const etape of ['Agent en route', 'Collectée', 'Reçue au pressing', 'En traitement', 'Prête']) {
+    await apparait(carte.locator('[data-r="etape-suivante"]').filter({ hasText: etape }));
+    await carte.locator('[data-r="etape-suivante"]').click();
+  }
+  ok('gérant : la commande avance étape par étape', await apparait(carte.getByText('En livraison')));
+
+  // Le client est notifié et voit le suivi dans l'onglet
+  await p.goto('http://localhost:4173/'); await apparait(p.locator('[data-r="accueil-fil"]'));
+  await apparait(p.getByRole('button', { name: 'Mon profil' })); // session rechargée
+  await p.getByRole('button', { name: /^Notifications/ }).first().click();
+  const pret = p.locator('[data-r="notification"]').filter({ hasText: 'Linge prêt' }).first();
+  ok('cloche : « Commande confirmée », « Agent en route », « Linge prêt »',
+     (await apparait(pret)) && (await p.locator('[data-r="notification"]').filter({ hasText: 'Agent en route' }).count()) > 0 &&
+     (await p.locator('[data-r="notification"]').filter({ hasText: 'Commande confirmée' }).count()) > 0);
+  await pret.click({ timeout: 5000 }).catch(async () => { await p.screenshot({ path: "tests/_echec.png" }); console.log(R.join("\n")); });
+  ok('onglet : suivi à jour, étape « Prête »',
+     (await apparait(p.locator('[data-r="onglet-commande"]'))) && (await p.locator('[data-r="statut-commande"]').textContent()) === 'Prête' &&
+     (await p.locator('[data-r="etape-suivi"][data-fait]').count()) === 7);
+
+  // Signaler un problème
+  await p.locator('[data-r="signaler-probleme"]').click();
+  await p.getByRole('radio', { name: 'Retard' }).click();
+  await p.getByRole('button', { name: 'Envoyer le signalement' }).click();
+  ok('onglet : problème signalé, visible du client', await apparait(p.locator('[data-r="signalement"]').filter({ hasText: 'Retard' })));
+
+  // Livraison, confirmation de réception, note
+  await carte.locator('[data-r="etape-suivante"]').click();
+  await apparait(carte.locator('[data-r="etape-suivante"]').filter({ hasText: 'Livrée' }));
+  await carte.locator('[data-r="etape-suivante"]').click();
+  await apparait(g.p.getByRole('tab', { name: /Terminées/ }));
+  await g.ctx.close();
+  await p.goto('http://localhost:4173/'); await apparait(p.locator('[data-r="accueil-fil"]'));
+  await apparait(p.getByRole('button', { name: 'Mon profil' })); // session rechargée
+  await p.getByRole('button', { name: /^Notifications/ }).first().click();
+  await p.locator('[data-r="notification"]').filter({ hasText: 'Commande livrée' }).first().click();
+  await p.locator('[data-r="confirmer-reception"]').click();
+  ok('onglet : réception confirmée, le client peut noter', await apparait(p.locator('[data-r="noter-service"], [data-r="deja-note"]').first()));
+  if (await p.locator('[data-r="noter-service"]').isVisible()) {
+    for (const critere of ['Qualité du nettoyage', 'Respect du créneau', 'Prix']) await p.getByRole('radiogroup', { name: critere }).getByRole('radio', { name: '5 sur 5' }).click();
+    await p.locator('[data-r="publier-note"]').click();
+    ok('onglet : note publiée', await apparait(p.locator('[data-r="deja-note"]')));
+  }
+
+  // Recommander en un toucher : retour à la confirmation, tout pré-rempli
+  await p.locator('[data-r="refaire-commande"]').click();
+  ok('onglet : « Recommander » reprend la commande à la confirmation', await apparait(p.locator('[data-r="recap-commande"]').getByText(/3 × Chemise/)));
   await ctx.close();
 }
 

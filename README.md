@@ -54,6 +54,39 @@ indicatifs par pièce sont dans `config/pressing.php` (**à valider avec les pre
 l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
 (`Demande::composerPack`), quel que soit ce que l'application envoie.
 
+**Commande pressing, de bout en bout** :
+
+- *Dans l'interface pressing, avant de valider* (ce que reçoit le gérant) :
+  - pack avec articles, quantités et **instructions** ;
+  - page **« Ma commande »** (`screens/besoin/CommandePressing.tsx`) :
+    - adresse enregistrée ou nouvelle : domicile, bureau ou autre lieu (`GET/POST/DELETE /api/moi/adresses`) ;
+    - service : lavage et repassage, repassage seul, nettoyage à sec, plus l'option **express** ;
+    - mode de dépôt : collecte à domicile ou dépôt au pressing ;
+    - créneau : date et heure ;
+    - total estimé en direct.
+  - confirmation : récapitulatif, **prix estimé**, **facture** à voir et télécharger, paiement (espèces, Mobile Money ou autre moyen), **« Valider la commande »**.
+  - Après l'envoi : facture avec sa référence et « Suivre ma commande ».
+- *Dans les onglets* : la commande validée y entre aussitôt (`Accord` créé avec la demande). On y trouve :
+  - le **suivi** étape par étape :
+    - collecte à domicile : agent en route, collectée, reçue au pressing, en traitement, prête, en livraison, livrée ;
+    - dépôt au pressing : reçue, en traitement, prête, récupérée ;
+  - la facture ;
+  - « J'ai reçu mon linge » ;
+  - la **note** du pressing, après la livraison ;
+  - **« Signaler un problème »** : retard, vêtement manquant, erreur, article endommagé, autre (`POST /api/demandes/{id}/signalements`) ;
+  - **« Recommander »** en un toucher : la confirmation s'ouvre pré-remplie, pour demain à la même heure ;
+  - l'annulation, tant que la commande n'est pas en cours.
+- *Dans la cloche* : `GET /api/notifications`, avec « Commande confirmée », « Agent en route », « Linge prêt », « Livraison en cours », « Commande livrée » et les réponses des techniciens.
+  - Elles sont marquées lues sur l'appareil.
+  - Toucher une notification ouvre l'onglet.
+- *Côté gérant* : Paramètres → **« Commandes reçues »** (`screens/pro/DemandesRecues.tsx`, aussi dans l'espace prestataire). Le gérant y voit tout le détail, accepte ou refuse, puis fait avancer l'étape (`POST /api/pro/demandes/{id}/etape`). Le client est notifié à chaque étape.
+  - Compte gérant de démonstration, relié à Pressing Éclat : **07 08 08 08 08**, mot de passe **terraclick2026**.
+- **À valider avec les pressings**, dans `config/pressing.php` :
+  - coefficients des services : repassage 50 %, nettoyage à sec 150 % ;
+  - majoration express : +50 % ;
+  - heures de créneau ;
+  - motifs de signalement.
+
 Tout le reste est **masqué, pas supprimé**. Les données sont toujours en base et les écrans
 restent dans le code. Les secteurs reviendront un par un, au fil de l'usage. Cette section
 recense ce qui est masqué et dit comment le rouvrir.

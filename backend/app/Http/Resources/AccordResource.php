@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Accord;
+use App\Models\Avis;
 use App\Support\Montant;
 use App\Support\Telephone;
 use Illuminate\Http\Request;
@@ -26,6 +27,7 @@ class AccordResource extends JsonResource
     public function toArray(Request $request): array
     {
         $pro = $this->prestataire;
+        $commande = (bool) $this->demande?->estPressing();
 
         // Les actions qui ont mené à l'accord, dans l'ordre.
         $etapes = array_values(array_filter([
@@ -46,7 +48,13 @@ class AccordResource extends JsonResource
             'montant_affichage' => $this->montant !== null ? Montant::format($this->montant) : null,
             'date_intervention' => $this->date_intervention?->toDateString(),
             'statut' => $this->statut,
-            'statut_libelle' => $this->statut === 'termine' ? 'Terminé' : 'Accord conclu',
+            'statut_libelle' => match (true) {
+                $this->statut === 'termine' => 'Terminé',
+                $this->statut === 'annule' => 'Annulé',
+                $commande && $this->demande->etape !== null => DemandeResource::libelleStatut($this->demande->etape),
+                $commande => $this->demande->statut === 'envoyee' ? 'En attente du pressing' : 'Confirmée',
+                default => 'Accord conclu',
+            },
             'prestation' => $this->prestation ? ['slug' => $this->prestation->slug, 'nom' => $this->prestation->nom, 'secteur' => $this->prestation->secteur] : null,
             'prestataire' => [
                 'id' => $pro->id,
@@ -58,6 +66,9 @@ class AccordResource extends JsonResource
                 'categorie' => $pro->categories->first()?->slug,
             ],
             'demande_reference' => $this->demande?->reference,
+            // Commande pressing : tout le détail, son suivi et ses signalements.
+            'demande' => $commande ? DemandeResource::make($this->demande) : null,
+            'deja_note' => Avis::where('user_id', $this->user_id)->where('prestataire_id', $this->prestataire_id)->exists(),
             'etapes' => $etapes,
             'cree_le' => $this->created_at?->toIso8601String(),
         ];

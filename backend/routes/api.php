@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\AccordController;
 use App\Http\Controllers\ActualiteController;
+use App\Http\Controllers\AdresseController;
 use App\Http\Controllers\AnnuaireController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AvisController;
 use App\Http\Controllers\BesoinController;
 use App\Http\Controllers\DemandeController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PrestataireController;
 use App\Http\Controllers\ProDemandeController;
 use App\Http\Controllers\RechercheController;
@@ -45,12 +47,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('demandes/{demande}', [DemandeController::class, 'show'])->whereNumber('demande');
     Route::post('demandes/{demande}/annuler', [DemandeController::class, 'annuler'])->whereNumber('demande');
     Route::post('demandes/{demande}/confirmer', [DemandeController::class, 'confirmer'])->whereNumber('demande');
+    Route::post('demandes/{demande}/signalements', [DemandeController::class, 'signaler'])->whereNumber('demande');
+
+    // Cloche : réponses des prestataires et étapes des commandes.
+    Route::get('notifications', NotificationController::class);
+
+    // Adresses enregistrées : domicile, bureau ou autre lieu.
+    Route::get('moi/adresses', [AdresseController::class, 'index']);
+    Route::post('moi/adresses', [AdresseController::class, 'store']);
+    Route::delete('moi/adresses/{adresse}', [AdresseController::class, 'destroy'])->whereNumber('adresse');
 
     // Espace technicien : demandes reçues par la fiche reliée au compte.
     Route::prefix('pro/demandes')->group(function () {
         Route::get('/', [ProDemandeController::class, 'index']);
         Route::get('{demande}', [ProDemandeController::class, 'show'])->whereNumber('demande');
-        foreach (['accepter', 'refuser', 'demarrer', 'terminer'] as $action) {
+        foreach (['accepter', 'refuser', 'demarrer', 'terminer', 'etape'] as $action) {
             Route::post("{demande}/{$action}", [ProDemandeController::class, $action])->whereNumber('demande');
         }
     });
@@ -63,6 +74,7 @@ Route::get('secteurs', [BesoinController::class, 'secteurs']);
 Route::get('analyse', [BesoinController::class, 'analyse']);
 Route::get('recommandations', [BesoinController::class, 'recommandations']);
 Route::get('pressing/articles', [BesoinController::class, 'articlesPressing']);
+Route::get('pressing/options', [BesoinController::class, 'optionsPressing']);
 
 // Annuaire, en accès libre
 Route::get('villes', [AnnuaireController::class, 'villes']);

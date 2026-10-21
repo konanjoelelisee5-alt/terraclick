@@ -31,9 +31,68 @@ class DemandeResource extends JsonResource
         'annulee' => 'Annulée',
     ];
 
+    private const PAIEMENTS = [
+        'especes' => 'Espèces',
+        'mobile_money' => 'Mobile Money',
+        'autre' => 'Autre moyen, à convenir',
+    ];
+
+    /** Statut de la demande, ou étape du suivi d'une commande pressing (« Prête »). */
     public static function libelleStatut(string $statut): string
     {
-        return self::LIBELLES_STATUT[$statut] ?? $statut;
+        return self::LIBELLES_STATUT[$statut] ?? config("pressing.libelles_etapes.{$statut}", $statut);
+    }
+
+    /**
+     * Commande pressing : service, dépôt, créneau, adresse, suivi étape par étape et
+     * signalements. Les dates du suivi viennent du journal.
+     */
+    private function commande(): array
+    {
+        $dates = $this->relationLoaded('evenements') ? $this->evenements->pluck('created_at', 'statut') : collect();
+        $faites = $this->etape === null ? [] : array_slice($this->etapesPressing(), 0, array_search($this->etape, $this->etapesPressing(), true) + 1);
+        $suivi = collect(['envoyee' => 'Commande envoyée', 'acceptee' => 'Confirmée par le pressing'])
+            ->merge(collect($this->etapesPressing())->mapWithKeys(fn (string $e) => [$e => config("pressing.libelles_etapes.{$e}")]))
+            ->map(fn (string $libelle, string $cle) => [
+                'cle' => $cle,
+                // Dépôt au pressing : « Livrée » veut dire récupérée par le client.
+                'libelle' => $cle === 'livree' && $this->depot === 'pressing' ? 'Récupérée' : $libelle,
+                'fait' => $cle === 'envoyee' || $dates->has($cle) || in_array($cle, $faites, true)
+                    || ($cle === 'acceptee' && in_array($this->statut, Demande::STATUTS_CONTACT, true)),
+                'date' => $dates->get($cle)?->toIso8601String(),
+            ])->values();
+
+        return [
+            'service' => $this->service ? ['cle' => $this->service, 'nom' => config("pressing.services.{$this->service}.nom")] : null,
+            'express' => (bool) $this->express,
+            'depot' => $this->depot ? ['cle' => $this->depot, 'nom' => config("pressing.depots.{$this->depot}.nom")] : null,
+            'heure' => $this->heure,
+            'adresse' => $this->adresse_libelle,
+            'etape' => $this->etape,
+            'etape_libelle' => $this->etape ? self::libelleStatut($this->etape) : null,
+            // Prochaine étape, pour le bouton du pressing.
+            'etape_suivante' => $this->etapeSuivante(),
+            'suivi' => $suivi,
+            'signalements' => $this->whenLoaded('signalements', fn () => $this->signalements->map(fn ($s) => [
+                'id' => $s->id,
+                'motif' => $s->motif,
+                'motif_libelle' => config("pressing.motifs_signalement.{$s->motif}", $s->motif),
+                'message' => $s->message,
+                'statut' => $s->statut,
+                'date' => $s->created_at?->toIso8601String(),
+            ])),
+        ];
+    }
+
+    private function etapeSuivante(): ?array
+    {
+        if (! in_array($this->statut, ['acceptee', 'en_cours'], true)) {
+            return null;
+        }
+        $etapes = $this->etapesPressing();
+        $suivante = $etapes[$this->etape === null ? 0 : array_search($this->etape, $etapes, true) + 1] ?? null;
+
+        return $suivante ? ['cle' => $suivante, 'libelle' => self::libelleStatut($suivante)] : null;
     }
 
     public function toArray(Request $request): array
@@ -56,6 +115,7 @@ class DemandeResource extends JsonResource
             'mode' => $this->mode,
             'prestataire' => PrestataireResource::make($this->whenLoaded('prestataire')),
             'paiement' => $this->paiement,
+            'paiement_libelle' => self::PAIEMENTS[$this->paiement] ?? $this->paiement,
             'photos' => collect($this->photos ?? [])->map(fn (string $chemin) => Storage::disk('public')->url($chemin))->all(),
             // Pack pressing : articles, nombre de pièces et total estimé (prix indicatifs).
             'pack' => $this->articles ? [
@@ -64,6 +124,9 @@ class DemandeResource extends JsonResource
                 'total' => array_sum(array_column($this->articles, 'total')),
                 'total_affichage' => Montant::format(array_sum(array_column($this->articles, 'total'))),
             ] : null,
+            'commande' => $this->estPressing() && $this->articles ? $this->commande() : null,
+            // L'onglet de la commande, où le client la suit.
+            'accord_id' => $this->whenLoaded('accord', fn () => $this->accord?->id),
             'statut' => $this->statut,
             'statut_libelle' => self::libelleStatut($this->statut),
             // Réponse du technicien quand il accepte.

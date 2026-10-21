@@ -97,11 +97,15 @@ export type AccordApi = {
   montant: number | null;
   montant_affichage: string | null;
   date_intervention: string | null;
-  statut: "conclu" | "termine";
+  statut: "conclu" | "termine" | "annule";
   statut_libelle: string;
   prestation: { slug: string; nom: string; secteur: string } | null;
   prestataire: { id: number; nom: string; initiales: string; metier: string; telephone: string | null; quartier: string | null; categorie: string | null };
   demande_reference: string | null;
+  /** Commande pressing : tout son détail, son suivi et ses signalements. */
+  demande: DemandeApi | null;
+  /** Le client a déjà noté ce prestataire (un avis par prestataire). */
+  deja_note: boolean;
   etapes: { libelle: string; date: string }[];
   cree_le: string;
 };
@@ -153,10 +157,15 @@ export type DemandeApi = {
   resume: string;
   mode: "recommande" | "choisi";
   prestataire: PrestataireApi | null;
-  paiement: "especes" | "mobile_money";
+  paiement: Paiement;
+  paiement_libelle: string;
   photos: string[];
   /** Pack pressing : articles, pièces et total estimé (prix indicatifs du catalogue). */
   pack: { articles: { cle: string; nom: string; quantite: number; prix_unitaire: number; total: number }[]; pieces: number; total: number; total_affichage: string } | null;
+  /** Commande pressing : service, dépôt, créneau, adresse, suivi et signalements. */
+  commande: CommandePressing | null;
+  /** L'onglet de la commande (présent à la création et sur le détail). */
+  accord_id?: number | null;
   statut: StatutDemande;
   /** « Envoyée », « Marquée terminée »… */
   statut_libelle: string;
@@ -164,9 +173,52 @@ export type DemandeApi = {
   estimation: number | null;
   creneau: string | null;
   /** Journal de suivi (présent sur le détail d'une demande). */
-  evenements?: { statut: StatutDemande; libelle: string; auteur: "client" | "technicien" | "systeme"; message: string | null; date: string }[];
+  evenements?: { statut: string; libelle: string; auteur: "client" | "technicien" | "systeme"; message: string | null; date: string }[];
   cree_le: string;
 };
+
+export type Paiement = "especes" | "mobile_money" | "autre";
+
+export type CommandePressing = {
+  service: { cle: string; nom: string } | null;
+  express: boolean;
+  depot: { cle: "collecte" | "pressing"; nom: string } | null;
+  heure: string | null;
+  adresse: string | null;
+  etape: string | null;
+  etape_libelle: string | null;
+  /** Prochaine étape, pour le bouton du pressing. */
+  etape_suivante: { cle: string; libelle: string } | null;
+  suivi: { cle: string; libelle: string; fait: boolean; date: string | null }[];
+  signalements?: { id: number; motif: string; motif_libelle: string; message: string | null; statut: string; date: string }[];
+};
+
+/** Réglages de la commande pressing (GET /api/pressing/options). */
+export type OptionsPressing = {
+  services: { cle: string; nom: string; detail: string; coef: number }[];
+  express: { nom: string; detail: string; majoration: number };
+  depots: { cle: "collecte" | "pressing"; nom: string; detail: string }[];
+  heures: string[];
+  motifs: { cle: string; nom: string }[];
+};
+
+/** Adresse enregistrée du client. */
+export type AdresseApi = { id: number; type: "domicile" | "bureau" | "autre"; nom: string; quartier: { id: number; nom: string | null }; repere: string | null };
+
+/** Notification de la cloche : ce qu'un prestataire a fait sur une demande ou une commande. */
+export type NotificationApi = {
+  id: number;
+  statut: string;
+  titre: string;
+  texte: string;
+  pressing: boolean;
+  demande_id: number;
+  accord_id: number | null;
+  date: string;
+};
+
+/** Demande reçue par le prestataire connecté (GET /api/pro/demandes). */
+export type DemandeProApi = DemandeApi & { client: { nom: string; telephone: string | null } };
 
 /** Article du pack pressing et son prix indicatif par pièce. */
 export type ArticlePressing = { cle: string; nom: string; prix: number; prix_affichage: string; categorie: string; categorie_nom: string };
@@ -358,6 +410,18 @@ export const api = {
     requete<{ data: DemandeApi; message: string }>("/demandes", { methode: "POST", corps: formulaire }),
   articlesPressing: () =>
     requete<{ data: ArticlePressing[] }>("/pressing/articles").then((r) => r.data),
+  optionsPressing: () => memoriser("options-pressing", () => requete<{ data: OptionsPressing }>("/pressing/options").then((r) => r.data)),
+  adresses: (signal?: AbortSignal) => requete<{ data: AdresseApi[] }>("/moi/adresses", { signal }).then((r) => r.data),
+  ajouterAdresse: (adresse: { type: AdresseApi["type"]; nom?: string; quartier_id: number; repere?: string }) =>
+    requete<{ data: AdresseApi }>("/moi/adresses", { methode: "POST", corps: adresse }).then((r) => r.data),
+  supprimerAdresse: (id: number) => requete<null>(`/moi/adresses/${id}`, { methode: "DELETE" }),
+  signaler: (id: number, signalement: { motif: string; message?: string }) =>
+    requete<{ data: DemandeApi }>(`/demandes/${id}/signalements`, { methode: "POST", corps: signalement }).then((r) => r.data),
+  notifications: (signal?: AbortSignal) => requete<{ data: NotificationApi[] }>("/notifications", { signal }).then((r) => r.data),
+  /* Espace prestataire : demandes et commandes reçues */
+  demandesRecues: (signal?: AbortSignal) => requete<Page<DemandeProApi>>("/pro/demandes", { signal }).then((r) => r.data),
+  agirSurDemande: (id: number, action: "accepter" | "refuser" | "demarrer" | "terminer" | "etape", corps?: Record<string, unknown>) =>
+    requete<{ data: DemandeProApi }>(`/pro/demandes/${id}/${action}`, { methode: "POST", corps: corps ?? {} }).then((r) => r.data),
   mesDemandes: (signal?: AbortSignal) => requete<Page<DemandeApi>>("/demandes?par_page=100", { signal }).then((r) => r.data),
   demande: (id: number, signal?: AbortSignal) => requete<{ data: DemandeApi }>(`/demandes/${id}`, { signal }).then((r) => r.data),
   annulerDemande: (id: number, motif: string | null) =>

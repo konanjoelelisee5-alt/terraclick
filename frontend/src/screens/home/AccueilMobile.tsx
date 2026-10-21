@@ -1,15 +1,14 @@
 import { useState, type ReactNode } from "react";
 import { SECTEURS, VILLES } from "../../data/catalogue";
-import { NOTIFICATIONS_CLIENT } from "../../data/client";
 import { api, type PrestataireApi } from "../../lib/api";
 import { versPrestataire } from "../../lib/annuaire";
 import { CONFIG } from "../../lib/config";
 import { useApi } from "../../lib/useApi";
+import { useNotifications } from "../../lib/pressing";
 import { useApp } from "../../state/app";
 import { Icon } from "../../components/Icon";
 import { BandeauInstallation } from "../../components/Installer";
 import { Dialogue } from "../../components/Dialogue";
-import { useEtatClient } from "../client/store";
 
 /* Accueil sur téléphone. Grille de 8 px, marges de 20 px, 32 px entre les sections, un seul
    accent (l'orange) ; le vert est réservé aux badges « Vérifié » et à l'encart d'aide.
@@ -98,10 +97,9 @@ export function AccueilMobile() {
   const [carteVisible, setCarteVisible] = useState(0);
   const [filtres, setFiltres] = useState(false);
   const [villeFiltre, setVilleFiltre] = useState(villeIdx);
-  const { notificationsLues } = useEtatClient();
   const prenom = etat.auth?.prenom.split(" ")[0] ?? "";
   // Le badge de la cloche ne s'affiche qu'une fois connecté.
-  const nonLues = etat.auth && !notificationsLues ? NOTIFICATIONS_CLIENT.filter((n) => n.nouveau).length : 0;
+  const { nonLues } = useNotifications(!!etat.auth);
 
   // La recherche mène droit aux résultats, sans passer par l'assistant : le serveur comprend
   // la phrase (« ma douche fuit » → plombiers).

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useNotifications } from "../../lib/pressing";
 import { useApp } from "../../state/app";
 import { Icon } from "../../components/Icon";
 import type { Ecran } from "../../state/types";
@@ -20,11 +21,12 @@ const RATTACHEMENT: Partial<Record<Ecran, Ecran>> = { clientSuivi: "clientDemand
 
 export function OngletsClient() {
   const { etat, go } = useApp();
-  const { demandes, notificationsLues } = useDemandesClient(etat.auth?.tel ?? null);
+  const { demandes } = useDemandesClient(etat.auth?.tel ?? null);
+  const { nonLues } = useNotifications(!!etat.auth);
   const courant = RATTACHEMENT[etat.screen] ?? etat.screen;
   const comptes: Partial<Record<Ecran, number>> = {
     clientDemandes: demandes.filter((d) => ["Rendez-vous", "Réponses reçues"].includes(d.groupe)).length,
-    clientNotifications: notificationsLues ? 0 : 1,
+    clientNotifications: nonLues,
   };
 
   // Ordinateur : les onglets. Téléphone (app.css) : à leur place, un retour vers l'écran Compte,

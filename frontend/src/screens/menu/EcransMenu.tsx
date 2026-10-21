@@ -8,6 +8,7 @@ import { Dialogue } from "../../components/Dialogue";
 import { Icon } from "../../components/Icon";
 import { BandeauInstallation } from "../../components/Installer";
 import { useToast } from "../../components/Toast";
+import { OngletCommande } from "./OngletCommande";
 
 /* Écrans ouverts depuis le menu ⋮ de l'accueil : onglets (relations abouties et reçus), historique, onglets
    récents (autres appareils), téléchargements (reçus) et paramètres. */
@@ -101,6 +102,11 @@ function LigneRecherche({ r, detail }: { r: RechercheApi; detail: string }) {
 /** Onglet ouvert dans l'écran de détail (et son reçu). */
 let accordOuvert: number | null = null;
 
+/** Prépare l'écran « accord » sur cet onglet (commande envoyée, notification). */
+export function choisirOnglet(id: number) {
+  accordOuvert = id;
+}
+
 const secteurDeCategorie = (categorie: string | null, cle?: string | null) =>
   SECTEURS.find((s) => s.cle === cle || s.categorie === categorie) ?? null;
 
@@ -169,7 +175,7 @@ export function Onglets() {
                 <span style={{ fontSize: "13.5px" }}>
                   {a.montant_affichage ?? "Montant non indiqué"} · {jour(a.cree_le).toLowerCase()}
                 </span>
-                <span className={`sy-badge sy-badge--${a.statut === "termine" ? "success" : "info"}`} style={{ alignSelf: "flex-start", marginTop: 4 }}>
+                <span className={`sy-badge sy-badge--${a.statut === "termine" ? "success" : a.statut === "annule" ? "neutral" : "info"}`} style={{ alignSelf: "flex-start", marginTop: 4 }}>
                   {a.statut_libelle}
                 </span>
               </span>
@@ -207,6 +213,9 @@ export function OngletAccord() {
       </Page>
     );
   }
+
+  // Commande au pressing : son suivi, sa facture et ses actions.
+  if (a.demande?.commande) return <OngletCommande a={a} onMaj={setA} />;
 
   const terminer = async () => {
     try {
@@ -417,6 +426,9 @@ export function Parametres() {
       action: () => (etat.auth ? go("clientDashboard") : go("connexion", { telDraft: "", apresConnexion: "parametres" })),
     },
     { icone: "bell", titre: "Notifications", detail: "Demandes, réponses des techniciens", action: () => exigerCompte(() => go("clientNotifications")) },
+    ...(etat.auth
+      ? [{ icone: "inbox", titre: "Commandes reçues", detail: "Pressings et techniciens : les demandes de vos clients", action: () => go("demandesRecues"), r: "lien-demandes-recues" }]
+      : []),
     { icone: "history", titre: "Historique des recherches", detail: "Revoir ou supprimer vos recherches", action: () => go("historique") },
     {
       icone: "wrench",

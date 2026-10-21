@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Demande\CreerDemandeRequest;
 use App\Http\Resources\DemandeResource;
+use App\Models\Accord;
 use App\Models\Demande;
 use App\Models\Prestataire;
 use App\Services\AnalyseurBesoin;
@@ -12,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /** Demandes d'intervention du client connecté. */
@@ -23,8 +25,9 @@ class DemandeController extends Controller
     public function store(CreerDemandeRequest $request): JsonResponse
     {
         $donnees = $request->safe()->except('photos');
-        // Pack pressing : prix et total recalculés depuis le catalogue des articles.
-        $donnees['articles'] = empty($donnees['articles']) ? null : Demande::composerPack($donnees['articles']);
+        // Pack pressing : prix et total recalculés depuis le catalogue, selon le service et l'express.
+        $donnees['express'] = (bool) ($donnees['express'] ?? false);
+        $donnees['articles'] = empty($donnees['articles']) ? null : Demande::composerPack($donnees['articles'], $donnees['service'] ?? null, $donnees['express']);
 
         if ($id = $donnees['prestataire_id'] ?? null) {
             $this->verifierTechnicien(Prestataire::findOrFail($id), $donnees['secteur']);
@@ -40,11 +43,24 @@ class DemandeController extends Controller
                 $demande->update(['photos' => $photos]);
             }
 
+            // Commande au pressing validée : elle rejoint aussitôt les onglets, où le client la suit.
+            if ($demande->articles && $demande->prestataire_id) {
+                Accord::create([
+                    'user_id' => $demande->user_id,
+                    'prestataire_id' => $demande->prestataire_id,
+                    'demande_id' => $demande->id,
+                    'objet' => 'Pressing · '.array_sum(array_column($demande->articles, 'quantite')).' pièces',
+                    'canal' => 'demande',
+                    'montant' => array_sum(array_column($demande->articles, 'total')),
+                    'date_intervention' => $demande->date_souhaitee ?? now(),
+                ]);
+            }
+
             return $demande;
         });
 
-        return DemandeResource::make($demande->refresh()->load('quartier', 'prestataire.quartier'))
-            ->additional(['message' => 'Votre demande est envoyée. Vous recevrez une réponse dans environ 10 minutes.'])
+        return DemandeResource::make($demande->refresh()->load('quartier', 'prestataire.quartier', 'accord'))
+            ->additional(['message' => $demande->articles ? 'Votre commande est envoyée au pressing.' : 'Votre demande est envoyée. Vous recevrez une réponse dans environ 10 minutes.'])
             ->response()
             ->setStatusCode(201);
     }
@@ -65,7 +81,7 @@ class DemandeController extends Controller
     {
         $this->verifierAuteur($request, $demande);
 
-        return DemandeResource::make($demande->load('quartier', 'prestataire.quartier', 'evenements'));
+        return DemandeResource::make($demande->load('quartier', 'prestataire.quartier', 'evenements', 'signalements', 'accord'));
     }
 
     /** POST /api/demandes/{demande}/annuler — tant que l'intervention n'a pas commencé. */
@@ -74,7 +90,7 @@ class DemandeController extends Controller
         $this->verifierAuteur($request, $demande);
         $motif = $request->validate(['motif' => ['nullable', 'string', 'max:500']])['motif'] ?? null;
 
-        return DemandeResource::make($cycle->appliquer($demande, 'annuler', $request->user(), $motif)->load('quartier', 'prestataire.quartier', 'evenements'));
+        return DemandeResource::make($cycle->appliquer($demande, 'annuler', $request->user(), $motif)->load('quartier', 'prestataire.quartier', 'evenements', 'signalements', 'accord'));
     }
 
     /** POST /api/demandes/{demande}/confirmer — le client confirme la fin de l'intervention. */
@@ -82,7 +98,27 @@ class DemandeController extends Controller
     {
         $this->verifierAuteur($request, $demande);
 
-        return DemandeResource::make($cycle->appliquer($demande, 'confirmer', $request->user())->load('quartier', 'prestataire.quartier', 'evenements'));
+        return DemandeResource::make($cycle->appliquer($demande, 'confirmer', $request->user())->load('quartier', 'prestataire.quartier', 'evenements', 'signalements', 'accord'));
+    }
+
+    /** POST /api/demandes/{demande}/signalements — retard, vêtement manquant, erreur, article endommagé. */
+    public function signaler(Request $request, Demande $demande): JsonResponse
+    {
+        $this->verifierAuteur($request, $demande);
+        $donnees = $request->validate([
+            'motif' => ['required', Rule::in(array_keys(config('pressing.motifs_signalement')))],
+            'message' => [Rule::requiredIf($request->input('motif') === 'autre'), 'nullable', 'string', 'max:1000'],
+        ], [
+            'motif.required' => 'Choisissez ce qui ne va pas.',
+            'message.required' => 'Décrivez le problème en quelques mots.',
+        ]);
+
+        $demande->signalements()->create([...$donnees, 'user_id' => $request->user()->id]);
+
+        return DemandeResource::make($demande->load('quartier', 'prestataire.quartier', 'evenements', 'signalements', 'accord'))
+            ->additional(['message' => 'Votre signalement est transmis. Le prestataire et TerraClick vont le traiter.'])
+            ->response()
+            ->setStatusCode(201);
     }
 
     private function verifierAuteur(Request $request, Demande $demande): void

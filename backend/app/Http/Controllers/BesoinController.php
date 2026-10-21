@@ -98,4 +98,18 @@ class BesoinController extends Controller
             ])
             ->values()]);
     }
+
+    /** GET /api/pressing/options — services, express, modes de dépôt, heures et motifs de signalement. */
+    public function optionsPressing(): JsonResponse
+    {
+        $liste = fn (array $elements) => collect($elements)->map(fn (array $e, string $cle) => ['cle' => $cle, ...$e])->values();
+
+        return response()->json(['data' => [
+            'services' => $liste(config('pressing.services')),
+            'express' => config('pressing.express'),
+            'depots' => $liste(config('pressing.depots')),
+            'heures' => config('pressing.heures'),
+            'motifs' => collect(config('pressing.motifs_signalement'))->map(fn (string $nom, string $cle) => ['cle' => $cle, 'nom' => $nom])->values(),
+        ]]);
+    }
 }

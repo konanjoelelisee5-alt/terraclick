@@ -8,9 +8,9 @@ import { PACK } from "./commun";
 
 /* Page « Composer mon pack » (pressing), ouverte depuis la fiche d'un pressing ou par
    l'assistant : catégories en onglets, articles en cartes (icône, prix par pièce, − / +),
-   et une barre fixe avec le nombre de pièces, le total estimé et « Continuer ». La suite —
-   quartier, moment, confirmation — est celle de toute demande. Seuls les articles et leur
-   nombre partent à l'API, qui recalcule les prix. */
+   instructions pour le pressing, et une barre fixe avec le nombre de pièces, le total estimé
+   et « Continuer ». La suite — adresse, service, dépôt, créneau — est la page « Ma commande ».
+   Seuls les articles et leur nombre partent à l'API, qui recalcule les prix. */
 
 const GRIS = "#5C5248";
 
@@ -60,7 +60,7 @@ export function ComposerPack() {
   const quitter = () => (window.history.length > 1 ? window.history.back() : go("home"));
   const continuer = () => {
     modifierBesoin({ probleme: PACK, secteur: "pressing" });
-    go("besoin", { besoinEtape: 2 });
+    go("commandePressing");
   };
 
   return (
@@ -145,6 +145,23 @@ export function ComposerPack() {
           .map((a) => (
             <CarteArticle key={a.cle} article={a} quantite={quantite(a.cle)} onChanger={(d) => changer(a.cle, d)} />
           ))}
+      </div>
+
+      {/* ---- Instructions pour le pressing ---- */}
+      <div className="sy-field" style={{ padding: "20px 16px 0" }}>
+        <label className="sy-field__label" htmlFor="pack-instructions">
+          Instructions pour le pressing (facultatif)
+        </label>
+        <textarea
+          id="pack-instructions"
+          data-r="instructions-pack"
+          className="sy-textarea"
+          maxLength={500}
+          value={b.precision}
+          onChange={(e) => modifierBesoin({ precision: e.target.value })}
+          placeholder="Ex. pas d'amidon sur les chemises, tache de sauce sur la robe bleue"
+          style={{ borderRadius: 16, background: "var(--color-neutral-100)" }}
+        />
       </div>
 
       {/* ---- Barre fixe : pièces, total, continuer ---- */}

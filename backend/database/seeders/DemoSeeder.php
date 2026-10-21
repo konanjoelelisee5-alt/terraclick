@@ -38,9 +38,16 @@ class DemoSeeder extends Seeder
         );
         Prestataire::where('nom', 'Koffi Tanoh')->whereNull('user_id')->update(['user_id' => $koffi->id]);
 
+        // Compte du gérant de démonstration, relié à Pressing Éclat : il reçoit les commandes.
+        $gerant = User::updateOrCreate(
+            ['telephone' => '+2250708080808'],
+            ['nom' => 'Gérant Pressing Éclat', 'ville_id' => $habitat->ville_id, 'quartier_id' => $habitat->id, 'telephone_verifie_le' => now()],
+        );
+        Prestataire::where('nom', 'Pressing Éclat')->whereNull('user_id')->update(['user_id' => $gerant->id]);
+
         // Mot de passe de démonstration, posé une seule fois : un changement fait depuis
         // l'application n'est pas écrasé au déploiement suivant.
-        foreach ([$aya, $moussa, $koffi] as $compte) {
+        foreach ([$aya, $moussa, $koffi, $gerant] as $compte) {
             if (! $compte->aUnMotDePasse()) {
                 $compte->forceFill(['password' => self::MOT_DE_PASSE_DEMO])->save();
             }

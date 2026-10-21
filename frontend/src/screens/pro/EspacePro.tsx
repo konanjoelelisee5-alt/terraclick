@@ -19,6 +19,7 @@ const GROUPES: Groupe[] = [
     entrees: [
       { ecran: "proDashboard", libelle: "Tableau de bord", court: "Accueil", icone: "layout-dashboard" },
       { ecran: "proConsignes", libelle: "Consignes", court: "Consignes", icone: "clipboard-check" },
+      { ecran: "demandesRecues", libelle: "Commandes et demandes reçues", court: "Reçues", icone: "inbox" },
       { ecran: "proDemandes", libelle: "Demandes clients", court: "Demandes", icone: "inbox" },
       { ecran: "proNotifications", libelle: "Notifications", court: "Notifications", icone: "bell" },
     ],
@@ -44,7 +45,7 @@ const GROUPES: Groupe[] = [
 const TOUTES = GROUPES.flatMap((g) => g.entrees);
 
 /** Onglets de la barre basse sur téléphone ; le reste passe par « Plus ». */
-const ONGLETS_BAS: Ecran[] = ["proDashboard", "proConsignes", "proDemandes", "proProfil"];
+const ONGLETS_BAS: Ecran[] = ["proDashboard", "demandesRecues", "proDemandes", "proProfil"];
 
 /** Écrans de détail rattachés à une entrée de navigation. */
 const RATTACHEMENT: Partial<Record<Ecran, Ecran>> = { proDemande: "proDemandes" };

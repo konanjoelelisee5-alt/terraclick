@@ -2,7 +2,7 @@ import type { Prestataire } from "../data/catalogue";
 import type { Sujet } from "../data/projet";
 import type { CleCanal } from "../data/compte";
 import type { Filtre } from "../lib/annuaire";
-import type { DemandeApi, PrestataireApi } from "../lib/api";
+import type { DemandeApi, Paiement, PrestataireApi } from "../lib/api";
 
 export type Ecran =
   | "home"
@@ -30,6 +30,8 @@ export type Ecran =
   /* Parcours de demande : assistant, recommandations, confirmation, accusé d'envoi */
   | "besoin"
   | "pack"
+  /* Commande pressing : adresse, service, dépôt, créneau */
+  | "commandePressing"
   | "recommandations"
   | "confirmation"
   | "demandeEnvoyee"
@@ -59,7 +61,9 @@ export type Ecran =
   | "proAbonnement"
   | "proMiseEnAvant"
   | "proAvis"
-  | "proNotifications";
+  | "proNotifications"
+  /* Demandes et commandes reçues, branchées sur l'API */
+  | "demandesRecues";
 
 /** Les trois entrées de l'accueil. */
 export type ModeAccueil = "recherche" | "carte" | "box";
@@ -111,7 +115,16 @@ export type Besoin = {
   pack: { cle: string; quantite: number }[];
   mode: "recommande" | "choisi" | null;
   prestataire: PrestataireApi | null;
-  paiement: "especes" | "mobile_money";
+  paiement: Paiement;
+  /* Commande pressing (config/pressing.php côté API) */
+  /** lavage, repassage ou nettoyage_sec. */
+  service: string;
+  express: boolean;
+  depot: "collecte" | "pressing" | null;
+  /** Heure du créneau, « 10:00 ». */
+  heure: string;
+  /** Nom de l'adresse choisie : « Domicile », « Bureau », « Chez maman ». */
+  adresse: string;
 };
 
 export type Etat = {

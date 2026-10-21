@@ -1,64 +1,90 @@
-import { NOTIFICATIONS_CLIENT } from "../../data/client";
+import { useEffect } from "react";
+import { useApp } from "../../state/app";
+import { estNonLue, marquerNotificationsLues, useNotifications } from "../../lib/pressing";
+import type { NotificationApi } from "../../lib/api";
 import { Icon } from "../../components/Icon";
+import { choisirOnglet } from "../menu/EcransMenu";
 import { EspaceClient } from "./EspaceClient";
-import { modifierClient, useEtatClient } from "./store";
+
+/* Cloche : ce que les prestataires ont fait sur les demandes et les commandes du client
+   (commande confirmée, agent en route, linge prêt, livraison en cours…). Ouvrir l'écran les
+   marque lues ; toucher une notification ouvre l'onglet de la commande, ou la demande. */
+
+const ICONES: Record<string, [string, string, string]> = {
+  acceptee: ["circle-check", "var(--state-success-soft)", "var(--state-success)"],
+  refusee: ["x", "var(--state-danger-soft)", "var(--state-danger)"],
+  agent_en_route: ["route", "var(--color-accent-100)", "var(--color-accent-700)"],
+  prete: ["shirt", "var(--state-success-soft)", "var(--state-success)"],
+  en_livraison: ["route", "var(--color-accent-100)", "var(--color-accent-700)"],
+  livree: ["circle-check", "var(--state-success-soft)", "var(--state-success)"],
+};
+
+const quand = (iso: string) =>
+  new Date(iso).toLocaleString("fr-FR", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).replace(":", " h ");
 
 export function ClientNotifications() {
-  const { notificationsLues } = useEtatClient();
+  const { etat, go } = useApp();
+  const { liste, erreur, vue } = useNotifications(!!etat.auth);
+
+  // Ouvertes = lues ; le point « Nouveau » reste visible le temps de cette visite.
+  useEffect(() => {
+    if (liste?.length) marquerNotificationsLues(liste);
+  }, [liste]);
+
+  const ouvrir = (n: NotificationApi) => {
+    if (n.accord_id) {
+      choisirOnglet(n.accord_id);
+      go("accord");
+    } else go("clientDemandes");
+  };
 
   return (
-    <EspaceClient
-      titre="Notifications"
-      sousTitre="Réponses des prestataires, rendez-vous et avis en attente."
-      actions={
-        <button
-          type="button"
-          className="sy-btn sy-btn--ghost sy-btn--sm"
-          disabled={notificationsLues}
-          onClick={() => modifierClient({ notificationsLues: true })}
-        >
-          Tout marquer comme lu
-        </button>
-      }
-    >
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 900 }}>
-        {NOTIFICATIONS_CLIENT.map((n) => {
-          const nouveau = n.nouveau && !notificationsLues;
+    <EspaceClient titre="Notifications" sousTitre="Réponses des prestataires et étapes de vos commandes.">
+      <div data-r="notifications" style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 900 }}>
+        {erreur && <p role="alert" style={{ margin: 0, color: "var(--state-danger)" }}>Les notifications n'ont pas pu être chargées.</p>}
+        {liste?.length === 0 && (
+          <div role="status" className="sy-card" style={{ padding: "32px 20px", textAlign: "center" }}>
+            <Icon name="bell" size={40} strokeWidth={1.5} color="var(--color-neutral-700)" />
+            <h2 style={{ margin: "8px 0 4px", fontSize: "18px" }}>Aucune notification pour l'instant</h2>
+            <p style={{ margin: 0, fontSize: "14.5px", color: "var(--color-neutral-700)" }}>
+              Quand un prestataire répond ou que votre commande avance, vous le verrez ici.
+            </p>
+          </div>
+        )}
+        {liste?.map((n) => {
+          const nouveau = estNonLue(n, vue);
+          const [icone, fond, encre] = ICONES[n.statut] ?? ["bell", "var(--color-neutral-200, #EFEAE4)", "var(--color-text)"];
           return (
-            <div key={n.titre + n.date} className="sy-card">
-              <div
-                style={{
-                  padding: "14px 16px",
-                  display: "flex",
-                  gap: 12,
-                  alignItems: "flex-start",
-                  background: nouveau ? "var(--kola-50)" : "var(--surface-card)",
-                }}
-              >
-                <span
-                  style={{
-                    width: 36,
-                    height: 36,
-                    flex: "none",
-                    borderRadius: 10,
-                    background: n.fond,
-                    color: n.encre,
-                    display: "grid",
-                    placeItems: "center",
-                  }}
-                >
-                  <Icon name={n.icone} size={18} />
+            <button
+              key={n.id}
+              data-r="notification"
+              onClick={() => ouvrir(n)}
+              className="sy-card"
+              style={{
+                padding: "14px 16px",
+                display: "flex",
+                gap: 12,
+                alignItems: "flex-start",
+                textAlign: "left",
+                font: "inherit",
+                color: "inherit",
+                cursor: "pointer",
+                background: nouveau ? "var(--color-accent-100)" : undefined,
+              }}
+            >
+              <span style={{ width: 40, height: 40, flex: "none", borderRadius: 12, background: fond, color: encre, display: "grid", placeItems: "center" }}>
+                <Icon name={icone} size={19} />
+              </span>
+              <span style={{ minWidth: 0, flex: 1 }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "15px", fontWeight: 700 }}>{n.titre}</span>
+                  {nouveau && <span className="sy-badge sy-badge--brand">Nouveau</span>}
                 </span>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: "14px", fontWeight: 700 }}>{n.titre}</span>
-                    {nouveau && <span className="sy-badge sy-badge--brand">Nouveau</span>}
-                  </div>
-                  <div style={{ fontSize: "14px", lineHeight: 1.5, color: "var(--argile-700)", marginTop: 2 }}>{n.texte}</div>
-                  <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: 4 }}>{n.date}</div>
-                </div>
-              </div>
-            </div>
+                <span style={{ display: "block", fontSize: "14px", lineHeight: 1.5, color: "var(--color-neutral-700)", marginTop: 2 }}>{n.texte}</span>
+                <span style={{ display: "block", fontSize: "12.5px", color: "var(--color-neutral-700)", marginTop: 4 }}>{quand(n.date)}</span>
+              </span>
+              <Icon name="chevron-right" size={18} color="var(--color-neutral-700)" />
+            </button>
           );
         })}
       </div>

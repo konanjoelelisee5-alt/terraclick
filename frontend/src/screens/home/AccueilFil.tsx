@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { SECTEURS, type Secteur } from "../../data/catalogue";
-import { NOTIFICATIONS_CLIENT } from "../../data/client";
 import { api, type ActualiteApi } from "../../lib/api";
 import { retenirSecteurs, secteursRecents } from "../../lib/recents";
+import { useNotifications } from "../../lib/pressing";
 import { useApp } from "../../state/app";
 import { Avatar } from "../../components/Avatar";
 import { ChoixVille } from "../../components/ChoixVille";
 import { Icon } from "../../components/Icon";
 import { BandeauInstallation } from "../../components/Installer";
 import { MenuPlus } from "../../components/MenuPlus";
-import { useEtatClient } from "../client/store";
 
 /* Accueil sur téléphone, disposition d'une page d'accueil de navigateur (CONFIG.accueilMobile
    = « fil ») : barre du haut (ville, cloche, photo), nom TerraClick au centre, grande barre de
@@ -53,8 +52,7 @@ const secteurDeCategorie = (categorie: string | null) => SECTEURS.find((s) => s.
 
 export function AccueilFil() {
   const { etat, set, go, rechercher, demarrerBesoin, exigerCompte } = useApp();
-  const { notificationsLues } = useEtatClient();
-  const nonLues = etat.auth && !notificationsLues ? NOTIFICATIONS_CLIENT.filter((n) => n.nouveau).length : 0;
+  const { nonLues } = useNotifications(!!etat.auth);
   const [ecoute, setEcoute] = useState(false);
   const [menu, setMenu] = useState(false);
   const photo = useRef<HTMLInputElement>(null);

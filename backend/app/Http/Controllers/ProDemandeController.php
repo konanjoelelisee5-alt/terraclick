@@ -76,6 +76,12 @@ class ProDemandeController extends Controller
         return $this->reponse($this->cycle->appliquer($this->sienne($request, $demande), 'terminer', $request->user(), $message));
     }
 
+    /** POST /api/pro/demandes/{demande}/etape — commande pressing : étape suivante du suivi. */
+    public function etape(Request $request, Demande $demande): DemandeProResource
+    {
+        return $this->reponse($this->cycle->avancer($this->sienne($request, $demande), $request->user()));
+    }
+
     /** La fiche de technicien reliée au compte ; sans fiche, l'espace pro est fermé. */
     private function fiche(Request $request): Prestataire
     {
@@ -94,6 +100,6 @@ class ProDemandeController extends Controller
 
     private function reponse(Demande $demande): DemandeProResource
     {
-        return DemandeProResource::make($demande->load('quartier', 'client', 'evenements'));
+        return DemandeProResource::make($demande->load('quartier', 'client', 'evenements', 'signalements'));
     }
 }

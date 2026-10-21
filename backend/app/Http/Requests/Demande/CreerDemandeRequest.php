@@ -18,6 +18,7 @@ class CreerDemandeRequest extends FormRequest
     public function rules(): array
     {
         $secteurs = app(AnalyseurBesoin::class)->secteursOuverts();
+        $pack = $this->input('probleme') === self::PACK;
         $problemes = [...($secteurs[$this->input('secteur')]['problemes'] ?? []), self::AUTRE];
         if ($this->input('secteur') === 'pressing') {
             $problemes[] = self::PACK;
@@ -41,6 +42,12 @@ class CreerDemandeRequest extends FormRequest
             'articles' => [Rule::requiredIf($this->input('probleme') === self::PACK), 'nullable', 'array', 'max:30'],
             'articles.*.cle' => ['required', Rule::in(array_keys(config('pressing.articles')))],
             'articles.*.quantite' => ['required', 'integer', 'min:1', 'max:200'],
+            // Commande au pressing : service, express, mode de dépôt, heure du créneau, adresse.
+            'service' => [Rule::requiredIf($pack), 'nullable', Rule::in(array_keys(config('pressing.services')))],
+            'express' => ['nullable', 'boolean'],
+            'depot' => [Rule::requiredIf($pack), 'nullable', Rule::in(array_keys(config('pressing.depots')))],
+            'heure' => [Rule::requiredIf($pack), 'nullable', Rule::in(config('pressing.heures'))],
+            'adresse_libelle' => ['nullable', 'string', 'max:40'],
         ];
     }
 
@@ -61,6 +68,10 @@ class CreerDemandeRequest extends FormRequest
             'articles.required' => 'Ajoutez au moins un article à votre pack.',
             'articles.*.cle.in' => 'Cet article n\'est pas proposé.',
             'articles.*.quantite.min' => 'Indiquez au moins une pièce.',
+            'service.required' => 'Choisissez le service : lavage, repassage ou nettoyage à sec.',
+            'depot.required' => 'Choisissez la collecte à domicile ou le dépôt au pressing.',
+            'heure.required' => 'Choisissez l\'heure du créneau.',
+            'heure.in' => 'Choisissez une heure proposée.',
         ];
     }
 }

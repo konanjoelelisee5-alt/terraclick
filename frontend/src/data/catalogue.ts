@@ -137,6 +137,9 @@ export const PAIEMENTS = [
   },
 ];
 
+/** Pressing : un troisième choix, le moyen que le pressing accepte (carte, virement…). */
+export const PAIEMENT_AUTRE = { valeur: "autre" as const, libelle: "Autre moyen", detail: "Carte, virement… à convenir avec le pressing." };
+
 export const FRAIS_DEPLACEMENT =
   "Le technicien vous annonce ses éventuels frais de déplacement avant de venir. Rien n'est dû sans votre accord.";
 
