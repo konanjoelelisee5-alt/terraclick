@@ -20,6 +20,21 @@ class DemandeResource extends JsonResource
         'demain' => 'Demain',
     ];
 
+    private const LIBELLES_STATUT = [
+        'envoyee' => 'Envoyée',
+        'acceptee' => 'Acceptée',
+        'refusee' => 'Refusée',
+        'en_cours' => 'En cours',
+        'terminee' => 'Marquée terminée',
+        'confirmee' => 'Terminée',
+        'annulee' => 'Annulée',
+    ];
+
+    public static function libelleStatut(string $statut): string
+    {
+        return self::LIBELLES_STATUT[$statut] ?? $statut;
+    }
+
     public function toArray(Request $request): array
     {
         $secteur = config("secteurs.{$this->secteur}.nom", $this->secteur);
@@ -42,6 +57,17 @@ class DemandeResource extends JsonResource
             'paiement' => $this->paiement,
             'photos' => collect($this->photos ?? [])->map(fn (string $chemin) => Storage::disk('public')->url($chemin))->all(),
             'statut' => $this->statut,
+            'statut_libelle' => self::libelleStatut($this->statut),
+            // Réponse du technicien quand il accepte.
+            'estimation' => $this->estimation,
+            'creneau' => $this->creneau,
+            'evenements' => $this->whenLoaded('evenements', fn () => $this->evenements->map(fn ($e) => [
+                'statut' => $e->statut,
+                'libelle' => self::libelleStatut($e->statut),
+                'auteur' => $e->auteur,
+                'message' => $e->message,
+                'date' => $e->created_at?->toIso8601String(),
+            ])),
             'cree_le' => $this->created_at?->toIso8601String(),
         ];
     }

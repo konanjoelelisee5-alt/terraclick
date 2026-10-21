@@ -29,9 +29,16 @@ class DemoSeeder extends Seeder
             ['nom' => 'Moussa Touré', 'telephone_verifie_le' => now()],
         );
 
+        // Compte technicien de démonstration, relié à la fiche de Koffi Tanoh (espace pro).
+        $koffi = User::updateOrCreate(
+            ['telephone' => '+2250707070707'],
+            ['nom' => 'Koffi Tanoh', 'ville_id' => $habitat->ville_id, 'quartier_id' => $habitat->id, 'telephone_verifie_le' => now()],
+        );
+        Prestataire::where('nom', 'Koffi Tanoh')->whereNull('user_id')->update(['user_id' => $koffi->id]);
+
         // Mot de passe de démonstration, posé une seule fois : un changement fait depuis
         // l'application n'est pas écrasé au déploiement suivant.
-        foreach ([$aya, $moussa] as $compte) {
+        foreach ([$aya, $moussa, $koffi] as $compte) {
             if (! $compte->aUnMotDePasse()) {
                 $compte->forceFill(['password' => self::MOT_DE_PASSE_DEMO])->save();
             }

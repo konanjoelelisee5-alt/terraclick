@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'user_id', 'secteur', 'probleme', 'precision', 'quartier_id', 'repere', 'quand', 'date_souhaitee',
-    'mode', 'prestataire_id', 'paiement', 'photos', 'statut',
+    'mode', 'prestataire_id', 'paiement', 'estimation', 'creneau', 'photos', 'statut',
 ])]
 class Demande extends Model
 {
@@ -18,11 +19,22 @@ class Demande extends Model
 
     public const PAIEMENTS = ['especes', 'mobile_money'];
 
+    /**
+     * Cycle de vie : envoyee → acceptee → en_cours → terminee → confirmee.
+     * Le technicien peut refuser une demande envoyée ; le client peut annuler tant que
+     * l'intervention n'a pas commencé.
+     */
+    public const STATUTS = ['envoyee', 'acceptee', 'refusee', 'en_cours', 'terminee', 'confirmee', 'annulee'];
+
+    /** Statuts où le technicien voit le numéro du client pour le joindre. */
+    public const STATUTS_CONTACT = ['acceptee', 'en_cours', 'terminee', 'confirmee'];
+
     protected function casts(): array
     {
         return [
             'date_souhaitee' => 'date',
             'photos' => 'array',
+            'estimation' => 'integer',
         ];
     }
 
@@ -31,6 +43,7 @@ class Demande extends Model
         // La référence suit l'identifiant : unique et lisible au téléphone (« DEM-2026-00042 »).
         static::created(function (Demande $demande) {
             $demande->forceFill(['reference' => sprintf('DEM-%s-%05d', $demande->created_at->format('Y'), $demande->id)])->saveQuietly();
+            $demande->evenements()->create(['user_id' => $demande->user_id, 'auteur' => 'client', 'statut' => 'envoyee']);
         });
     }
 
@@ -47,5 +60,10 @@ class Demande extends Model
     public function prestataire(): BelongsTo
     {
         return $this->belongsTo(Prestataire::class);
+    }
+
+    public function evenements(): HasMany
+    {
+        return $this->hasMany(DemandeEvenement::class)->orderBy('id');
     }
 }

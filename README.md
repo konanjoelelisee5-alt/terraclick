@@ -227,6 +227,11 @@ lancez donc l'API avant le frontend. Pour un déploiement, renseignez `VITE_API_
 
 - le compte : inscription avec mot de passe et numéro vérifié par code (SMS ou WhatsApp),
   connexion, mot de passe oublié, profil, session gardée après rechargement, déconnexion ;
+- le cycle d'une demande (API prête, écrans à relier) : `GET /api/demandes`, annuler, confirmer
+  côté client ; `GET /api/pro/demandes`, accepter (message, estimation, créneau), refuser
+  (motif), démarrer, terminer côté technicien, dont le compte est relié à sa fiche
+  (`prestataires.user_id`). Chaque étape est journalisée (`demande_evenements`). Compte
+  technicien de démonstration : **07 07 07 07 07**, mot de passe **terraclick2026** ;
 - le méga-menu ;
 - la recherche et ses filtres de quartier ;
 - les prestataires à la une ;

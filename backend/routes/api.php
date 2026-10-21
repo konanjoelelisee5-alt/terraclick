@@ -7,6 +7,7 @@ use App\Http\Controllers\AvisController;
 use App\Http\Controllers\BesoinController;
 use App\Http\Controllers\DemandeController;
 use App\Http\Controllers\PrestataireController;
+use App\Http\Controllers\ProDemandeController;
 use App\Http\Controllers\RechercheController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,7 +34,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('moi/recherches', [RechercheController::class, 'effacer']);
     Route::post('prestataires/{prestataire}/avis', [AvisController::class, 'store']);
     Route::post('demandes', [DemandeController::class, 'store']);
+    Route::get('demandes', [DemandeController::class, 'index']);
     Route::get('demandes/{demande}', [DemandeController::class, 'show'])->whereNumber('demande');
+    Route::post('demandes/{demande}/annuler', [DemandeController::class, 'annuler'])->whereNumber('demande');
+    Route::post('demandes/{demande}/confirmer', [DemandeController::class, 'confirmer'])->whereNumber('demande');
+
+    // Espace technicien : demandes reçues par la fiche reliée au compte.
+    Route::prefix('pro/demandes')->group(function () {
+        Route::get('/', [ProDemandeController::class, 'index']);
+        Route::get('{demande}', [ProDemandeController::class, 'show'])->whereNumber('demande');
+        foreach (['accepter', 'refuser', 'demarrer', 'terminer'] as $action) {
+            Route::post("{demande}/{$action}", [ProDemandeController::class, $action])->whereNumber('demande');
+        }
+    });
 });
 
 // Assistant de besoin, en accès libre jusqu'à la confirmation
