@@ -56,7 +56,7 @@ export const SECTEURS: readonly Secteur[] = [
   },
   { cle: "serrurerie", nom: "Serrurerie", metier: "Serrurier", icone: "key-round", categorie: "serruriers", image: `${PHOTOS}serrurerie.webp` },
   { cle: "menuiserie", nom: "Menuiserie", metier: "Menuisier", icone: "hammer", categorie: "menuisiers", image: `${PHOTOS}menuiserie.webp` },
-  { cle: "pressing", nom: "Pressing", metier: "Pressing", icone: "shirt", categorie: "pressing" },
+  { cle: "pressing", nom: "Pressing", metier: "Pressing", icone: "shirt", categorie: "pressing", image: `${PHOTOS}pressing.webp` },
 ];
 
 export const PROS: Prestataire[] = [

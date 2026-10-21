@@ -16,6 +16,14 @@ const GRIS = "#5C5248";
 
 const ICONE_CATEGORIE: Record<string, string> = { vetements: "shirt", tenues: "sparkles", maison: "bed-double" };
 
+/** Photo de chaque catégorie, en bannière au-dessus des articles. */
+const PHOTOS = `${import.meta.env.BASE_URL}images/secteurs/`;
+const PHOTO_CATEGORIE: Record<string, string> = {
+  vetements: `${PHOTOS}pressing-vetements.webp`,
+  tenues: `${PHOTOS}pressing.webp`,
+  maison: `${PHOTOS}pressing-linge.webp`,
+};
+
 const ROND: React.CSSProperties = {
   width: 36,
   height: 36,
@@ -118,6 +126,17 @@ export function ComposerPack() {
           );
         })}
       </nav>
+
+      {/* ---- Photo de la catégorie ---- */}
+      {active && PHOTO_CATEGORIE[active] && (
+        <div style={{ padding: "12px 16px 0" }}>
+          <div data-r="photo-categorie" style={{ position: "relative", height: 140, borderRadius: 22, overflow: "hidden" }}>
+            <img src={PHOTO_CATEGORIE[active]} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <span style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 45%, rgba(26,22,19,.55))" }} />
+            <strong style={{ position: "absolute", left: 16, bottom: 12, color: "#fff", fontSize: "18px" }}>{categories.find(([c]) => c === active)?.[1]}</strong>
+          </div>
+        </div>
+      )}
 
       {/* ---- Articles en cartes ---- */}
       <div data-r="pack-pressing" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 12, padding: "12px 16px 0" }}>
