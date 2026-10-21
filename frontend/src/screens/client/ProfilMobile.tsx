@@ -277,7 +277,7 @@ export function ProfilMobile() {
         {CONFIG.profilComplet && (
         <button
           data-r="promo-prestataire"
-          onClick={() => exigerCompte(() => go("proDashboard"))}
+          onClick={() => exigerCompte(() => go(CONFIG.devenirPrestataire === "formulaire" ? "devenirPrestataire" : "proDashboard"))}
           style={{
             width: "100%",
             display: "flex",

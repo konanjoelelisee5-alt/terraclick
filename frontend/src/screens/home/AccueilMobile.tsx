@@ -401,7 +401,7 @@ export function AccueilMobile() {
       <section style={{ padding: `0 ${GOUTTIERE}px` }}>
         <button
           data-r="devenir-partenaire"
-          onClick={() => exigerCompte(() => go("proDashboard"))}
+          onClick={() => exigerCompte(() => go(CONFIG.devenirPrestataire === "formulaire" ? "devenirPrestataire" : "proDashboard"))}
           style={{ ...CARTE_BLANCHE, width: "100%", display: "flex", alignItems: "center", gap: 12, minHeight: 64, padding: "12px 14px", background: "var(--color-bg)", cursor: "pointer", font: "inherit", color: "inherit", textAlign: "left" }}
         >
           <span style={{ width: 40, height: 40, flex: "none", borderRadius: 12, background: "var(--color-surface)", color: "var(--color-text)", display: "grid", placeItems: "center" }}>

@@ -54,6 +54,26 @@ indicatifs par pièce sont dans `config/pressing.php` (**à valider avec les pre
 l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
 (`Demande::composerPack`), quel que soit ce que l'application envoie.
 
+**Devenir prestataire** (`CONFIG.devenirPrestataire`) :
+
+- `"formulaire"` (valeur actuelle) : un dossier en 5 étapes, envoyé à l'équipe TerraClick (`screens/prestataire/DevenirPrestataire.tsx`).
+  1. Le type : artisan indépendant, entreprise ou pressing.
+  2. L'identité : responsable, nom affiché, photo du visage, pièce d'identité recto et verso.
+  3. L'activité : services, quartier et quartiers d'intervention, description, expérience, horaires, prix, paiements acceptés.
+  4. Ce qui est propre au type :
+     - artisan : une personne de référence ; carte d'artisan, diplôme, casier judiciaire et réalisations, facultatifs ;
+     - entreprise : RCCM, NCC, siège, nombre de techniciens et registre de commerce, obligatoires ; logo, attestation fiscale, CNPS et assurances, facultatifs ;
+     - pressing : adresse du local, services, express, délai, collecte à domicile avec ses quartiers et ses frais, photo de la devanture ; RCCM facultatif.
+  5. Le récapitulatif et l'engagement d'exactitude.
+- Ce qui est demandé, type par type, se règle dans `config/candidature.php` (**à valider côté produit et juridique**). L'API sert cette liste (`GET /api/candidature/exigences`) et l'applique (`POST /api/moi/candidature`).
+- Les pièces sont rangées sur le disque **privé** : seule l'équipe les ouvre, à travers l'API.
+- Le candidat suit son dossier sur le même écran : en vérification, validé, ou à corriger avec le motif de l'équipe ; il corrige alors et renvoie.
+- **Équipe** : les comptes `users.est_admin` voient Paramètres → « Candidatures à vérifier » (`screens/admin/AdminCandidatures.tsx`, `/api/admin/candidatures`).
+  - « Valider » crée la fiche du prestataire, avec ses catégories et ses documents vérifiés, la publie et la relie au compte du candidat.
+  - « Demander une correction » envoie un motif au candidat.
+  - Compte équipe de démonstration : **07 01 01 01 01**, mot de passe **terraclick2026** (à changer avant le lancement).
+- `"espace"` : l'ancien espace prestataire de démonstration, masqué mais conservé.
+- **En ligne (Render)** : le disque du serveur est effacé à chaque redéploiement. Les pièces jointes, comme les photos des demandes, ont besoin d'un stockage durable (S3, Cloudflare R2…) avant le lancement.
 **Correction des fautes de frappe**, comme Chrome ou Google (`App\Services\CorrecteurRecherche`) :
 
 - Quand la recherche n'est comprise ni comme un service ni comme une prestation, chaque mot inconnu d'au moins 4 lettres est rapproché du mot le plus proche du vocabulaire de TerraClick. Ce vocabulaire comprend les métiers, les services, les problèmes types, les prestations, les articles du pressing, les catégories, les quartiers et les noms des prestataires.

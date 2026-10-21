@@ -24,6 +24,8 @@ class UtilisateurResource extends JsonResource
             'quartier' => QuartierResource::make($this->whenLoaded('quartier')),
             'profil_complet' => $this->profilComplet(),
             'a_mot_de_passe' => $this->aUnMotDePasse(),
+            // Équipe TerraClick : accès à la vérification des candidatures.
+            'est_admin' => (bool) $this->est_admin,
         ];
     }
 }

@@ -29,6 +29,7 @@ class User extends Authenticatable
         return [
             'telephone_verifie_le' => 'datetime',
             'password' => 'hashed',
+            'est_admin' => 'boolean',
         ];
     }
 

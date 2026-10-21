@@ -1,4 +1,5 @@
 import { useApp } from "../state/app";
+import { CONFIG } from "../lib/config";
 import { Wordmark } from "./Header";
 
 const COLONNES = [
@@ -47,7 +48,7 @@ export function Footer() {
                   key={lien}
                   type="button"
                   className="text-muted"
-                  onClick={() => exigerCompte(() => go("proDashboard"))}
+                  onClick={() => exigerCompte(() => go(CONFIG.devenirPrestataire === "formulaire" ? "devenirPrestataire" : "proDashboard"))}
                   style={{ background: "none", border: 0, padding: 0, cursor: "pointer", font: "inherit", textAlign: "left" }}
                 >
                   {lien}

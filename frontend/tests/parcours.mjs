@@ -899,8 +899,98 @@ const numeroInscrit = numeroNeuf();
   await ctx.close();
 }
 
-// L · Espace prestataire : entrée, rail, demandes, réponse, fenêtres, réalisations
+// L bis · « Devenir prestataire » : dossier selon le type, envoyé à l'équipe, vérifié et validé
 {
+  const { ctx, p } = await neuve(390, 844);
+  // Un compte neuf à chaque passage : un compte n'envoie qu'une candidature à la fois.
+  const tel = '07' + String(Math.floor(Math.random() * 1e8)).padStart(8, '0');
+  const activite = 'Test Plomberie ' + Date.now().toString(36);
+  await p.evaluate(async (tel) => {
+    const villes = (await (await fetch('/api/villes', { headers: { Accept: 'application/json' } })).json()).data;
+    const yakro = villes.find((v) => v.slug === 'yamoussoukro');
+    const r = await fetch('/api/auth/inscription', {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telephone: tel, nom: 'Yao Kouamé', ville_id: yakro.id, quartier_id: yakro.quartiers.find((q) => q.slug === 'habitat').id, mot_de_passe: 'essai2026ok', mot_de_passe_confirmation: 'essai2026ok' }),
+    });
+    localStorage.setItem('sy.jeton', (await r.json()).token);
+  }, tel);
+  await p.goto('http://localhost:4173/'); await apparait(p.locator('[data-r="accueil-fil"]'));
+  await apparait(p.getByRole('button', { name: 'Mon profil' }));
+  await p.locator('[data-r="menu-plus-ouvrir"]').click();
+  await p.getByRole('menuitem', { name: 'Paramètres' }).click();
+  await p.locator('[data-r="devenir-partenaire"]').click();
+
+  const continuer = p.getByRole('button', { name: 'Continuer', exact: true });
+  ok('prestataire : le formulaire s’ouvre sur le choix du type',
+     (await apparait(p.getByRole('heading', { name: 'Quel prestataire êtes-vous ?' }))) && (await p.getByRole('radio').count()) === 3);
+  await p.getByRole('radio', { name: /Artisan indépendant/ }).click();
+  await continuer.click();
+
+  // Identité : le responsable, le nom affiché, les pièces
+  const png = { mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64') };
+  await p.getByLabel('Nom affiché sur votre fiche').fill(activite);
+  ok('prestataire : pièces d’identité obligatoires avant de continuer', await continuer.isDisabled());
+  for (const piece of ['Photo de votre visage', "Pièce d'identité, recto", "Pièce d'identité, verso"]) await p.getByLabel(piece, { exact: true }).setInputFiles({ name: 'piece.png', ...png });
+  await continuer.click();
+
+  // Activité
+  await p.getByRole('checkbox', { name: 'Plomberie' }).click();
+  await p.getByLabel('Votre quartier à Yamoussoukro').selectOption({ label: 'Habitat' });
+  await p.getByLabel('Décrivez votre activité').fill('Plombier depuis dix ans : fuites, sanitaires et chauffe-eau.');
+  await p.getByLabel('Horaires').fill('Lundi au samedi, 7 h – 19 h');
+  await continuer.click();
+
+  // Propre à l'artisan : référence, pièces facultatives
+  ok('prestataire : l’artisan donne une référence ; carte d’artisan et casier facultatifs',
+     (await apparait(p.getByRole('heading', { name: 'Vos références' }))) &&
+       (await p.locator('[data-piece="carte_artisan"]').getByText('Facultatif').isVisible()) && (await p.locator('[data-piece="casier"]').isVisible()));
+  await p.getByLabel('Personne de référence').fill('Ali Diomandé');
+  await p.getByLabel('Son numéro de téléphone').fill('07 11 22 33 44');
+  await continuer.click();
+
+  // Récapitulatif, engagement, envoi
+  ok('prestataire : récapitulatif avant l’envoi',
+     /Plomberie/.test(await p.locator('[data-r="recap-candidature"]').textContent()) && /3 fichiers/.test(await p.locator('[data-r="recap-candidature"]').textContent()));
+  await p.getByRole('checkbox', { name: /J'atteste/ }).check();
+  await p.locator('[data-r="envoyer-candidature"]').click();
+  ok('prestataire : dossier envoyé, en cours de vérification',
+     (await apparait(p.getByRole('heading', { name: 'Dossier envoyé' }))) && (await p.getByText(/^CAN-\d{4}-\d{5}$/).isVisible()));
+
+  // L'équipe TerraClick vérifie, ouvre les pièces et valide
+  const e = await neuve(390, 844);
+  await e.p.locator('[data-r="fil-avatar"]').click();
+  await connecterPage(e.p, '07 01 01 01 01');
+  await apparait(e.p.locator('[data-r="profil-mobile"]'));
+  await e.p.goto('http://localhost:4173/'); await apparait(e.p.locator('[data-r="accueil-fil"]'));
+  await e.p.locator('[data-r="menu-plus-ouvrir"]').click();
+  await e.p.getByRole('menuitem', { name: 'Paramètres' }).click();
+  await e.p.locator('[data-r="lien-admin-candidatures"]').click();
+  await e.p.locator('[data-r="candidature"]').filter({ hasText: activite }).click();
+  const dossier = e.p.locator('[data-r="dossier-candidature"]');
+  ok('équipe : le dossier complet, avec la référence de l’artisan',
+     (await apparait(dossier)) && /Ali Diomandé/.test(await dossier.textContent()) && /Habitat/.test(await dossier.textContent()));
+  ok('équipe : les trois pièces s’ouvrent (lues avec le jeton)', await apparait(e.p.locator('[data-r="piece-jointe"] img').nth(2)));
+  await e.p.locator('[data-r="valider-candidature"]').click();
+  await e.p.getByRole('button', { name: 'Valider et publier' }).click();
+  ok('équipe : candidature validée', await apparait(dossier.getByText('Validée', { exact: true })));
+  await e.ctx.close();
+
+  // Le candidat voit la réponse : il est prestataire, sa fiche est publiée
+  await p.reload(); await apparait(p.getByRole('button', { name: 'Mon profil' }));
+  await p.locator('[data-r="menu-plus-ouvrir"]').click();
+  await p.getByRole('menuitem', { name: 'Paramètres' }).click();
+  await p.locator('[data-r="devenir-partenaire"]').click();
+  ok('prestataire : « Vous êtes prestataire TerraClick », fiche publiée', await apparait(p.getByRole('heading', { name: 'Vous êtes prestataire TerraClick' })));
+  await ctx.close();
+}
+
+// L'ancien espace prestataire de démonstration n'est plus l'entrée (CONFIG.devenirPrestataire = « formulaire ») :
+// ses tests (L et M) ne tournent que s'il est rebranché.
+const ESPACE_PRO_DEMO = false;
+
+// L · Espace prestataire : entrée, rail, demandes, réponse, fenêtres, réalisations
+if (ESPACE_PRO_DEMO) {
   const { ctx, p } = await neuve();
   await p.getByRole('button', { name: 'Devenir partenaire' }).first().click();
   ok('« Devenir partenaire » demande un compte', await apparait(p.getByText(MUR)));
@@ -963,7 +1053,7 @@ const numeroInscrit = numeroNeuf();
 }
 
 // M · Espace prestataire sur téléphone : par Paramètres (menu ⋮), application avec navigation basse
-{
+if (ESPACE_PRO_DEMO) {
   const { ctx, p } = await neuve(390, 844);
   await p.locator('[data-r="menu-plus-ouvrir"]').click();
   await p.locator('[data-r="menu-plus"]').getByRole('menuitem', { name: 'Paramètres' }).click();

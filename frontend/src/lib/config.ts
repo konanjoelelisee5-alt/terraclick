@@ -95,4 +95,11 @@ export const CONFIG = {
    * - « ecran » : l'ancien écran « Demande envoyée » (facture, « Suivre ma demande », « Accueil »).
    */
   envoiDemande: "envol" as "envol" | "ecran",
+  /**
+   * « Devenir prestataire » :
+   * - « formulaire » : le dossier envoyé à l'équipe TerraClick pour vérification
+   *   (screens/prestataire/DevenirPrestataire.tsx) ;
+   * - « espace » : l'ancien espace prestataire de démonstration (tableau de bord fictif).
+   */
+  devenirPrestataire: "formulaire" as "formulaire" | "espace",
 } as const;

@@ -62,6 +62,9 @@ export type Ecran =
   | "proMiseEnAvant"
   | "proAvis"
   | "proNotifications"
+  /* « Devenir prestataire » et sa vérification par l'équipe */
+  | "devenirPrestataire"
+  | "adminCandidatures"
   /* Demandes et commandes reçues, branchées sur l'API */
   | "demandesRecues";
 
@@ -70,7 +73,8 @@ export type ModeAccueil = "recherche" | "carte" | "box";
 
 export type EtapeAuth = "tel" | "code" | "profil";
 
-export type Compte = { prenom: string; tel: string; quartier: string; photo: string | null };
+/** `admin` : compte de l'équipe TerraClick (vérification des candidatures). */
+export type Compte = { prenom: string; tel: string; quartier: string; photo: string | null; admin?: boolean };
 
 export type Message = { moi: boolean; texte: string };
 

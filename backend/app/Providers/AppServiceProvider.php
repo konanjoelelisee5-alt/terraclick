@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\EnvoiCode;
+use App\Models\User;
 use App\Services\EnvoiCode\LogEnvoiCode;
 use App\Services\EnvoiCode\RouteurEnvoiCode;
 use App\Services\EnvoiCode\WhatsAppCloudEnvoiCode;
@@ -10,6 +11,7 @@ use App\Support\Telephone;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
@@ -45,6 +47,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Équipe TerraClick : vérification des candidatures de prestataires.
+        Gate::define('admin', fn (User $user) => $user->est_admin);
+
         // Chaque code envoyé coûte un SMS : on freine par numéro et par adresse IP.
         RateLimiter::for('otp-envoi', function (Request $request) {
             $telephone = Telephone::normaliser($request->input('telephone')) ?? 'invalide';

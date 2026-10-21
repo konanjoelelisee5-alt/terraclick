@@ -409,7 +409,7 @@ export function Home() {
               Créez votre fiche, faites vérifier votre CNI et recevez les demandes de votre quartier.
             </p>
             <button
-              onClick={() => exigerCompte(() => go("proDashboard"))}
+              onClick={() => exigerCompte(() => go(CONFIG.devenirPrestataire === "formulaire" ? "devenirPrestataire" : "proDashboard"))}
               className="sy-btn sy-btn--outline sy-btn--md"
             >
               Devenir partenaire

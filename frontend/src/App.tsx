@@ -29,6 +29,8 @@ import { Favoris } from "./screens/Favoris";
 import { ComposerPack } from "./screens/besoin/ComposerPack";
 import { CommandePressing } from "./screens/besoin/CommandePressing";
 import { DemandesRecues } from "./screens/pro/DemandesRecues";
+import { DevenirPrestataire } from "./screens/prestataire/DevenirPrestataire";
+import { AdminCandidatures } from "./screens/admin/AdminCandidatures";
 import { Historique, OngletAccord, Onglets, OngletsRecents, Parametres, Telechargements } from "./screens/menu/EcransMenu";
 import { ConfirmationAccord } from "./components/ConfirmationAccord";
 import { Besoin } from "./screens/besoin/Besoin";
@@ -116,6 +118,8 @@ const ECRANS: Record<Ecran, () => JSX.Element> = {
   proAvis: ProAvis,
   proNotifications: ProNotifications,
   demandesRecues: DemandesRecues,
+  devenirPrestataire: DevenirPrestataire,
+  adminCandidatures: AdminCandidatures,
 };
 
 /** Écrans du module Construction, inaccessibles quand CONFIG.moduleConstruction est coupé (MVP). */

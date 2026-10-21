@@ -81,6 +81,46 @@ export type Utilisateur = {
   profil_complet: boolean;
   /** Faux pour un compte créé par code seul : il se donne un mot de passe par « Mot de passe oublié ». */
   a_mot_de_passe: boolean;
+  /** Compte de l'équipe TerraClick : vérifie les candidatures des prestataires. */
+  est_admin: boolean;
+};
+
+/** Ce que demande « Devenir prestataire », selon le type (GET /api/candidature/exigences). */
+export type ExigencesCandidature = {
+  types: { cle: TypePrestataire; nom: string; detail: string; icone: string }[];
+  documents: Record<TypePrestataire, { cle: string; nom: string; obligatoire: boolean; aide: string | null }[]>;
+  secteurs: { cle: string; nom: string }[];
+  services_pressing: { cle: string; nom: string }[];
+  paiements: { cle: string; nom: string }[];
+};
+
+export type TypePrestataire = "artisan" | "entreprise" | "pressing";
+
+/** Une candidature « Devenir prestataire » et son statut. */
+export type CandidatureApi = {
+  id: number;
+  reference: string;
+  type: { cle: TypePrestataire; nom: string };
+  statut: "en_attente" | "validee" | "refusee";
+  statut_libelle: string;
+  nom_activite: string;
+  responsable: string;
+  telephone: string;
+  secteurs: { cle: string; nom: string }[];
+  quartier: Quartier | null;
+  quartiers: string[];
+  description: string;
+  experience_annees: number | null;
+  horaires: string | null;
+  prix: string | null;
+  paiements: string[];
+  details: Record<string, unknown>;
+  /** `url` : seulement pour l'équipe, lue avec le jeton (disque privé). */
+  documents: { type: string; libelle: string; mime: string; url: string | null }[];
+  motif_refus: string | null;
+  prestataire_id: number | null;
+  traite_le: string | null;
+  cree_le: string;
 };
 
 /** Session ouverte par l'API : le jeton à garder et le compte. */
@@ -433,6 +473,24 @@ export const api = {
   signaler: (id: number, signalement: { motif: string; message?: string }) =>
     requete<{ data: DemandeApi }>(`/demandes/${id}/signalements`, { methode: "POST", corps: signalement }).then((r) => r.data),
   notifications: (signal?: AbortSignal) => requete<{ data: NotificationApi[] }>("/notifications", { signal }).then((r) => r.data),
+  /* « Devenir prestataire » */
+  exigencesCandidature: () => memoriser("exigences-candidature", () => requete<{ data: ExigencesCandidature }>("/candidature/exigences").then((r) => r.data)),
+  maCandidature: (signal?: AbortSignal) => requete<{ data: CandidatureApi | null }>("/moi/candidature", { signal }).then((r) => r.data),
+  envoyerCandidature: (formulaire: FormData) =>
+    requete<{ data: CandidatureApi; message: string }>("/moi/candidature", { methode: "POST", corps: formulaire }).then((r) => r.data),
+  /* Équipe TerraClick : vérification des candidatures */
+  candidatures: (statut: CandidatureApi["statut"], signal?: AbortSignal) =>
+    requete<Page<CandidatureApi>>(`/admin/candidatures?statut=${statut}`, { signal }).then((r) => r.data),
+  validerCandidature: (id: number) => requete<{ data: CandidatureApi }>(`/admin/candidatures/${id}/valider`, { methode: "POST" }).then((r) => r.data),
+  refuserCandidature: (id: number, motif: string) =>
+    requete<{ data: CandidatureApi }>(`/admin/candidatures/${id}/refuser`, { methode: "POST", corps: { motif } }).then((r) => r.data),
+  /** Pièce jointe d'une candidature : lue avec le jeton, rendue en adresse locale (blob). */
+  pieceCandidature: async (url: string): Promise<string> => {
+    const j = jeton.lire();
+    const reponse = await fetch(url.replace(/^https?:\/\/[^/]+\/api/, BASE), { headers: j ? { Authorization: `Bearer ${j}` } : {} });
+    if (!reponse.ok) throw new ErreurApi("La pièce n'a pas pu être ouverte.", reponse.status);
+    return URL.createObjectURL(await reponse.blob());
+  },
   /* Espace prestataire : demandes et commandes reçues */
   demandesRecues: (signal?: AbortSignal) => requete<Page<DemandeProApi>>("/pro/demandes", { signal }).then((r) => r.data),
   agirSurDemande: (id: number, action: "accepter" | "refuser" | "demarrer" | "terminer" | "etape", corps?: Record<string, unknown>) =>

@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\AccordController;
 use App\Http\Controllers\ActualiteController;
+use App\Http\Controllers\AdminCandidatureController;
 use App\Http\Controllers\AdresseController;
 use App\Http\Controllers\AnnuaireController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AvisController;
 use App\Http\Controllers\BesoinController;
+use App\Http\Controllers\CandidatureController;
 use App\Http\Controllers\DemandeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PrestataireController;
@@ -57,6 +59,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('moi/adresses', [AdresseController::class, 'store']);
     Route::delete('moi/adresses/{adresse}', [AdresseController::class, 'destroy'])->whereNumber('adresse');
 
+    // « Devenir prestataire » : le dossier envoyé pour vérification, et son suivi.
+    Route::get('moi/candidature', [CandidatureController::class, 'moi']);
+    Route::post('moi/candidature', [CandidatureController::class, 'store'])->middleware('throttle:10,1');
+
+    // Équipe TerraClick : vérification des candidatures.
+    Route::prefix('admin/candidatures')->middleware('can:admin')->group(function () {
+        Route::get('/', [AdminCandidatureController::class, 'index']);
+        Route::get('{candidature}', [AdminCandidatureController::class, 'show'])->whereNumber('candidature');
+        Route::get('{candidature}/documents/{type}', [AdminCandidatureController::class, 'document'])->whereNumber('candidature');
+        Route::post('{candidature}/valider', [AdminCandidatureController::class, 'valider'])->whereNumber('candidature');
+        Route::post('{candidature}/refuser', [AdminCandidatureController::class, 'refuser'])->whereNumber('candidature');
+    });
+
     // Espace technicien : demandes reçues par la fiche reliée au compte.
     Route::prefix('pro/demandes')->group(function () {
         Route::get('/', [ProDemandeController::class, 'index']);
@@ -75,6 +90,7 @@ Route::get('analyse', [BesoinController::class, 'analyse']);
 Route::get('recommandations', [BesoinController::class, 'recommandations']);
 Route::get('pressing/articles', [BesoinController::class, 'articlesPressing']);
 Route::get('pressing/options', [BesoinController::class, 'optionsPressing']);
+Route::get('candidature/exigences', [CandidatureController::class, 'exigences']);
 
 // Annuaire, en accès libre
 Route::get('villes', [AnnuaireController::class, 'villes']);

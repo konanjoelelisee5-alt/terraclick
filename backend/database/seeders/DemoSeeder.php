@@ -48,7 +48,14 @@ class DemoSeeder extends Seeder
 
         // Mot de passe de démonstration, posé une seule fois : un changement fait depuis
         // l'application n'est pas écrasé au déploiement suivant.
-        foreach ([$aya, $moussa, $koffi, $gerant] as $compte) {
+        // Compte de l'équipe TerraClick de démonstration : vérifie les candidatures.
+        $equipe = User::updateOrCreate(
+            ['telephone' => '+2250701010101'],
+            ['nom' => 'Équipe TerraClick', 'telephone_verifie_le' => now()],
+        );
+        $equipe->forceFill(['est_admin' => true])->save();
+
+        foreach ([$aya, $moussa, $koffi, $gerant, $equipe] as $compte) {
             if (! $compte->aUnMotDePasse()) {
                 $compte->forceFill(['password' => self::MOT_DE_PASSE_DEMO])->save();
             }
