@@ -11,7 +11,7 @@ export function Favoris() {
 
   return (
     <main data-r="favoris" style={{ paddingBottom: 40 }}>
-      <GrandTitre titre="Favoris" />
+      <GrandTitre titre="Favoris" onAccueil={() => go("home")} />
       <div
         role="status"
         style={{ minHeight: "52vh", padding: "0 32px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 8 }}

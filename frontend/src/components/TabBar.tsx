@@ -4,20 +4,25 @@ import { useApp } from "../state/app";
 import { Icon } from "./Icon";
 
 /* Sous 1080 px la navigation d'en-tête disparaît : cette barre fixe la remplace.
-   Accueil · Favoris · Messages · Profil (les demandes sont dans Profil ; Carte et Projets s'ajoutent si CONFIG
-   les rebranche), cible tactile pleine hauteur. */
+   Favoris · Messages ; l'accueil (logo) et le profil (photo) sont dans l'en-tête. Accueil et
+   Profil reviennent dans la barre avec CONFIG.ongletsAccueilProfil ; Carte et Projets s'ajoutent
+   si CONFIG les rebranche. Cible tactile pleine hauteur. */
 export function TabBar() {
   const { etat, go, exigerCompte, ouvrirChat } = useApp();
   // Connexion et inscription s'affichent en plein écran, sans barre d'onglets.
   if (etat.screen === "connexion" || etat.screen === "inscription") return null;
 
   const onglets: { nom: string; icon: string; actif: boolean; go: () => void; badge?: number }[] = [
-    {
-      nom: "Accueil",
-      icon: "home",
-      actif: etat.screen === "home" && etat.modeAccueil === "recherche",
-      go: () => go("home", { modeAccueil: "recherche" }),
-    },
+    ...(CONFIG.ongletsAccueilProfil
+      ? [
+          {
+            nom: "Accueil",
+            icon: "home",
+            actif: etat.screen === "home" && etat.modeAccueil === "recherche",
+            go: () => go("home", { modeAccueil: "recherche" }),
+          },
+        ]
+      : []),
     {
       nom: "Favoris",
       icon: "heart",
@@ -54,13 +59,17 @@ export function TabBar() {
       // jusqu'à ce que la messagerie passe par l'API.
       badge: etat.auth ? CONVERSATIONS.length : 0,
     },
-    {
-      nom: "Profil",
-      icon: "user",
-      actif: /^(compte|connexion|inscription|client[A-Z]|demandeEnvoyee)/.test(etat.screen),
-      // Comme « Se connecter » sur ordinateur : la page de connexion, pas la feuille basse.
-      go: () => (etat.auth ? go("clientDashboard") : go("connexion", { telDraft: "", apresConnexion: "clientDashboard" })),
-    },
+    ...(CONFIG.ongletsAccueilProfil
+      ? [
+          {
+            nom: "Profil",
+            icon: "user",
+            actif: /^(compte|connexion|inscription|client[A-Z]|demandeEnvoyee)/.test(etat.screen),
+            // Comme « Se connecter » sur ordinateur : la page de connexion, pas la feuille basse.
+            go: () => (etat.auth ? go("clientDashboard") : go("connexion", { telDraft: "", apresConnexion: "clientDashboard" })),
+          },
+        ]
+      : []),
   ];
 
   return (

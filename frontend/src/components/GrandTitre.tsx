@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Icon } from "./Icon";
 
 /**
  * En-tête à grand titre, à la manière d'iOS : titre de 32 px en haut à gauche, actions rondes à
  * droite. Dès que le grand titre sort de l'écran, une barre fixe prend le relais avec le titre
  * réduit à 18 px et un séparateur fin.
  */
-export function GrandTitre({ titre, actions }: { titre: string; actions?: ReactNode }) {
+export function GrandTitre({ titre, actions, onAccueil }: { titre: string; actions?: ReactNode; /** Bouton rond « Accueil » à gauche. */ onAccueil?: () => void }) {
   const repere = useRef<HTMLHeadingElement>(null);
   const [reduit, setReduit] = useState(false);
 
@@ -37,12 +38,27 @@ export function GrandTitre({ titre, actions }: { titre: string; actions?: ReactN
         }}
       >
         <div style={{ height: 52, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", padding: "0 24px" }}>
+          {onAccueil && (
+            <span style={{ position: "absolute", left: 16 }}>
+              <BoutonRond libelle="Accueil" onClick={onAccueil}>
+                <Icon name="home" size={20} />
+              </BoutonRond>
+            </span>
+          )}
           <span style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "18px" }}>{titre}</span>
           {actions && <span style={{ position: "absolute", right: 16, display: "flex", gap: 8 }}>{actions}</span>}
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "32px 24px 0" }}>
+      {/* Accueil : bouton rond au-dessus du grand titre (la barre du bas n'a plus d'onglet Accueil). */}
+      {onAccueil && (
+        <div style={{ padding: "calc(12px + env(safe-area-inset-top)) 20px 0" }}>
+          <BoutonRond libelle="Accueil" onClick={onAccueil}>
+            <Icon name="home" size={20} />
+          </BoutonRond>
+        </div>
+      )}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: onAccueil ? "16px 24px 0" : "32px 24px 0" }}>
         <h1 ref={repere} style={{ flex: 1, margin: 0, fontSize: "34px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
           {titre}
         </h1>

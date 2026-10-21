@@ -6,13 +6,14 @@ import { retenirSecteurs, secteursRecents } from "../../lib/recents";
 import { useApp } from "../../state/app";
 import { Avatar } from "../../components/Avatar";
 import { ChoixVille } from "../../components/ChoixVille";
+import { Wordmark } from "../../components/Header";
 import { Icon } from "../../components/Icon";
 import { BandeauInstallation } from "../../components/Installer";
 import { useEtatClient } from "../client/store";
 
 /* Accueil sur téléphone, disposition d'une page d'accueil de navigateur (CONFIG.accueilMobile
-   = « fil ») : barre du haut (ville, cloche, photo), nom TerraClick au centre, grande barre de
-   recherche (logo, micro, appareil photo), raccourcis des secteurs cherchés récemment, puis le
+   = « fil ») : barre du haut (logo ; ville, cloche, photo), grande barre de recherche (logo,
+   micro, appareil photo), raccourcis des secteurs cherchés récemment, puis le
    fil d'actualité de la plateforme, qui se charge au fil du défilement. Tons neutres : l'orange
    ne marque que « Click » et les petites touches d'état. */
 
@@ -36,6 +37,7 @@ const CARTE: React.CSSProperties = {
   background: "var(--color-neutral-100)",
   borderRadius: 28,
 };
+
 
 /** Reconnaissance vocale du navigateur (Chrome Android), absente ailleurs. */
 type Reconnaissance = {
@@ -90,17 +92,20 @@ export function AccueilFil() {
 
   return (
     <main data-r="accueil-fil" style={{ minHeight: "100vh", paddingBottom: 32, background: "var(--color-surface)" }}>
-      {/* ---- Barre du haut : ville à gauche, cloche et photo de profil à droite ---- */}
-      <div style={{ display: "flex", alignItems: "center", gap: 4, padding: `calc(10px + env(safe-area-inset-top)) ${GOUTTIERE - 4}px 0` }}>
+      {/* ---- Barre du haut : logo à gauche ; ville, cloche et photo de profil à droite ---- */}
+      <div style={{ display: "flex", alignItems: "center", gap: 2, padding: `calc(10px + env(safe-area-inset-top)) ${GOUTTIERE - 4}px 0 ${GOUTTIERE}px` }}>
+        <h1 style={{ margin: 0, display: "flex", fontSize: "inherit" }}>
+          <Wordmark size={22} />
+        </h1>
         <ChoixVille
           data-r="fil-ville"
-          compact
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: 44, padding: "0 10px", borderRadius: 999, fontSize: "14.5px", fontWeight: 600 }}
+          iconeSeule
+          style={{ ...BOUTON_ICONE, marginLeft: "auto" }}
         />
         <button
           onClick={() => exigerCompte(() => go("clientNotifications"))}
           aria-label={nonLues ? `Notifications, ${nonLues} non lue${nonLues > 1 ? "s" : ""}` : "Notifications"}
-          style={{ ...BOUTON_ICONE, marginLeft: "auto", position: "relative" }}
+          style={{ ...BOUTON_ICONE, position: "relative" }}
         >
           <Icon name="bell" size={23} strokeWidth={2} />
           {nonLues > 0 && (
@@ -117,23 +122,7 @@ export function AccueilFil() {
         </button>
       </div>
 
-      {/* ---- Nom au centre ---- */}
-      <h1
-        style={{
-          margin: "36px 0 26px",
-          textAlign: "center",
-          fontFamily: "var(--font-heading)",
-          fontWeight: 800,
-          fontSize: "46px",
-          letterSpacing: "-0.035em",
-          lineHeight: 1,
-          color: "var(--color-text)",
-        }}
-      >
-        Terra<span style={{ color: "var(--color-accent)" }}>Click</span>
-      </h1>
-
-      <div style={{ padding: `0 ${GOUTTIERE}px`, display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ padding: `28px ${GOUTTIERE}px 0`, display: "flex", flexDirection: "column", gap: 16 }}>
         {/* ---- Grande barre de recherche : logo, saisie, micro, appareil photo ---- */}
         <form
           role="search"
