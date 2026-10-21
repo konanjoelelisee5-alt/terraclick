@@ -619,12 +619,20 @@ const numeroInscrit = numeroNeuf();
   ok('profil mobile : carte d’identité avec le nom et « Vérifié »',
      (await profil.locator('[data-r="carte-identite"]').getByText('Aya Konan').isVisible()) &&
        (await profil.locator('[data-r="carte-identite"]').getByText('Vérifié').isVisible()));
+  ok('profil mobile épuré : « Paramètres du compte » seul, sans « Devenir prestataire » ni autres lignes',
+     (await profil.getByRole('button', { name: /Paramètres du compte/ }).isVisible()) &&
+       (await profil.getByText('Devenir prestataire').count()) === 0 &&
+       (await profil.getByText(/Moyens de paiement|Aide & support|Parrainer un ami|Adresses enregistrées|Mentions légales/).count()) === 0 &&
+       (await profil.getByRole('button', { name: 'Se déconnecter' }).isVisible()));
   ok('profil mobile : barre de titre réduite cachée en haut de page',
      (await p.locator('[data-r="barre-titre"]').evaluate((e) => getComputedStyle(e).opacity)) === '0');
+  // Profil épuré, donc court : un écran plus petit permet de le faire défiler.
+  await p.setViewportSize({ width: 390, height: 420 });
   await p.evaluate(() => window.scrollTo(0, 600));
   await p.waitForTimeout(400);
   ok('profil mobile : au défilement, le titre réduit apparaît dans la barre fixe',
      (await p.locator('[data-r="barre-titre"]').evaluate((e) => getComputedStyle(e).opacity)) === '1');
+  await p.setViewportSize({ width: 390, height: 844 });
   await profil.getByRole('button', { name: /Paramètres du compte/ }).click();
   ok('« Paramètres du compte » ouvre la page, avec un retour vers Profil', await apparait(p.locator('[data-r="retour-compte"]')));
   await p.locator('[data-r="retour-compte"]').click();
@@ -795,7 +803,7 @@ if (!MODES_ACCUEIL) {
   await p.getByRole('button', { name: 'Se connecter' }).click();
   await connecterPage(p);
   ok('client : connexion ouvre le tableau de bord', await apparait(p.getByRole('heading', { name: 'Bonjour, Aya' })));
-  ok('client : actions à faire', await apparait(p.getByText('Confirmer une fin de prestation')));
+  ok('client : tableau de bord « Actions à faire »', await apparait(p.getByRole('heading', { name: 'Actions à faire' })));
   ok('client : en-tête et pied de page du site conservés',
      (await p.getByText('Tous droits réservés', { exact: false }).count()) === 1);
 

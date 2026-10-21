@@ -68,4 +68,11 @@ export const CONFIG = {
    * OTP_VERIFICATION_INSCRIPTION=true côté API (voir le README).
    */
   verificationTelephone: false as boolean,
+  /**
+   * Profil sur téléphone : `false` n'y garde que la carte d'identité, les tuiles, « Paramètres
+   * du compte » et la déconnexion ; la carte « Devenir prestataire » et les lignes Moyens de
+   * paiement, Aide & support, Parrainer un ami, Adresses enregistrées et Mentions légales sont
+   * masquées (voir le README). `true` les rebranche.
+   */
+  profilComplet: false as boolean,
 } as const;

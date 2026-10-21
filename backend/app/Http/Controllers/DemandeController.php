@@ -53,7 +53,7 @@ class DemandeController extends Controller
         $demandes = Demande::query()->whereBelongsTo($request->user(), 'client')
             ->with('quartier', 'prestataire.quartier')
             ->when($request->query('statut'), fn ($q, $statut) => $q->whereIn('statut', explode(',', (string) $statut)))
-            ->latest()->latest('id')->paginate(20);
+            ->latest()->latest('id')->paginate(min(100, max(1, (int) $request->query('par_page', 20))));
 
         return DemandeResource::collection($demandes);
     }

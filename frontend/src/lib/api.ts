@@ -351,7 +351,7 @@ export const api = {
   },
   creerDemande: (formulaire: FormData) =>
     requete<{ data: DemandeApi; message: string }>("/demandes", { methode: "POST", corps: formulaire }),
-  mesDemandes: (signal?: AbortSignal) => requete<Page<DemandeApi>>("/demandes", { signal }).then((r) => r.data),
+  mesDemandes: (signal?: AbortSignal) => requete<Page<DemandeApi>>("/demandes?par_page=100", { signal }).then((r) => r.data),
   demande: (id: number, signal?: AbortSignal) => requete<{ data: DemandeApi }>(`/demandes/${id}`, { signal }).then((r) => r.data),
   annulerDemande: (id: number, motif: string | null) =>
     requete<{ data: DemandeApi }>(`/demandes/${id}/annuler`, { methode: "POST", corps: { motif } }).then((r) => r.data),

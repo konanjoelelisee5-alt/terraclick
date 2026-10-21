@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { NOTIFICATIONS_CLIENT } from "../../data/client";
 import { api, ErreurApi, messageErreur } from "../../lib/api";
+import { CONFIG } from "../../lib/config";
 import { reduirePhoto } from "../../lib/photo";
 import { Avatar } from "../../components/Avatar";
 import { useApp } from "../../state/app";
@@ -271,7 +272,9 @@ export function ProfilMobile() {
           ))}
         </div>
 
-        {/* 3 · Devenir prestataire : carte horizontale, illustration sur un tiers */}
+        {/* 3 · Devenir prestataire : carte horizontale, illustration sur un tiers. Masquée
+               (CONFIG.profilComplet) : l'entrée des techniciens est dans Paramètres (menu ⋮). */}
+        {CONFIG.profilComplet && (
         <button
           data-r="promo-prestataire"
           onClick={() => exigerCompte(() => go("proDashboard"))}
@@ -302,11 +305,13 @@ export function ProfilMobile() {
             </span>
           </span>
         </button>
+        )}
       </div>
 
       {/* 4 · Menu en liste, posé sur le fond, sans cartes */}
       <nav aria-label="Menu du profil" style={{ padding: "32px 24px 0" }}>
-        {MENU.map((groupe, i) => (
+        {/* Profil épuré (CONFIG.profilComplet à false) : seule « Paramètres du compte » reste. */}
+        {(CONFIG.profilComplet ? MENU : [MENU[0].slice(0, 1)]).map((groupe, i) => (
           <div key={i} style={{ borderTop: i ? "1px solid var(--color-divider)" : 0, paddingTop: i ? 8 : 0, marginTop: i ? 8 : 0 }}>
             {groupe.map((l) => (
               <LigneMenu key={l.libelle} l={l} onClick={() => l.ecran && go(l.ecran)} />
