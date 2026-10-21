@@ -8,6 +8,7 @@ import { Avatar } from "../../components/Avatar";
 import { ChoixVille } from "../../components/ChoixVille";
 import { Icon } from "../../components/Icon";
 import { BandeauInstallation } from "../../components/Installer";
+import { MenuPlus } from "../../components/MenuPlus";
 import { useEtatClient } from "../client/store";
 
 /* Accueil sur téléphone, disposition d'une page d'accueil de navigateur (CONFIG.accueilMobile
@@ -55,6 +56,7 @@ export function AccueilFil() {
   const { notificationsLues } = useEtatClient();
   const nonLues = etat.auth && !notificationsLues ? NOTIFICATIONS_CLIENT.filter((n) => n.nouveau).length : 0;
   const [ecoute, setEcoute] = useState(false);
+  const [menu, setMenu] = useState(false);
   const photo = useRef<HTMLInputElement>(null);
 
   // Raccourcis : les secteurs cherchés récemment d'abord, puis les autres.
@@ -115,7 +117,11 @@ export function AccueilFil() {
         >
           <Avatar compte={etat.auth} taille={34} />
         </button>
+        <button data-r="menu-plus-ouvrir" onClick={() => setMenu(true)} aria-label="Plus d'options" aria-haspopup="menu" aria-expanded={menu} style={BOUTON_ICONE}>
+          <Icon name="ellipsis-vertical" size={23} strokeWidth={2} />
+        </button>
       </div>
+      {menu && <MenuPlus onFermer={() => setMenu(false)} />}
 
       {/* ---- Nom au centre ---- */}
       <h1
@@ -212,21 +218,7 @@ export function AccueilFil() {
 
         <BandeauInstallation sobre style={{ borderRadius: 28, border: 0, boxShadow: "none", padding: "14px 16px" }} />
 
-        {/* ---- Entrée des techniciens : ligne compacte, en retrait ---- */}
-        <button
-          data-r="devenir-partenaire"
-          onClick={() => exigerCompte(() => go("proDashboard"))}
-          style={{ ...CARTE, display: "flex", alignItems: "center", gap: 12, minHeight: 60, padding: "10px 16px", border: 0, cursor: "pointer", font: "inherit", color: "inherit", textAlign: "left" }}
-        >
-          <span style={{ width: 40, height: 40, flex: "none", borderRadius: 999, background: "var(--color-surface)", display: "grid", placeItems: "center" }}>
-            <Icon name="wrench" size={19} />
-          </span>
-          <span style={{ flex: 1, minWidth: 0, fontSize: "14.5px" }}>
-            <strong style={{ fontWeight: 600 }}>Vous êtes technicien ?</strong>{" "}
-            <span style={{ color: GRIS }}>Devenir partenaire</span>
-          </span>
-          <Icon name="chevron-right" size={18} color={GRIS} />
-        </button>
+        {/* « Devenir prestataire » est dans Paramètres (menu ⋮), pour rester discret. */}
 
         {/* ---- Fil d'actualité ---- */}
         <FilActualite />

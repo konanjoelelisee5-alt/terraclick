@@ -7,6 +7,7 @@ use App\Http\Controllers\AvisController;
 use App\Http\Controllers\BesoinController;
 use App\Http\Controllers\DemandeController;
 use App\Http\Controllers\PrestataireController;
+use App\Http\Controllers\RechercheController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -28,6 +29,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('moi', [AuthController::class, 'modifierProfil']);
     Route::put('moi/photo', [AuthController::class, 'modifierPhoto']);
     Route::delete('moi/photo', [AuthController::class, 'supprimerPhoto']);
+    Route::get('moi/recherches', [RechercheController::class, 'index']);
+    Route::delete('moi/recherches', [RechercheController::class, 'effacer']);
     Route::post('prestataires/{prestataire}/avis', [AvisController::class, 'store']);
     Route::post('demandes', [DemandeController::class, 'store']);
     Route::get('demandes/{demande}', [DemandeController::class, 'show'])->whereNumber('demande');
@@ -35,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Assistant de besoin, en accès libre jusqu'à la confirmation
 Route::get('actualites', [ActualiteController::class, 'index']);
+Route::post('recherches', [RechercheController::class, 'store'])->middleware('throttle:60,1');
 Route::get('secteurs', [BesoinController::class, 'secteurs']);
 Route::get('analyse', [BesoinController::class, 'analyse']);
 Route::get('recommandations', [BesoinController::class, 'recommandations']);

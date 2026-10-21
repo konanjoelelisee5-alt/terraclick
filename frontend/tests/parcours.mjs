@@ -490,6 +490,50 @@ const numeroInscrit = numeroNeuf();
   await ctx.close();
 }
 
+// K quater · Menu ⋮ de l'accueil : entrées, historique, onglets, effacement, paramètres
+{
+  const { ctx, p } = await neuve(390, 844);
+  const menu = p.locator('[data-r="menu-plus"]');
+  const ouvrirMenu = async () => {
+    if (!(await p.locator('[data-r="accueil-fil"]').isVisible().catch(() => false))) await p.getByRole('button', { name: "TerraClick, retour à l'accueil" }).click();
+    await p.locator('[data-r="menu-plus-ouvrir"]').click();
+    await apparait(menu);
+  };
+  ok('accueil : « Devenir partenaire » n’est plus sur la page (il est dans Paramètres)',
+     (await apparait(p.locator('[data-r="accueil-fil"]'))) && (await p.locator('[data-r="devenir-partenaire"]').count()) === 0);
+  await ouvrirMenu();
+  const entrees = await menu.getByRole('menuitem').allTextContents();
+  ok('menu ⋮ : rangée d’icônes et entrées du modèle',
+     ['Onglets de recherche', 'Historique', 'Supprimer les données de navigation', 'Téléchargements', 'Favoris', 'Onglets récents', 'Paramètres']
+       .every((n) => entrees.some((e) => e.startsWith(n))) &&
+       (await menu.getByRole('menuitem', { name: 'Actualiser' }).count()) === 1);
+  ok('menu ⋮ : « Personnaliser la page » et « Aide » marqués Bientôt', (await menu.getByText('Bientôt').count()) === 2);
+  await p.keyboard.press('Escape');
+  ok('menu ⋮ : Échap le referme', !(await menu.isVisible().catch(() => false)));
+
+  // Une recherche s'inscrit dans l'historique et dans les onglets.
+  await p.locator('[data-r="raccourcis"]').getByRole('button', { name: 'Serrurerie' }).click();
+  await apparait(p.getByRole('heading', { name: 'Serrurerie' }));
+  await ouvrirMenu();
+  await menu.getByRole('menuitem', { name: 'Historique' }).click();
+  ok('historique : la recherche y figure', await apparait(p.locator('[data-r="ligne-historique"]').getByText('Serrurerie').first()));
+  await ouvrirMenu();
+  await menu.getByRole('menuitem', { name: 'Onglets de recherche' }).click();
+  ok('onglets : un onglet par service cherché', await apparait(p.locator('[data-r="onglet"]').getByText('Serrurerie')));
+  await ouvrirMenu();
+  await menu.getByRole('menuitem', { name: 'Supprimer les données de navigation' }).click();
+  await p.getByRole('button', { name: 'Supprimer', exact: true }).click();
+  await ouvrirMenu();
+  await menu.getByRole('menuitem', { name: 'Historique' }).click();
+  ok('données supprimées : historique vide', await apparait(p.getByText('Historique vide')));
+  await ouvrirMenu();
+  await menu.getByRole('menuitem', { name: 'Paramètres' }).click();
+  ok('paramètres : ville et « Devenir prestataire »',
+     (await apparait(p.locator('[data-r="devenir-partenaire"]'))) && (await p.getByRole('combobox', { name: 'Votre ville' }).count()) === 1);
+  ok('paramètres : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+  await ctx.close();
+}
+
 // K ter · Profil sur téléphone : grand titre sans logo ni ville, carte d'identité, menu, titre réduit au défilement
 {
   const { ctx, p } = await neuve(390, 844);
@@ -595,10 +639,12 @@ const numeroInscrit = numeroNeuf();
   await ctx.close();
 }
 
-// M · Espace prestataire sur téléphone : application avec navigation basse
+// M · Espace prestataire sur téléphone : par Paramètres (menu ⋮), application avec navigation basse
 {
   const { ctx, p } = await neuve(390, 844);
-  await p.getByRole('button', { name: 'Devenir partenaire' }).first().click();
+  await p.locator('[data-r="menu-plus-ouvrir"]').click();
+  await p.locator('[data-r="menu-plus"]').getByRole('menuitem', { name: 'Paramètres' }).click();
+  await p.locator('[data-r="devenir-partenaire"]').click();
   await connecter(p);
   await apparait(p.getByRole('heading', { name: 'Tableau de bord' }));
   const bas = p.getByRole('navigation', { name: "Navigation de l'espace pro" });

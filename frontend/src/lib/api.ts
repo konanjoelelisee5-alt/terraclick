@@ -86,6 +86,18 @@ export type Utilisateur = {
 /** Session ouverte par l'API : le jeton à garder et le compte. */
 export type Session = { token: string; utilisateur: Utilisateur };
 
+/** Une recherche de l'historique (POST /api/recherches, GET /api/moi/recherches). */
+export type RechercheApi = {
+  id: number;
+  texte: string;
+  categorie: string | null;
+  secteur: string | null;
+  ville: string | null;
+  appareil_id: string | null;
+  appareil: string | null;
+  date: string;
+};
+
 /** Élément du fil d'actualité de l'accueil (GET /api/actualites). */
 export type ActualiteApi = {
   id: string;
@@ -264,6 +276,10 @@ export const api = {
     requete<Resultats>(`/prestataires${parametres(criteres)}`, { signal }),
   vedettes: (signal?: AbortSignal) =>
     requete<{ data: PrestataireApi[] }>("/prestataires/vedettes", { signal }).then((r) => r.data),
+  enregistrerRecherche: (recherche: { texte: string; categorie?: string | null; ville?: string | null; appareil_id: string; appareil: string }) =>
+    requete<{ data: RechercheApi }>("/recherches", { methode: "POST", corps: recherche }).then((r) => r.data),
+  mesRecherches: (signal?: AbortSignal) => requete<{ data: RechercheApi[] }>("/moi/recherches", { signal }).then((r) => r.data),
+  effacerRecherches: () => requete<{ message: string }>("/moi/recherches", { methode: "DELETE" }),
   actualites: (page: number, signal?: AbortSignal) =>
     requete<{ data: ActualiteApi[]; meta: { page: number; suivante: number | null } }>(`/actualites?page=${page}`, { signal }),
   fiche: (id: number, signal?: AbortSignal) =>

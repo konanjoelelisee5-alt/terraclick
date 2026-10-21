@@ -159,6 +159,16 @@ d'abord ; entrée « Devenir partenaire » ; puis le fil d'actualité de la plat
 L'accueil précédent (en-tête orange « Salut, … », filtres de ville, prestataires à la une,
 besoin guidé) reste dans `screens/home/AccueilMobile.tsx` : `"epuree"` ou `"riche"` le rebranche.
 
+**Menu ⋮ de l'accueil mobile** (`components/MenuPlus.tsx`, écrans dans
+`screens/menu/EcransMenu.tsx`) : rangée Retour, Suivant, Favoris, Télécharger l'application,
+Actualiser ; puis Onglets de recherche (un onglet par service cherché), Historique,
+Supprimer les données de navigation, Téléchargements (reçus), Favoris, Onglets récents (les
+recherches du compte sur ses autres appareils) et Paramètres (ville, compte, notifications,
+historique, **Devenir prestataire**, installation). « Personnaliser la page » et « Aide et
+commentaires » sont affichés, marqués « Bientôt ». Chaque recherche est enregistrée
+(`POST /api/recherches`, table `recherches`) ; « Supprimer les données de navigation » la
+masque pour l'utilisateur (`efface_le`) mais l'administration la garde.
+
 **Boutons « Urgence » et « Programmer » de l'accueil mobile** (`actionsAccueilMobile: false`) :
 les deux boutons côte à côte sous l'en-tête orange (`screens/home/AccueilMobile.tsx`) sont
 masqués pour le moment. « Urgence » ouvrait l'assistant de demande avec une intervention

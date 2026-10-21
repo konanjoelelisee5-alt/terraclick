@@ -25,6 +25,7 @@ import { Recu } from "./screens/Recu";
 import { Results } from "./screens/Results";
 import { Urgence } from "./screens/Urgence";
 import { Favoris } from "./screens/Favoris";
+import { Historique, Onglets, OngletsRecents, Parametres, Telechargements } from "./screens/menu/EcransMenu";
 import { Besoin } from "./screens/besoin/Besoin";
 import { Confirmation } from "./screens/besoin/Confirmation";
 import { DemandeEnvoyee } from "./screens/besoin/DemandeEnvoyee";
@@ -84,6 +85,11 @@ const ECRANS: Record<Ecran, () => JSX.Element> = {
   confirmation: Confirmation,
   demandeEnvoyee: DemandeEnvoyee,
   favoris: Favoris,
+  onglets: Onglets,
+  historique: Historique,
+  ongletsRecents: OngletsRecents,
+  telechargements: Telechargements,
+  parametres: Parametres,
   clientDashboard: ClientDashboard,
   clientDemandes: ClientDemandes,
   clientSuivi: ClientSuivi,

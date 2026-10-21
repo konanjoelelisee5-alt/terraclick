@@ -13,6 +13,7 @@ import { sujetAchat, sujetMaison, type Sujet } from "../data/projet";
 import { api, jeton, type Utilisateur } from "../lib/api";
 import type { Filtre } from "../lib/annuaire";
 import { CONFIG } from "../lib/config";
+import { enregistrerRecherche } from "../lib/historique";
 import type { Besoin, Compte, Ecran, Etat, Navigation } from "./types";
 
 // Premier lancement ou session terminée sur cet appareil : on commence par la connexion.
@@ -233,6 +234,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const rechercher = useCallback<Contexte["rechercher"]>(
     (titre, filtre) => {
       const texte = (titre ?? etat.query).trim();
+      // Historique : sur l'appareil, et au serveur (relié au compte s'il y en a un).
+      enregistrerRecherche(texte, filtre?.categorie ?? null, etat.ville === null ? CONFIG.villeParDefaut : VILLES[etat.ville]);
       go("results", {
         titre: texte || "Tous les prestataires",
         filtre: filtre ?? (texte ? { q: texte } : {}),
@@ -240,7 +243,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         carte: false,
       });
     },
-    [go, etat.query],
+    [go, etat.query, etat.ville],
   );
 
   const ouvrirChat = useCallback<Contexte["ouvrirChat"]>(

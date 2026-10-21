@@ -22,7 +22,20 @@ window.addEventListener("beforeinstallprompt", (e) => {
   window.dispatchEvent(new Event("tc-installable"));
 });
 
-function dejaInstallee(): boolean {
+/**
+ * Ouvre la fenêtre d'installation du navigateur si elle est disponible (menu ⋮ de l'accueil).
+ * Renvoie faux sinon : l'appelant montre alors les gestes à faire (page Paramètres).
+ */
+export async function proposerInstallation(): Promise<boolean> {
+  if (!propositionEnAttente) return false;
+  const proposition = propositionEnAttente;
+  propositionEnAttente = null;
+  await proposition.prompt();
+  await proposition.userChoice;
+  return true;
+}
+
+export function dejaInstallee(): boolean {
   return (
     window.matchMedia("(display-mode: standalone)").matches ||
     (navigator as Navigator & { standalone?: boolean }).standalone === true

@@ -33,6 +33,12 @@ export type Ecran =
   | "confirmation"
   | "demandeEnvoyee"
   | "favoris"
+  /* Menu ⋮ de l'accueil mobile */
+  | "onglets"
+  | "historique"
+  | "ongletsRecents"
+  | "telechargements"
+  | "parametres"
   /* Espace client (dans le site public) */
   | "clientDashboard"
   | "clientDemandes"
