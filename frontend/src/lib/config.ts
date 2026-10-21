@@ -46,6 +46,12 @@ export const CONFIG = {
    */
   actionsAccueilMobile: false as boolean,
   /**
+   * Résultats de recherche sur téléphone : « moteur » (screens/ResultatsMobile.tsx) les met en
+   * page comme un moteur de recherche (onglets, conseil, résultats en liste) ; « cartes » rebranche
+   * les cartes de prestataires d'avant (voir le README).
+   */
+  resultatsMobile: "moteur" as "moteur" | "cartes",
+  /**
    * À l'ouverture, sans session mémorisée sur l'appareil : la page de connexion d'abord
    * (la flèche retour mène à l'accueil en visiteur). Avec une session, l'accueil directement.
    */

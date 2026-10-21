@@ -9,6 +9,8 @@ import { Icon } from "../components/Icon";
 import { MapCanvas } from "../components/MapCanvas";
 import { CARTE, pill, tab } from "../components/ui";
 import { resumeBesoin } from "./besoin/commun";
+import { useEstMobile } from "../lib/useEstMobile";
+import { ResultatsMobile } from "./ResultatsMobile";
 
 const BLOC_VIDE: React.CSSProperties = {
   textAlign: "center",
@@ -17,10 +19,10 @@ const BLOC_VIDE: React.CSSProperties = {
   borderRadius: "calc(var(--radius-lg) * 1.15)",
 };
 
-type Tri = NonNullable<CriteresRecherche["tri"]>;
+export type Tri = NonNullable<CriteresRecherche["tri"]>;
 
 /** Tris proposés au client ; la distance attend « Autour de moi », masqué dans le MVP. */
-const TRIS: { valeur: Tri; libelle: string }[] = [
+export const TRIS: { valeur: Tri; libelle: string }[] = [
   { valeur: "pertinence", libelle: "Pertinence" },
   { valeur: "note", libelle: "Mieux notés" },
   { valeur: "avis", libelle: "Plus d'avis" },
@@ -112,7 +114,7 @@ const META: React.CSSProperties = {
  * toucher. Elle s'allume quand un choix autre que celui par défaut est actif. Réduite
  * (`reduite`), elle ne montre que son icône ; la toucher l'ouvre et réduit sa voisine.
  */
-function PastilleChoix(props: {
+export function PastilleChoix(props: {
   icone: string;
   libelle: string;
   actif: boolean;
@@ -197,6 +199,12 @@ const AVANTAGES_BTP = [
 ];
 
 export function Results() {
+  // Sur téléphone : page de résultats façon moteur de recherche (CONFIG.resultatsMobile).
+  const estMobile = useEstMobile();
+  return estMobile && CONFIG.resultatsMobile === "moteur" ? <ResultatsMobile /> : <ResultatsCartes />;
+}
+
+function ResultatsCartes() {
   const { etat, set, go, rechercher, ouvrirChat, exigerCompte, voirCarte, ville, demarrerBesoin } = useApp();
   // Le client compare après avoir décrit son besoin (« Choisir moi-même ») : on le lui rappelle.
   const besoinEnCours = !!etat.besoin.secteur && !!etat.besoin.quartier && etat.besoin.mode === "choisi";

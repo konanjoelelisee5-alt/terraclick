@@ -169,6 +169,12 @@ commentaires » sont affichés, marqués « Bientôt ». Chaque recherche est en
 (`POST /api/recherches`, table `recherches`) ; « Supprimer les données de navigation » la
 masque pour l'utilisateur (`efface_le`) mais l'administration la garde.
 
+**Résultats sur téléphone** (`resultatsMobile: "moteur"`) : la page de résultats suit la mise en
+page d'un moteur de recherche (`screens/ResultatsMobile.tsx`) : barre de recherche (effacer,
+micro), onglets Tous puis les services, conseil, puis chaque technicien en résultat (nom en
+petit, grand titre métier · quartier · prix, extrait, note, délai, menu ⋮ Voir le profil /
+Chat / Appeler). `"cartes"` rebranche les cartes de prestataires d'avant.
+
 **Boutons « Urgence » et « Programmer » de l'accueil mobile** (`actionsAccueilMobile: false`) :
 les deux boutons côte à côte sous l'en-tête orange (`screens/home/AccueilMobile.tsx`) sont
 masqués pour le moment. « Urgence » ouvrait l'assistant de demande avec une intervention

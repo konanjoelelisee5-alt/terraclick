@@ -248,6 +248,22 @@ if (!MODULE_CONSTRUCTION) {
   await p.waitForTimeout(300);
   ok('résultats : toucher Trier le déplie et réduit Quartier', (await etats()) === 'oui,non');
   ok('résultats : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+  // Mise en page façon moteur de recherche (CONFIG.resultatsMobile).
+  const onglets = p.locator('[data-r="onglets-resultats"]');
+  ok('résultats : onglets Tous puis les services, le service compris souligné',
+     (await onglets.getByRole('button').first().textContent()) === 'Tous' &&
+       (await onglets.getByRole('button', { name: 'Plomberie' }).getAttribute('aria-current')) === 'page');
+  ok('résultats : conseil et résultats façon moteur de recherche',
+     (await p.locator('[data-r="conseil"]').getByText(/ma douche fuit/).isVisible()) &&
+       (await p.locator('[data-r="resultat"]').count()) > 0 &&
+       /à .+ · /.test(await p.locator('[data-r="titre-resultat"]').first().textContent()));
+  await p.locator('[data-r="resultat"]').first().getByRole('button', { name: /Actions pour/ }).click();
+  ok('résultats : le menu ⋮ propose profil, chat et appel', (await p.getByRole('menuitem').allTextContents()).join('|') === 'Voir le profil|Chat|Appeler');
+  await p.keyboard.press('Escape');
+  await onglets.getByRole('button', { name: 'Électricité' }).click();
+  ok('résultats : un onglet relance la recherche sur ce service', await apparait(p.getByRole('heading', { name: 'Électricité' })));
+  await p.locator('[data-r="titre-resultat"]').first().click();
+  ok('résultats : le grand titre ouvre la fiche', await apparait(p.getByRole('button', { name: /Demander ce technicien|Chat/ }).first()));
   await ctx.close();
 }
 
