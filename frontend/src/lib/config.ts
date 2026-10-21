@@ -88,4 +88,11 @@ export const CONFIG = {
    * `false` revient à la barre simple.
    */
   ongletCentral: true as boolean,
+  /**
+   * Après « Confirmer ma demande » / « Valider la commande » :
+   * - « envol » : le parcours s'arrête là. Une fenêtre « Demande envoyée » se plie en avion en
+   *   papier qui vole jusqu'au bouton « Mes onglets », où la demande se suit désormais ;
+   * - « ecran » : l'ancien écran « Demande envoyée » (facture, « Suivre ma demande », « Accueil »).
+   */
+  envoiDemande: "envol" as "envol" | "ecran",
 } as const;

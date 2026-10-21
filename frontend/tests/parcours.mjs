@@ -322,10 +322,15 @@ if (!MODULE_CONSTRUCTION) {
   await p.getByRole('button', { name: 'Confirmer ma demande' }).click();
   ok('confirmer demande un compte', await apparait(p.getByText(MUR)));
   await connecter(p);
-  ok('demande envoyée par l’API, avec sa référence',
-     await apparait(p.getByRole('heading', { name: 'Demande envoyée' }), 8000) && (await p.getByText(/Référence DEM-\d{4}-\d{5}/).isVisible()));
+  const envol = p.locator('[data-r="envol-demande"]');
+  ok('demande envoyée par l’API : la fenêtre « Demande envoyée », avec sa référence',
+     await apparait(envol.getByRole('heading', { name: 'Demande envoyée' }), 8000) && (await envol.getByText(/Référence DEM-\d{4}-\d{5}/).isVisible()));
+  ok('le parcours s’arrête là : ni « Suivre ma demande » ni « Accueil »', (await p.getByRole('button', { name: 'Suivre ma demande' }).count()) === 0);
+  // Sur ordinateur, sans barre d'onglets : l'avion s'envole et les onglets s'ouvrent.
+  ok('l’avion en papier s’envole, puis les onglets s’ouvrent',
+     (await envol.waitFor({ state: 'detached', timeout: 12000 }).then(() => true, () => false)) && (await apparait(p.locator('[data-r="onglets"]'))));
   // Comme une commande pressing, la demande d'intervention se suit dans son onglet.
-  await p.getByRole('button', { name: 'Suivre ma demande' }).click();
+  await p.locator('[data-r="onglet"]').first().click();
   const suivi = p.locator('[data-r="suivi-commande"]');
   ok('onglet : la demande d’intervention s’y suit, en attente du technicien',
      (await apparait(suivi)) && (await p.locator('[data-r="statut-commande"]').textContent()) === 'En attente du technicien' &&
@@ -593,7 +598,10 @@ const numeroInscrit = numeroNeuf();
   ok('commande : facture visible avant de valider', (await apparait(p.locator('[data-r="facture"]'))) && (await p.locator('[data-r="ligne-facture"]').count()) === 2);
   await p.getByRole('radio', { name: /Autre moyen/ }).click();
   await p.getByRole('button', { name: /Valider la commande/ }).click();
-  ok('commande : envoyée, avec sa facture', (await apparait(p.getByRole('heading', { name: 'Commande envoyée' }))) && (await p.locator('[data-r="facture"]').isVisible()));
+  const envol = p.locator('[data-r="envol-demande"]');
+  ok('commande : fenêtre « Commande envoyée », sans autre étape', (await apparait(envol.getByRole('heading', { name: 'Commande envoyée' }))) && (await p.locator('[data-r="suivre-commande"]').count()) === 0);
+  ok('commande : la fenêtre s’envole vers « Mes onglets » et l’accueil reste dessous',
+     (await envol.waitFor({ state: 'detached', timeout: 12000 }).then(() => true, () => false)) && (await p.locator('[data-r="accueil-fil"]').isVisible()));
   const envoyee = await p.evaluate(async () => {
     const r = await fetch('/api/demandes?par_page=1', { headers: { Accept: 'application/json', Authorization: 'Bearer ' + localStorage.getItem('sy.jeton') } });
     return (await r.json()).data[0];
@@ -603,7 +611,8 @@ const numeroInscrit = numeroNeuf();
   const reference = envoyee.reference;
 
   // Onglets : la commande s'y suit dès la validation
-  await p.locator('[data-r="suivre-commande"]').click();
+  await p.locator('[data-r="onglet-central"]').click();
+  await p.locator('[data-r="onglet"]').first().click();
   ok('onglet : la commande s’y suit, en attente du pressing',
      (await apparait(p.locator('[data-r="onglet-commande"]'))) && (await p.locator('[data-r="statut-commande"]').textContent()) === 'En attente du pressing');
   {

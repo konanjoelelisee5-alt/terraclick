@@ -7,6 +7,8 @@ import { useApp } from "../../state/app";
 import { Icon } from "../../components/Icon";
 import { CARTE } from "../../components/ui";
 import { Facture } from "../../components/Facture";
+import { lancerEnvol } from "../../components/EnvolDemande";
+import { CONFIG } from "../../lib/config";
 import { creneauLisible, lignesPack } from "../../lib/pressing";
 import { francs, modifierClient, versDemandeClient } from "../client/store";
 import { AIDE, CadreParcours, Choix, TITRE_ETAPE, resumeBesoin } from "./commun";
@@ -95,7 +97,21 @@ export function Confirmation() {
       const { data } = await api.creerDemande(f);
       // « Mes demandes » affiche aussitôt la nouvelle demande, telle qu'enregistrée.
       modifierClient((e) => ({ demandes: [versDemandeClient(data), ...e.demandes.filter((d) => d.id !== data.id)] }));
-      go("demandeEnvoyee", { demandeEnvoyee: data });
+      if (CONFIG.envoiDemande === "ecran") {
+        go("demandeEnvoyee", { demandeEnvoyee: data });
+        return;
+      }
+      // Le parcours s'arrête à l'envoi : la fenêtre s'envole vers « Mes onglets », où la
+      // demande se suit. L'accueil s'affiche dessous ; sans barre d'onglets, les onglets s'ouvrent.
+      lancerEnvol(
+        {
+          titre: pressing ? "Commande envoyée" : "Demande envoyée",
+          reference: data.reference,
+          texte: "Suivez-la désormais dans vos onglets.",
+        },
+        { sansCible: () => go("onglets") },
+      );
+      go("home", { besoin: { ...b, photos: [], pack: [] } });
     } catch (e) {
       const champs = e instanceof ErreurApi ? Object.values(e.champs)[0]?.[0] : undefined;
       setErreur(champs ?? messageErreur(e));

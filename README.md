@@ -54,6 +54,14 @@ indicatifs par pièce sont dans `config/pressing.php` (**à valider avec les pre
 l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
 (`Demande::composerPack`), quel que soit ce que l'application envoie.
 
+**Fin du parcours à l'envoi** (`CONFIG.envoiDemande`) :
+
+- `"envol"` (valeur actuelle) : après « Confirmer ma demande » ou « Valider la commande », le parcours s'arrête. La fenêtre « Demande envoyée » (ou « Commande envoyée ») s'affiche avec sa référence. Elle se plie ensuite en avion en papier, qui vole jusqu'au bouton central « Mes onglets ». Le bouton rebondit, avec une onde et un « +1 » (`components/EnvolDemande.tsx`).
+  - L'accueil reste dessous.
+  - Sur ordinateur, sans barre d'onglets, l'avion file vers le haut et les onglets s'ouvrent.
+  - Si l'appareil demande moins d'animations, la fenêtre s'efface simplement.
+- `"ecran"` : l'ancien écran « Demande envoyée », avec la facture, « Suivre ma demande » et « Accueil » (`DemandeEnvoyee.tsx`, masqué mais conservé).
+
 **Onglets de suivi pour tous les services** : toute demande envoyée à un prestataire (plomberie, électricité, climatisation, serrurerie, menuiserie comme pressing) crée son onglet dès l'envoi (`Accord::pourDemande`). Les demandes plus anciennes sont rattrapées par une migration. Une intervention s'y suit en cinq étapes : envoyée, acceptée, en cours, terminée, confirmée (`config/suivi.php`). Son onglet propose aussi d'annuler, de signaler un problème (retard, technicien pas venu, travail mal fait, prix différent), de recommander, de confirmer « Problème résolu », de noter le technicien et de télécharger le reçu, avec le montant convenu.
 
 **Commande pressing, de bout en bout** :

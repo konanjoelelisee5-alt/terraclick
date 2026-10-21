@@ -6,6 +6,7 @@ import { AppProvider, useApp } from "./state/app";
 import { AuthSheet } from "./components/AuthSheet";
 import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
+import { EnvolDemande } from "./components/EnvolDemande";
 import { Notifications } from "./components/Notifications";
 import { TabBar } from "./components/TabBar";
 import { Assistant } from "./screens/Assistant";
@@ -179,6 +180,7 @@ function Coque() {
       <Notifications />
       <AuthSheet />
       <ConfirmationAccord />
+      <EnvolDemande />
       <Footer />
       <TabBar />
       <BandeauMiseAJour />
