@@ -25,7 +25,8 @@ import { Recu } from "./screens/Recu";
 import { Results } from "./screens/Results";
 import { Urgence } from "./screens/Urgence";
 import { Favoris } from "./screens/Favoris";
-import { Historique, Onglets, OngletsRecents, Parametres, Telechargements } from "./screens/menu/EcransMenu";
+import { Historique, OngletAccord, Onglets, OngletsRecents, Parametres, Telechargements } from "./screens/menu/EcransMenu";
+import { ConfirmationAccord } from "./components/ConfirmationAccord";
 import { Besoin } from "./screens/besoin/Besoin";
 import { Confirmation } from "./screens/besoin/Confirmation";
 import { DemandeEnvoyee } from "./screens/besoin/DemandeEnvoyee";
@@ -86,6 +87,7 @@ const ECRANS: Record<Ecran, () => JSX.Element> = {
   demandeEnvoyee: DemandeEnvoyee,
   favoris: Favoris,
   onglets: Onglets,
+  accord: OngletAccord,
   historique: Historique,
   ongletsRecents: OngletsRecents,
   telechargements: Telechargements,
@@ -170,6 +172,7 @@ function Coque() {
       <Ecran />
       <Notifications />
       <AuthSheet />
+      <ConfirmationAccord />
       <Footer />
       <TabBar />
       <BandeauMiseAJour />

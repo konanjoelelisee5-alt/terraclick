@@ -35,6 +35,7 @@ export type Ecran =
   | "favoris"
   /* Menu ⋮ de l'accueil mobile */
   | "onglets"
+  | "accord"
   | "historique"
   | "ongletsRecents"
   | "telechargements"

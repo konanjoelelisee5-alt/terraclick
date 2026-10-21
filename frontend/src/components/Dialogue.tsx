@@ -15,6 +15,7 @@ export function Dialogue({
   onConfirmer,
   onFermer,
   note,
+  annuler = "Annuler",
   children,
 }: {
   titre: string;
@@ -26,6 +27,8 @@ export function Dialogue({
   onConfirmer: () => void;
   onFermer: () => void;
   note?: string;
+  /** Libellé du bouton secondaire (« Pas encore »…). */
+  annuler?: string;
   children?: ReactNode;
 }) {
   useEffect(() => {
@@ -70,7 +73,7 @@ export function Dialogue({
         )}
         <div className="sy-dialog__foot">
           <button type="button" className="sy-btn sy-btn--ghost sy-btn--md" onClick={onFermer}>
-            Annuler
+            {annuler}
           </button>
           <button type="button" className="sy-btn sy-btn--primary sy-btn--md" onClick={onConfirmer} autoFocus={!children}>
             {confirmer}

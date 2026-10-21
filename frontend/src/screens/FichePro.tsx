@@ -2,6 +2,7 @@ import { useState } from "react";
 import { SECTEURS } from "../data/catalogue";
 import { api, ErreurApi, type FicheApi } from "../lib/api";
 import { CONFIG } from "../lib/config";
+import { lienWhatsApp, noterContact } from "../lib/contacts";
 import { slugifier, versPrestataire } from "../lib/annuaire";
 import { useApi } from "../lib/useApi";
 import { useApp } from "../state/app";
@@ -340,21 +341,39 @@ export function FichePro() {
           }}
         >
           <button
-            onClick={() => ouvrirChat(versPrestataire(p))}
+            onClick={() => {
+              noterContact(p, "message");
+              ouvrirChat(versPrestataire(p));
+            }}
             className="sy-btn sy-btn--outline sy-btn--md"
             style={{ minHeight: 48 }}
           >
             Contacter directement
           </button>
-          {/* Un visiteur peut appeler sans compte ; seul l'envoi d'une demande en exige un. */}
+          {/* Un visiteur peut appeler sans compte ; seul l'envoi d'une demande en exige un. Au retour,
+              l'application demande si un accord a été conclu (onglets). */}
           {p.telephone && (
             <a
               href={`tel:+225${p.telephone.replace(/\D/g, "")}`}
+              onClick={() => noterContact(p, "appel")}
               className="sy-btn sy-btn--outline sy-btn--md"
               style={{ minHeight: 48, gap: 7 }}
             >
               <Icon name="phone" size={16} strokeWidth={2.75} />
               {p.telephone}
+            </a>
+          )}
+          {p.telephone && (
+            <a
+              href={lienWhatsApp(p.telephone)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => noterContact(p, "whatsapp")}
+              className="sy-btn sy-btn--outline sy-btn--md"
+              style={{ minHeight: 48, gap: 7 }}
+            >
+              <Icon name="message-circle" size={16} strokeWidth={2.75} />
+              WhatsApp
             </a>
           )}
           {CONFIG.moduleConstruction && p.accepte_suivi && (

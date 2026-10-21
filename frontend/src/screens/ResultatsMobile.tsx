@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { SECTEURS } from "../data/catalogue";
 import { api } from "../lib/api";
 import { slugifier, versPrestataire } from "../lib/annuaire";
+import { noterContact, retenirContexteRecherche } from "../lib/contacts";
 import { useApi } from "../lib/useApi";
 import { useApp } from "../state/app";
 import { Icon } from "../components/Icon";
@@ -72,6 +73,9 @@ export function ResultatsMobile() {
     : (SECTEURS.find((s) => s.categorie === etat.filtre.categorie)?.cle ??
       (compris.length === 1 ? SECTEURS.find((s) => s.nom === compris[0])?.cle : undefined) ??
       "tous");
+
+  // La recherche et la prestation reconnue accompagnent le technicien qui sera contacté (onglets).
+  useEffect(() => retenirContexteRecherche(demande ?? titre ?? null, prestation), [demande, titre, prestation]);
 
   const chercher = (texte = saisie) => rechercher(texte.trim());
 
@@ -273,8 +277,16 @@ export function ResultatsMobile() {
                   </button>
                   {menu === p.id && <MenuResultat onFermer={() => setMenu(null)} actions={[
                     { icone: "user", libelle: "Voir le profil", action: voirFiche },
-                    { icone: "message-circle", libelle: "Chat", action: () => ouvrirChat(p) },
-                    { icone: "phone", libelle: "Appeler", action: () => ouvrirChat(p) },
+                    {
+                      icone: "message-circle",
+                      libelle: "Chat",
+                      action: () => {
+                        noterContact(p, "message");
+                        ouvrirChat(p);
+                      },
+                    },
+                    // Le numéro est sur la fiche : l'appel s'y fait, et y est noté.
+                    { icone: "phone", libelle: "Appeler", action: voirFiche },
                   ]} />}
                 </div>
               </div>

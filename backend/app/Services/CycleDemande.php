@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Accord;
 use App\Models\Demande;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -62,6 +63,20 @@ class CycleDemande
                 'statut' => $vers,
                 'message' => $message,
             ]);
+
+            // Fin confirmée par le client : la relation a abouti, elle rejoint ses onglets.
+            if ($vers === 'confirmee' && $demande->prestataire_id && ! Accord::where('demande_id', $demande->id)->exists()) {
+                Accord::create([
+                    'user_id' => $demande->user_id,
+                    'prestataire_id' => $demande->prestataire_id,
+                    'demande_id' => $demande->id,
+                    'objet' => $demande->probleme,
+                    'canal' => 'demande',
+                    'montant' => $demande->estimation,
+                    'statut' => 'termine',
+                    'termine_le' => now(),
+                ]);
+            }
 
             return $demande;
         });

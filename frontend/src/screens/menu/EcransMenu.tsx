@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from "react";
+import { Fragment, useEffect, useState, type ReactNode } from "react";
 import { SECTEURS } from "../../data/catalogue";
-import type { RechercheApi } from "../../lib/api";
+import { api, messageErreur, type AccordApi, type RechercheApi } from "../../lib/api";
 import { appareilId, effacerHistorique, useHistorique } from "../../lib/historique";
 import { useApp } from "../../state/app";
 import { ChoixVille } from "../../components/ChoixVille";
@@ -9,7 +9,7 @@ import { Icon } from "../../components/Icon";
 import { BandeauInstallation } from "../../components/Installer";
 import { useToast } from "../../components/Toast";
 
-/* Écrans ouverts depuis le menu ⋮ de l'accueil : onglets de recherche, historique, onglets
+/* Écrans ouverts depuis le menu ⋮ de l'accueil : onglets (relations abouties et reçus), historique, onglets
    récents (autres appareils), téléchargements (reçus) et paramètres. */
 
 const GRIS = "#5C5248";
@@ -98,46 +98,203 @@ function LigneRecherche({ r, detail }: { r: RechercheApi; detail: string }) {
   );
 }
 
-/** « Onglets de recherche » : un onglet par secteur cherché (ou par recherche libre), le plus récent d'abord. */
-export function Onglets() {
-  const { etat } = useApp();
-  const relancer = useRelancer();
-  const { elements } = useHistorique(!!etat.auth);
+/** Onglet ouvert dans l'écran de détail (et son reçu). */
+let accordOuvert: number | null = null;
 
-  const onglets: { cle: string; titre: string; derniere: RechercheApi; nombre: number }[] = [];
-  for (const r of elements ?? []) {
-    const s = secteurDe(r);
-    const cle = s?.cle ?? r.texte.toLowerCase();
-    const existant = onglets.find((o) => o.cle === cle);
-    if (existant) existant.nombre++;
-    else onglets.push({ cle, titre: s?.nom ?? r.texte, derniere: r, nombre: 1 });
-  }
+const secteurDeCategorie = (categorie: string | null, cle?: string | null) =>
+  SECTEURS.find((s) => s.cle === cle || s.categorie === categorie) ?? null;
+
+const dateLongue = (iso: string) => new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+/**
+ * « Mes onglets » : les relations qui ont abouti. Le client a confirmé avoir conclu avec le
+ * technicien (après un appel, un WhatsApp, un message ou une demande) ; chaque onglet garde les
+ * étapes qui y ont mené et son reçu. Les recherches sans suite restent dans l'Historique.
+ */
+export function Onglets() {
+  const { etat, go } = useApp();
+  const [accords, setAccords] = useState<AccordApi[] | null>(null);
+  const [erreur, setErreur] = useState(false);
+
+  useEffect(() => {
+    if (!etat.auth) return;
+    const arret = new AbortController();
+    api.accords(arret.signal).then(setAccords, (e) => e?.name !== "AbortError" && setErreur(true));
+    return () => arret.abort();
+  }, [etat.auth]);
 
   return (
-    <Page r="onglets" titre="Onglets de recherche" sousTitre="Chaque service cherché garde son onglet : revenez-y en un toucher.">
-      {elements && onglets.length === 0 && <Vide icone="square-plus" titre="Aucun onglet" texte="Vos recherches apparaîtront ici, un onglet par service." />}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 12 }}>
-        {onglets.map((o) => {
-          const s = secteurDe(o.derniere);
+    <Page r="onglets" titre="Mes onglets" sousTitre="Vos dépannages conclus avec un technicien, et leurs reçus.">
+      {!etat.auth && (
+        <>
+          <Vide icone="square-plus" titre="Connectez-vous pour voir vos onglets" texte="Chaque accord conclu avec un technicien y est gardé, avec son reçu." />
+          <button onClick={() => go("connexion", { telDraft: "", apresConnexion: "onglets" })} className="sy-btn sy-btn--primary sy-btn--md" style={{ alignSelf: "center" }}>
+            Se connecter
+          </button>
+        </>
+      )}
+      {erreur && <p role="alert" style={{ margin: 0, color: "var(--state-danger)" }}>Vos onglets n'ont pas pu être chargés.</p>}
+      {accords && accords.length === 0 && (
+        <Vide
+          icone="square-plus"
+          titre="Aucun onglet pour l'instant"
+          texte="Quand vous concluez avec un technicien (appel, WhatsApp, message ou demande), confirmez-le : l'accord apparaîtra ici."
+        />
+      )}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))", gap: 12 }}>
+        {accords?.map((a) => {
+          const s = secteurDeCategorie(a.prestataire.categorie, a.prestation?.secteur);
           return (
-            <button key={o.cle} data-r="onglet" onClick={() => relancer(o.derniere)} style={{ ...CARTE, overflow: "hidden", padding: 0, textAlign: "left", font: "inherit", color: "inherit", cursor: "pointer" }}>
+            <button
+              key={a.id}
+              data-r="onglet"
+              onClick={() => {
+                accordOuvert = a.id;
+                go("accord");
+              }}
+              style={{ ...CARTE, overflow: "hidden", padding: 0, display: "flex", textAlign: "left", font: "inherit", color: "inherit", cursor: "pointer" }}
+            >
               {s?.image ? (
-                <img src={s.image} alt="" style={{ display: "block", width: "100%", height: 96, objectFit: "cover" }} />
+                <img src={s.image} alt="" style={{ display: "block", width: 96, flex: "none", objectFit: "cover" }} />
               ) : (
-                <span style={{ display: "grid", placeItems: "center", height: 96, background: "var(--color-surface)", color: GRIS }}>
-                  <Icon name={s?.icone ?? "search"} size={30} strokeWidth={1.75} />
+                <span style={{ display: "grid", placeItems: "center", width: 96, flex: "none", background: "var(--color-surface)", color: GRIS }}>
+                  <Icon name={s?.icone ?? "wrench"} size={28} strokeWidth={1.75} />
                 </span>
               )}
-              <span style={{ display: "block", padding: "10px 12px" }}>
-                <span style={{ display: "block", fontWeight: 600, fontSize: "15px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{o.titre}</span>
-                <span style={{ display: "block", fontSize: "12.5px", color: GRIS }}>
-                  {o.nombre} recherche{o.nombre > 1 ? "s" : ""} · {jour(o.derniere.date).toLowerCase()}
+              <span style={{ flex: 1, minWidth: 0, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 3 }}>
+                <span style={{ fontWeight: 700, fontSize: "15.5px" }}>{a.objet}</span>
+                <span style={{ fontSize: "13.5px", color: GRIS }}>
+                  {a.prestataire.nom} · {a.canal_libelle}
+                </span>
+                <span style={{ fontSize: "13.5px" }}>
+                  {a.montant_affichage ?? "Montant non indiqué"} · {jour(a.cree_le).toLowerCase()}
+                </span>
+                <span className={`sy-badge sy-badge--${a.statut === "termine" ? "success" : "info"}`} style={{ alignSelf: "flex-start", marginTop: 4 }}>
+                  {a.statut_libelle}
                 </span>
               </span>
             </button>
           );
         })}
       </div>
+    </Page>
+  );
+}
+
+/** Détail d'un onglet : les étapes de la relation, les actions, et le reçu à télécharger. */
+export function OngletAccord() {
+  const { go } = useApp();
+  const toast = useToast();
+  const [a, setA] = useState<AccordApi | null>(null);
+  const [erreur, setErreur] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!accordOuvert) return;
+    const arret = new AbortController();
+    api.accord(accordOuvert, arret.signal).then(setA, (e) => e?.name !== "AbortError" && setErreur(messageErreur(e)));
+    return () => arret.abort();
+  }, []);
+
+  if (!a) {
+    return (
+      <Page r="onglet-accord" titre="Onglet">
+        <p role={erreur ? "alert" : "status"} style={{ margin: 0, color: erreur ? "var(--state-danger)" : GRIS }}>
+          {erreur ?? (accordOuvert ? "Chargement…" : "Choisissez un onglet.")}
+        </p>
+        <button onClick={() => go("onglets")} className="sy-btn sy-btn--outline sy-btn--md" style={{ alignSelf: "flex-start" }}>
+          Mes onglets
+        </button>
+      </Page>
+    );
+  }
+
+  const terminer = async () => {
+    try {
+      setA(await api.terminerAccord(a.id));
+      toast("Intervention terminée", "Votre reçu est à jour.");
+    } catch (e) {
+      toast("Action impossible", messageErreur(e), "danger");
+    }
+  };
+
+  const lignes: [string, string][] = [
+    ["Référence", a.reference],
+    ["Travail", a.objet],
+    ["Technicien", `${a.prestataire.nom} · ${a.prestataire.metier}${a.prestataire.quartier ? ` · ${a.prestataire.quartier}` : ""}`],
+    ["Contact", a.canal_libelle],
+    ["Montant convenu", a.montant_affichage ?? "Non indiqué"],
+    ["Date de l'intervention", a.date_intervention ? dateLongue(a.date_intervention) : "Non indiquée"],
+    ["Accord conclu le", dateLongue(a.cree_le)],
+    ["Statut", a.statut_libelle],
+    ...(a.demande_reference ? ([["Demande", a.demande_reference]] as [string, string][]) : []),
+  ];
+
+  return (
+    <Page r="onglet-accord" titre={a.objet} sousTitre={`${a.prestataire.nom} · ${a.statut_libelle}`}>
+      {/* À l'impression (« Télécharger le reçu »), seul le reçu est gardé. */}
+      <style>{"@media print { body * { visibility: hidden !important; } [data-r='recu-accord'], [data-r='recu-accord'] * { visibility: visible !important; } [data-r='recu-accord'] { position: absolute; inset: 0 auto auto 0; width: 100%; border: 0 !important; } }"}</style>
+
+      <section aria-label="Étapes" style={{ ...CARTE, padding: "14px 16px" }}>
+        <h2 style={{ margin: "0 0 10px", fontSize: "16px" }}>Les étapes</h2>
+        <ol style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          {a.etapes.map((e, i) => (
+            <li key={i} style={{ display: "flex", gap: 12 }}>
+              <span style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 14, flex: "none" }}>
+                <span style={{ width: 10, height: 10, marginTop: 5, borderRadius: 999, background: "var(--secondary)" }} />
+                {i < a.etapes.length - 1 && <span style={{ flex: 1, width: 2, background: "var(--color-divider)", margin: "3px 0" }} />}
+              </span>
+              <span style={{ paddingBottom: 12 }}>
+                <span style={{ display: "block", fontWeight: 600, fontSize: "14.5px" }}>{e.libelle}</span>
+                <span style={{ display: "block", fontSize: "13px", color: GRIS }}>
+                  {jour(e.date)} · {heure(e.date)}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <button data-r="telecharger-recu" onClick={() => window.print()} className="sy-btn sy-btn--primary sy-btn--md" style={{ gap: 8 }}>
+          <Icon name="download" size={17} />
+          Télécharger le reçu
+        </button>
+        {a.statut === "conclu" && (
+          <button onClick={terminer} className="sy-btn sy-btn--outline sy-btn--md">
+            Intervention terminée
+          </button>
+        )}
+        {a.prestataire.telephone && (
+          <a href={`tel:+225${a.prestataire.telephone.replace(/\D/g, "")}`} className="sy-btn sy-btn--outline sy-btn--md" style={{ gap: 8 }}>
+            <Icon name="phone" size={16} />
+            Rappeler
+          </a>
+        )}
+        <button onClick={() => go("fiche", { fiche: a.prestataire.id })} className="sy-btn sy-btn--ghost sy-btn--md">
+          Voir la fiche
+        </button>
+      </div>
+
+      <section data-r="recu-accord" aria-label="Reçu" style={{ ...CARTE, padding: "18px 18px 14px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
+          <strong style={{ fontFamily: "var(--font-heading)", fontSize: "20px" }}>
+            Terra<span style={{ color: "var(--color-accent)" }}>Click</span>
+          </strong>
+          <span style={{ fontSize: "13px", color: GRIS }}>Reçu d'intervention</span>
+        </div>
+        <dl style={{ margin: 0, display: "grid", gridTemplateColumns: "auto 1fr", gap: "8px 14px", fontSize: "14.5px" }}>
+          {lignes.map(([cle, valeur]) => (
+            <Fragment key={cle}>
+              <dt style={{ color: GRIS }}>{cle}</dt>
+              <dd style={{ margin: 0, fontWeight: 600 }}>{valeur}</dd>
+            </Fragment>
+          ))}
+        </dl>
+        <p style={{ margin: "14px 0 0", fontSize: "12.5px", lineHeight: 1.5, color: GRIS }}>
+          Le paiement est convenu directement entre le client et le technicien ; TerraClick ne perçoit pas ce montant. Ce reçu
+          atteste l'accord confirmé par le client dans l'application.
+        </p>
+      </section>
     </Page>
   );
 }

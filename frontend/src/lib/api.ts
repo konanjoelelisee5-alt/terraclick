@@ -86,6 +86,26 @@ export type Utilisateur = {
 /** Session ouverte par l'API : le jeton à garder et le compte. */
 export type Session = { token: string; utilisateur: Utilisateur };
 
+/** Un onglet : relation aboutie avec un technicien, confirmée par le client (GET /api/accords). */
+export type AccordApi = {
+  id: number;
+  reference: string;
+  objet: string;
+  recherche: string | null;
+  canal: "appel" | "whatsapp" | "message" | "demande";
+  canal_libelle: string;
+  montant: number | null;
+  montant_affichage: string | null;
+  date_intervention: string | null;
+  statut: "conclu" | "termine";
+  statut_libelle: string;
+  prestation: { slug: string; nom: string; secteur: string } | null;
+  prestataire: { id: number; nom: string; initiales: string; metier: string; telephone: string | null; quartier: string | null; categorie: string | null };
+  demande_reference: string | null;
+  etapes: { libelle: string; date: string }[];
+  cree_le: string;
+};
+
 /** Une recherche de l'historique (POST /api/recherches, GET /api/moi/recherches). */
 export type RechercheApi = {
   id: number;
@@ -300,6 +320,18 @@ export const api = {
     requete<Resultats>(`/prestataires${parametres(criteres)}`, { signal }),
   vedettes: (signal?: AbortSignal) =>
     requete<{ data: PrestataireApi[] }>("/prestataires/vedettes", { signal }).then((r) => r.data),
+  accords: (signal?: AbortSignal) => requete<{ data: AccordApi[] }>("/accords", { signal }).then((r) => r.data),
+  accord: (id: number, signal?: AbortSignal) => requete<{ data: AccordApi }>(`/accords/${id}`, { signal }).then((r) => r.data),
+  creerAccord: (accord: {
+    prestataire_id: number;
+    canal: AccordApi["canal"];
+    prestation?: string | null;
+    objet?: string | null;
+    recherche?: string | null;
+    montant?: number | null;
+    date_intervention?: string | null;
+  }) => requete<{ data: AccordApi }>("/accords", { methode: "POST", corps: accord }).then((r) => r.data),
+  terminerAccord: (id: number) => requete<{ data: AccordApi }>(`/accords/${id}/terminer`, { methode: "POST" }).then((r) => r.data),
   enregistrerRecherche: (recherche: { texte: string; categorie?: string | null; ville?: string | null; appareil_id: string; appareil: string }) =>
     requete<{ data: RechercheApi }>("/recherches", { methode: "POST", corps: recherche }).then((r) => r.data),
   mesRecherches: (signal?: AbortSignal) => requete<{ data: RechercheApi[] }>("/moi/recherches", { signal }).then((r) => r.data),

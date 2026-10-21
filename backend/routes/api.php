@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccordController;
 use App\Http\Controllers\ActualiteController;
 use App\Http\Controllers\AnnuaireController;
 use App\Http\Controllers\AuthController;
@@ -34,6 +35,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('moi/recherches', [RechercheController::class, 'effacer']);
     Route::post('prestataires/{prestataire}/avis', [AvisController::class, 'store']);
     Route::post('demandes', [DemandeController::class, 'store']);
+    // Onglets : relations abouties, confirmées par le client.
+    Route::get('accords', [AccordController::class, 'index']);
+    Route::post('accords', [AccordController::class, 'store']);
+    Route::get('accords/{accord}', [AccordController::class, 'show'])->whereNumber('accord');
+    Route::post('accords/{accord}/terminer', [AccordController::class, 'terminer'])->whereNumber('accord');
+
     Route::get('demandes', [DemandeController::class, 'index']);
     Route::get('demandes/{demande}', [DemandeController::class, 'show'])->whereNumber('demande');
     Route::post('demandes/{demande}/annuler', [DemandeController::class, 'annuler'])->whereNumber('demande');

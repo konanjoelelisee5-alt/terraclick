@@ -169,6 +169,15 @@ commentaires » sont affichés, marqués « Bientôt ». Chaque recherche est en
 (`POST /api/recherches`, table `recherches`) ; « Supprimer les données de navigation » la
 masque pour l'utilisateur (`efface_le`) mais l'administration la garde.
 
+**Mes onglets : relations abouties** (table `accords`, `GET/POST /api/accords`) : un onglet n'est
+pas une recherche, c'est un accord conclu avec un technicien. Quand le client le contacte
+(appel, WhatsApp, message depuis sa fiche ou les résultats), l'application note le contact
+(`lib/contacts.ts`) ; à son retour, elle lui demande « Avez-vous conclu avec … ? »
+(`components/ConfirmationAccord.tsx`). Oui → l'accord (travail, montant, date, recherche
+d'origine, canal) rejoint ses onglets, avec les étapes qui y ont mené et un **reçu à
+télécharger** (impression en PDF). Une demande faite dans l'application et confirmée terminée
+devient aussi un onglet. Les recherches sans suite restent dans l'Historique.
+
 **Prestations et prix** (table `prestations`, `database/seeders/PrestationSeeder.php`) : chaque
 secteur a ses prestations (plomberie : fuite, tuyau cassé, débouchage, robinet, chauffe-eau,
 pompe, installation sanitaire…), avec des mots-clés pondérés et un **prix indicatif à valider

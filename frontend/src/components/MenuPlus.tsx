@@ -54,8 +54,8 @@ export function MenuPlus({ onFermer }: { onFermer: () => void }) {
   };
 
   const groupes: Entree[][] = [
-    // Chaque recherche d'un secteur a son onglet, pour y revenir.
-    [{ icone: "square-plus", libelle: "Onglets de recherche", ecran: "onglets" }],
+    // Les relations abouties (accords confirmés), avec leur reçu.
+    [{ icone: "square-plus", libelle: "Mes onglets", ecran: "onglets" }],
     [
       { icone: "history", libelle: "Historique", ecran: "historique" },
       { icone: "trash-2", libelle: "Supprimer les données de navigation", action: () => setConfirmerEffacement(true) },

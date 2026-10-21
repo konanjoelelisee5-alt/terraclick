@@ -543,7 +543,7 @@ const numeroInscrit = numeroNeuf();
   await ouvrirMenu();
   const entrees = await menu.getByRole('menuitem').allTextContents();
   ok('menu ⋮ : rangée d’icônes et entrées du modèle',
-     ['Onglets de recherche', 'Historique', 'Supprimer les données de navigation', 'Téléchargements', 'Favoris', 'Onglets récents', 'Paramètres']
+     ['Mes onglets', 'Historique', 'Supprimer les données de navigation', 'Téléchargements', 'Favoris', 'Onglets récents', 'Paramètres']
        .every((n) => entrees.some((e) => e.startsWith(n))) &&
        (await menu.getByRole('menuitem', { name: 'Actualiser' }).count()) === 1);
   ok('menu ⋮ : « Personnaliser la page » et « Aide » marqués Bientôt', (await menu.getByText('Bientôt').count()) === 2);
@@ -557,8 +557,8 @@ const numeroInscrit = numeroNeuf();
   await menu.getByRole('menuitem', { name: 'Historique' }).click();
   ok('historique : la recherche y figure', await apparait(p.locator('[data-r="ligne-historique"]').getByText('Serrurerie').first()));
   await ouvrirMenu();
-  await menu.getByRole('menuitem', { name: 'Onglets de recherche' }).click();
-  ok('onglets : un onglet par service cherché', await apparait(p.locator('[data-r="onglet"]').getByText('Serrurerie')));
+  await menu.getByRole('menuitem', { name: 'Mes onglets' }).click();
+  ok('onglets : réservés aux accords conclus (une recherche seule n’y figure pas)', await apparait(p.getByText('Connectez-vous pour voir vos onglets')));
   await ouvrirMenu();
   await menu.getByRole('menuitem', { name: 'Supprimer les données de navigation' }).click();
   await p.getByRole('button', { name: 'Supprimer', exact: true }).click();
@@ -570,6 +570,37 @@ const numeroInscrit = numeroNeuf();
   ok('paramètres : ville et « Devenir prestataire »',
      (await apparait(p.locator('[data-r="devenir-partenaire"]'))) && (await p.getByRole('combobox', { name: 'Votre ville' }).count()) === 1);
   ok('paramètres : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+  await ctx.close();
+}
+
+// K quinquies · Onglets : recherche → contact → « Avez-vous conclu ? » → onglet, étapes et reçu
+{
+  const { ctx, p } = await neuve(390, 844);
+  await p.locator('[data-r="fil-avatar"]').click();
+  await connecterPage(p);
+  await apparait(p.locator('[data-r="profil-mobile"]'));
+  await p.getByRole('button', { name: "TerraClick, retour à l'accueil" }).click().catch(() => {});
+  await p.goto('http://localhost:4173/'); await apparait(p.locator('[data-r="accueil-fil"]'));
+  await p.getByPlaceholder('Rechercher sur TerraClick').fill('tuyau cassé');
+  await p.locator('[data-r="search-go"]').click();
+  await p.locator('[data-r="resultat"]').filter({ hasText: 'Koffi Tanoh' }).locator('[data-r="titre-resultat"]').click();
+  await p.getByRole('button', { name: 'Contacter directement' }).click();
+  // Après l'échange avec le technicien, l'application demande si l'accord est conclu.
+  const question = p.getByRole('dialog', { name: 'Avez-vous conclu avec Koffi Tanoh ?' });
+  ok('contact : « Avez-vous conclu ? » est posée au retour', await apparait(question, 20000));
+  ok('contact : la prestation cherchée est reprise', (await question.getByLabel('Travail convenu').inputValue()) === 'Réparation de tuyau cassé');
+  await question.getByLabel(/Montant convenu/).fill('12 000');
+  await question.getByRole('button', { name: 'Oui, accord conclu' }).click();
+  const carte = p.locator('[data-r="onglet"]').filter({ hasText: 'Réparation de tuyau cassé' }).filter({ hasText: '12 000 F' }).first();
+  ok('onglets : l’accord conclu y figure', await apparait(carte));
+  await carte.click();
+  ok('onglet : les étapes qui ont mené à l’accord',
+     (await apparait(p.getByText('Recherche « tuyau cassé »'))) && (await p.getByText('Contact : Message dans TerraClick').isVisible()) &&
+       (await p.getByText('Accord conclu, confirmé par vous').isVisible()));
+  ok('onglet : reçu avec référence, prêt à télécharger',
+     (await p.locator('[data-r="recu-accord"]').getByText(/^ACC-\d{4}-\d{5}$/).isVisible()) && (await p.locator('[data-r="telecharger-recu"]').isVisible()));
+  await p.getByRole('button', { name: 'Intervention terminée' }).click();
+  ok('onglet : intervention marquée terminée', await apparait(p.getByText('Intervention terminée', { exact: true }).first()));
   await ctx.close();
 }
 

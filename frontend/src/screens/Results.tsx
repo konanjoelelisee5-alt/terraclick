@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { REGEX_BTP, SECTEURS } from "../data/catalogue";
 import { useApp } from "../state/app";
 import { api, type CriteresRecherche } from "../lib/api";
@@ -11,6 +11,7 @@ import { CARTE, pill, tab } from "../components/ui";
 import { resumeBesoin } from "./besoin/commun";
 import { useEstMobile } from "../lib/useEstMobile";
 import { ResultatsMobile } from "./ResultatsMobile";
+import { noterContact, retenirContexteRecherche } from "../lib/contacts";
 
 const BLOC_VIDE: React.CSSProperties = {
   textAlign: "center",
@@ -229,6 +230,9 @@ function ResultatsCartes() {
   const demande = etat.filtre.q;
   const compris = demande ? (recherche.donnees?.analyse?.secteurs ?? []) : [];
   const titre = recherche.donnees?.analyse?.prestation?.nom ?? (compris.length ? compris.join(" ou ") : etat.titre);
+  // La recherche accompagne le technicien qui sera contacté (onglets).
+  const prestationReconnue = recherche.donnees?.analyse?.prestation ?? null;
+  useEffect(() => retenirContexteRecherche(demande ?? etat.titre ?? null, prestationReconnue), [demande, etat.titre, prestationReconnue]);
   // Une recherche BTP remplace le bandeau de suivi générique par l'accompagnement construction.
   // L'un et l'autre mènent au module Construction : sans lui (MVP), aucun des deux n'apparaît.
   const estBtp = CONFIG.moduleConstruction && REGEX_BTP.test(etat.titre || "");
@@ -540,7 +544,7 @@ function ResultatsCartes() {
                   onClick={(e) => e.stopPropagation()}
                   style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 6 }}
                 >
-                  <button onClick={() => ouvrirChat(p)} className="sy-btn sy-btn--primary sy-btn--md" style={{ gap: 7 }}>
+                  <button onClick={() => (noterContact(p, "message"), ouvrirChat(p))} className="sy-btn sy-btn--primary sy-btn--md" style={{ gap: 7 }}>
                     <Icon name="message-circle" size={16} strokeWidth={2.75} />
                     Chat
                   </button>
