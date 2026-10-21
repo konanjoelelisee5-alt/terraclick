@@ -387,6 +387,8 @@ const numeroNeuf = () => '07' + String(Math.floor(Math.random() * 1e8)).padStart
   const { ctx, p } = await neuve();
   await p.getByRole('button', { name: 'Se connecter' }).click();
   ok('« Se connecter » ouvre la page Connexion', await apparait(p.getByRole('tab', { name: 'Connexion', selected: true })));
+  ok('page Connexion : ni « Bienvenue », ni emoji, ni pastille « Espace Client »',
+     (await p.getByText('Bienvenue').count()) === 0 && (await p.getByText('Espace Client').count()) === 0 && (await p.getByText('👋').count()) === 0);
   ok('page Connexion : numéro, mot de passe et « Mot de passe oublié ? »',
      (await p.getByLabel('Mot de passe', { exact: true }).isVisible()) &&
        (await p.getByRole('button', { name: 'Mot de passe oublié ?' }).isVisible()));
@@ -427,9 +429,8 @@ const numeroInscrit = numeroNeuf();
   await p.getByLabel('Numéro de téléphone', { exact: true }).fill(numero);
   await p.getByLabel('Quartier').selectOption({ label: 'Kokrenou' });
   await p.getByRole('button', { name: 'Créer mon compte' }).click();
-  ok('numéro vérifié par code avant la création du compte', await apparait(p.getByText(/Code reçu par SMS/)));
-  await p.getByText(/appuyer pour remplir/).click();
   ok('compte créé : le nom apparaît dans l’en-tête', await apparait(p.getByText('Awa Test').first()));
+  ok('inscription directe : ni code SMS ni WhatsApp', (await p.getByText(/Code reçu par/).count()) === 0);
   const moi = await p.evaluate(async () => {
     const r = await fetch('/api/moi', { headers: { Accept: 'application/json', Authorization: 'Bearer ' + localStorage.getItem('sy.jeton') } });
     return (await r.json()).data;

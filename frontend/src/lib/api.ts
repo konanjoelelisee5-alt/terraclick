@@ -379,7 +379,8 @@ export const api = {
     }),
   inscrire: (compte: {
     telephone: string;
-    code: string;
+    /** Seulement si la vérification du numéro est activée. */
+    code?: string;
     nom: string;
     email: string | null;
     ville_id: number | null;

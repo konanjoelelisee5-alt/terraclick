@@ -64,27 +64,34 @@ class AuthController extends Controller
     }
 
     /**
-     * POST /api/auth/inscription — crée le compte avec son mot de passe. Le code reçu prouve
-     * le numéro ; un compte créé par code seul (sans mot de passe) est complété.
+     * POST /api/auth/inscription — crée le compte avec son mot de passe, directement en base.
+     * Avec la vérification activée (otp.verification_inscription), le code reçu prouve d'abord
+     * le numéro, et un compte créé par code seul (sans mot de passe) peut être complété.
      */
     public function inscrire(InscriptionRequest $request): JsonResponse
     {
         $telephone = $request->validated('telephone');
         $existant = User::where('telephone', $telephone)->first();
+        $verification = config('otp.verification_inscription');
 
-        if ($existant?->aUnMotDePasse()) {
+        // Sans code, rien ne prouve que le numéro appartient à celui qui s'inscrit : un compte
+        // existant, même sans mot de passe, n'est jamais repris par une inscription.
+        if ($existant?->aUnMotDePasse() || ($existant && ! $verification)) {
             throw ValidationException::withMessages([
                 'telephone' => 'Ce numéro a déjà un compte. Connectez-vous, ou touchez « Mot de passe oublié ».',
             ]);
         }
 
-        $this->otp->verifier($telephone, $request->validated('code'));
+        if ($verification) {
+            $this->otp->verifier($telephone, $request->validated('code'));
+        }
 
         $user = $existant ?? new User(['telephone' => $telephone]);
         $user->fill($request->profil());
         $user->forceFill([
             'password' => $request->validated('mot_de_passe'),
-            'telephone_verifie_le' => now(),
+            // Le numéro n'est daté comme vérifié que s'il a été prouvé par un code.
+            'telephone_verifie_le' => $verification ? now() : null,
         ])->save();
 
         return $this->session($user, $request->validated('appareil'), 201);

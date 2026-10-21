@@ -4,7 +4,7 @@ import { useApp } from "../state/app";
 import { Icon } from "./Icon";
 
 /* Pages Connexion et Inscription, plein écran : flèche retour, logo TerraClick avec halo,
-   « Bienvenue », pastille « Espace Client », bascule Connexion | Inscription, champs arrondis à
+   phrase d'accueil, bascule Connexion | Inscription, champs arrondis à
    étiquette flottante et icône dans une pastille orange, grand bouton orange. Connexion par
    numéro et mot de passe ; le numéro est prouvé par un code reçu par SMS ou WhatsApp à
    l'inscription et pour « Mot de passe oublié » (CONFIG.motDePasse). */
@@ -62,7 +62,8 @@ export function CadreAuth({
   children,
 }: {
   mode: "connexion" | "inscription";
-  titre: string;
+  /** Titre de l'étape ; absent sur les pages Connexion et Inscription. */
+  titre?: string;
   sousTitre: string;
   /** Numéro déjà saisi, repris quand on bascule vers l'autre page. */
   telephone: string;
@@ -113,33 +114,23 @@ export function CadreAuth({
           <img src={`${import.meta.env.BASE_URL}icons/logo-256.png`} alt="TerraClick" width={112} height={112} style={{ position: "relative" }} />
         </div>
 
-        <h1
-          style={{
-            margin: 0,
-            textAlign: "center",
-            fontFamily: "var(--font-heading)",
-            fontWeight: 700,
-            fontSize: "32px",
-            letterSpacing: "-0.01em",
-            color: "var(--color-accent)",
-          }}
-        >
-          {titre} <span aria-hidden="true">👋</span>
-        </h1>
-        <span
-          style={{
-            alignSelf: "center",
-            margin: "12px 0 10px",
-            padding: "7px 18px",
-            borderRadius: 999,
-            background: "var(--state-info-soft)",
-            color: "var(--state-info)",
-            fontSize: "15px",
-            fontWeight: 600,
-          }}
-        >
-          Espace Client
-        </span>
+        {/* Titre seulement pour les étapes qui en ont besoin (« Mot de passe oublié ») : connexion et
+            inscription s'ouvrent sur le logo et la phrase d'accueil, sans pastille ni emoji. */}
+        {titre && (
+          <h1
+            style={{
+              margin: "0 0 8px",
+              textAlign: "center",
+              fontFamily: "var(--font-heading)",
+              fontWeight: 700,
+              fontSize: "28px",
+              letterSpacing: "-0.01em",
+              color: "var(--color-text)",
+            }}
+          >
+            {titre}
+          </h1>
+        )}
         <p style={{ margin: "0 0 22px", textAlign: "center", fontSize: "16px", color: GRIS }}>{sousTitre}</p>
 
         {/* Bascule Connexion | Inscription. */}

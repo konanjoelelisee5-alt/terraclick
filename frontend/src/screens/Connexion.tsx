@@ -138,7 +138,7 @@ function ConnexionMotDePasse() {
   }
 
   return (
-    <CadreAuth mode="connexion" titre="Bienvenue" sousTitre="Heureux de vous revoir !" telephone={telephone}>
+    <CadreAuth mode="connexion" sousTitre="Heureux de vous revoir !" telephone={telephone}>
       <ChampTelephone
         valeur={telephone}
         onChange={(v) => {
@@ -191,7 +191,7 @@ function ConnexionParCode() {
   };
 
   return (
-    <CadreAuth mode="connexion" titre="Bienvenue" sousTitre="Heureux de vous revoir !" telephone={telephone}>
+    <CadreAuth mode="connexion" sousTitre="Heureux de vous revoir !" telephone={telephone}>
       {etape === "tel" ? (
         <>
           <ChampTelephone

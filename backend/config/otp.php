@@ -14,6 +14,13 @@ return [
         'whatsapp' => env('OTP_WHATSAPP_DRIVER', 'log'),
     ],
 
+    /*
+    | Vérification du numéro par code à l'inscription. Désactivée : le compte est créé
+    | directement avec le numéro et le mot de passe, sans SMS ni WhatsApp (pas de frais d'envoi).
+    | OTP_VERIFICATION_INSCRIPTION=true la rebranche (l'application doit alors l'activer aussi).
+    */
+    'verification_inscription' => (bool) env('OTP_VERIFICATION_INSCRIPTION', false),
+
     // Si WhatsApp échoue (service injoignable, mauvaise configuration), le code part par SMS.
     'repli_sms' => (bool) env('OTP_REPLI_SMS', true),
 

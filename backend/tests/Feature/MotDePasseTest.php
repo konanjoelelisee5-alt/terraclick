@@ -21,6 +21,36 @@ class MotDePasseTest extends TestCase
     {
         parent::setUp();
         $this->boite = $this->intercepterCodes();
+        // Ces tests couvrent l'inscription avec vérification du numéro (réglage rebranchable).
+        config(['otp.verification_inscription' => true]);
+    }
+
+    public function test_sans_verification_le_compte_est_cree_directement_sans_code(): void
+    {
+        config(['otp.verification_inscription' => false]);
+
+        $this->postJson('/api/auth/inscription', $this->inscription())
+            ->assertCreated()
+            ->assertJsonStructure(['token'])
+            ->assertJsonPath('utilisateur.nom', 'Awa Koné');
+
+        // Aucun SMS ni WhatsApp envoyé ; le numéro n'est pas daté comme vérifié.
+        $this->assertCount(0, $this->boite->envois);
+        $this->assertNull(User::where('telephone', self::NORMALISE)->value('telephone_verifie_le'));
+
+        // Le compte se reconnecte avec les mêmes informations, sur n'importe quel appareil.
+        $this->postJson('/api/auth/connexion', ['telephone' => self::NUMERO, 'mot_de_passe' => 'soleil2026'])->assertOk();
+    }
+
+    public function test_sans_verification_un_compte_existant_n_est_jamais_repris(): void
+    {
+        config(['otp.verification_inscription' => false]);
+        // Compte créé par code seul, sans mot de passe : sans preuve du numéro, on ne le reprend pas.
+        User::factory()->create(['telephone' => self::NORMALISE, 'password' => null]);
+
+        $this->postJson('/api/auth/inscription', $this->inscription())
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('telephone');
     }
 
     private function recevoirCode(): string

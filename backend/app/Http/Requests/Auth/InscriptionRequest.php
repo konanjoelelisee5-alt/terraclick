@@ -17,7 +17,7 @@ class InscriptionRequest extends FormRequest
         $email = trim((string) $this->input('email'));
         $this->merge([
             'telephone' => Telephone::normaliser($this->input('telephone')) ?? $this->input('telephone'),
-            'code' => preg_replace('/\D/', '', (string) $this->input('code')),
+            'code' => preg_replace('/\D/', '', (string) $this->input('code')) ?: null,
             'email' => $email === '' ? null : mb_strtolower($email),
         ]);
     }
@@ -26,7 +26,8 @@ class InscriptionRequest extends FormRequest
     {
         return [
             'telephone' => ['required', 'string', 'regex:'.Telephone::FORMAT],
-            'code' => ['required', 'digits:'.config('otp.longueur')],
+            // Code reçu seulement si la vérification du numéro est activée (config/otp.php).
+            'code' => [config('otp.verification_inscription') ? 'required' : 'nullable', 'digits:'.config('otp.longueur')],
             'nom' => ['required', 'string', 'min:2', 'max:80'],
             'email' => ['nullable', 'email', 'max:120', Rule::unique('users', 'email')->where(fn ($q) => $q->where('telephone', '!=', $this->input('telephone')))],
             'ville_id' => ['nullable', 'integer', 'exists:villes,id'],

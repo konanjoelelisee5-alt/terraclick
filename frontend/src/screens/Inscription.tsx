@@ -89,6 +89,11 @@ export function Inscription() {
     if (!cgu) return otp.setErreur("Acceptez les conditions d'utilisation pour créer votre compte.");
 
     if (compte && !CONFIG.motDePasse) return enregistrerProfil(compte);
+    // Sans vérification du numéro : le compte est créé tout de suite, sans SMS ni WhatsApp.
+    if (CONFIG.motDePasse && !CONFIG.verificationTelephone) {
+      if (telephone.replace(/\D/g, "").length < 8) return otp.setErreur("Saisissez les 10 chiffres de votre numéro.");
+      return creerCompte(null);
+    }
     if (await otp.envoyerCode(telephone, canal)) {
       setCode("");
       setEtape("code");
@@ -111,13 +116,16 @@ export function Inscription() {
     await enregistrerProfil(utilisateur);
   };
 
-  /** Avec mot de passe : le code prouve le numéro et le compte est créé en un seul appel. */
-  const creerCompte = async (saisi: string) => {
-    if (saisi.replace(/\D/g, "").length < 6) return otp.setErreur("Le code comporte 6 chiffres.");
+  /**
+   * Avec mot de passe : le compte est créé en un seul appel, avec le code qui prouve le numéro
+   * quand la vérification est activée (CONFIG.verificationTelephone), sans code sinon.
+   */
+  const creerCompte = async (saisi: string | null) => {
+    if (saisi !== null && saisi.replace(/\D/g, "").length < 6) return otp.setErreur("Le code comporte 6 chiffres.");
     const session = await otp.appeler(() =>
       api.inscrire({
         telephone,
-        code: saisi,
+        code: saisi ?? undefined,
         nom: nom.trim(),
         email: email.trim() || null,
         ville_id: villeId,
@@ -138,7 +146,7 @@ export function Inscription() {
   const chevron =<Icon name="chevron-down" size={20} color="#5C5248" style={{ flex: "none", pointerEvents: "none" }} />;
 
   return (
-    <CadreAuth mode="inscription" titre="Bienvenue" sousTitre="Créez votre compte en quelques secondes." telephone={telephone}>
+    <CadreAuth mode="inscription" sousTitre="Créez votre compte en quelques secondes." telephone={telephone}>
       {etape === "formulaire" ? (
         <>
           {compte && <Alerte erreur={null} info={`Numéro ${compte.telephone_affichage} vérifié. Il ne reste qu'à compléter votre profil.`} />}
@@ -204,7 +212,7 @@ export function Inscription() {
             </select>
           </ChampIcone>
 
-          {!compte && <ChoixCanal valeur={canal} onChange={setCanal} />}
+          {!compte && (!CONFIG.motDePasse || CONFIG.verificationTelephone) && <ChoixCanal valeur={canal} onChange={setCanal} />}
 
           <label className="sy-choice">
             <input type="checkbox" checked={cgu} onChange={(e) => setCgu(e.target.checked)} />

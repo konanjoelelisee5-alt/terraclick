@@ -341,8 +341,10 @@ indicatifs, disponibilités, garanties, documents vérifiés et avis.
 
 **Compte avec mot de passe** (`motDePasse: true`). L'inscription demande le nom, le
 téléphone, l'e-mail (facultatif), un mot de passe (8 caractères au moins, avec une lettre et
-un chiffre), la ville et le quartier ; le numéro est ensuite vérifié par un code à six
-chiffres (SMS ou WhatsApp) avant la création du compte. La connexion se fait par numéro et
+un chiffre), la ville et le quartier ; le compte est **créé directement en base, sans code
+SMS ni WhatsApp**. La vérification du numéro par code reste dans le code, masquée :
+`verificationTelephone: true` (application) et `OTP_VERIFICATION_INSCRIPTION=true` (API) la
+rebranchent. Sans elle, une inscription ne reprend jamais un numéro qui a déjà un compte. La connexion se fait par numéro et
 mot de passe. « Mot de passe oublié » : nouveau mot de passe, confirmé par un code reçu ; les
 autres sessions sont alors fermées. Chercher et consulter restent libres ; le mur ne tombe
 qu'au moment d'agir, sous forme de feuille basse (numéro et mot de passe), et l'action

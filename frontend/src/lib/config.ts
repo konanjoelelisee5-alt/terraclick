@@ -62,4 +62,10 @@ export const CONFIG = {
    * `false` rebranche la connexion par code seul, sans mot de passe (voir le README).
    */
   motDePasse: true as boolean,
+  /**
+   * Vérification du numéro par code (SMS ou WhatsApp) à l'inscription. Désactivée : le compte
+   * est créé directement, sans envoi ni frais. `true` la rebranche, avec
+   * OTP_VERIFICATION_INSCRIPTION=true côté API (voir le README).
+   */
+  verificationTelephone: false as boolean,
 } as const;
