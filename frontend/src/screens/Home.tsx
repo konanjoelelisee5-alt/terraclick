@@ -295,7 +295,7 @@ export function Home() {
             <h2 style={{ fontSize: "29px", margin: 0 }}>Recherches populaires</h2>
             <span style={{ color: "var(--color-neutral-700)", fontSize: "14px" }}>à {ville} cette semaine</span>
           </div>
-          {/* Colonnes automatiques : les cinq secteurs tiennent sur une ligne en grand écran. */}
+          {/* Colonnes automatiques : les six secteurs tiennent sur une ligne en grand écran. */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 16 }}>
             {SECTEURS.map((s) => (
               <button

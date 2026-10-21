@@ -93,6 +93,7 @@ function besoinVide(): Besoin {
     quand: null,
     date: "",
     photos: [],
+    pack: [],
     mode: null,
     prestataire: null,
     paiement: "especes",

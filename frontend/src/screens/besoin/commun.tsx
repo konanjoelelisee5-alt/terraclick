@@ -16,8 +16,13 @@ export function libelleQuand(b: Besoin): string | null {
 }
 
 /** « Plomberie · Fuite d'eau · Habitat · Maintenant » */
+/** Problème d'une demande au pressing composée article par article (comme l'API). */
+export const PACK = "Pack pressing";
+
 export function resumeBesoin(b: Besoin, quartier?: string | null): string {
-  const probleme = b.probleme === "Autre" ? b.precision.trim() || "Autre" : b.probleme;
+  const pieces = b.pack.reduce((n, a) => n + a.quantite, 0);
+  const probleme =
+    b.probleme === "Autre" ? b.precision.trim() || "Autre" : b.probleme === PACK ? `Pack de ${pieces} pièce${pieces > 1 ? "s" : ""}` : b.probleme;
   return [secteurParCle(b.secteur)?.nom, probleme, quartier, libelleQuand(b)].filter(Boolean).join(" · ");
 }
 

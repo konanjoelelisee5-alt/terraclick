@@ -44,9 +44,37 @@ class DemandeTest extends TestCase
         ];
     }
 
+    public function test_un_pack_pressing_est_recalcule_par_le_serveur(): void
+    {
+        $this->getJson('/api/pressing/articles')->assertOk()->assertJsonPath('data.0.nom', 'Chemise');
+        $pressing = Prestataire::where('nom', 'Pressing Éclat')->value('id');
+        $client = User::factory()->create();
+
+        $this->actingAs($client)->postJson('/api/demandes', $this->demande([
+            'secteur' => 'pressing',
+            'probleme' => 'Pack pressing',
+            'prestataire_id' => $pressing,
+            'mode' => 'choisi',
+            // Les prix envoyés par le client sont ignorés ; un article cité deux fois est regroupé.
+            'articles' => [
+                ['cle' => 'chemise', 'quantite' => 4, 'prix_unitaire' => 1],
+                ['cle' => 'costume', 'quantite' => 1],
+                ['cle' => 'chemise', 'quantite' => 1],
+            ],
+        ]))->assertCreated()
+            ->assertJsonPath('data.pack.pieces', 6)
+            ->assertJsonPath('data.pack.total', 5 * 500 + 3000)
+            ->assertJsonPath('data.pack.total_affichage', '5 500 F')
+            ->assertJsonPath('data.pack.articles.0.prix_unitaire', 500);
+
+        $this->actingAs($client)->postJson('/api/demandes', $this->demande([
+            'secteur' => 'pressing', 'probleme' => 'Pack pressing', 'prestataire_id' => $pressing, 'mode' => 'choisi',
+        ]))->assertStatus(422)->assertJsonValidationErrors('articles');
+    }
+
     public function test_les_services_et_leurs_problemes_types(): void
     {
-        $reponse = $this->getJson('/api/secteurs')->assertOk()->assertJsonCount(5, 'data');
+        $reponse = $this->getJson('/api/secteurs')->assertOk()->assertJsonCount(6, 'data');
 
         $plomberie = collect($reponse->json('data'))->firstWhere('cle', 'plomberie');
         $this->assertSame('Plomberie', $plomberie['nom']);

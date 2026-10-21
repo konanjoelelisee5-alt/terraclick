@@ -35,13 +35,22 @@ ou réinitialiser leur mot de passe. Un compte existant se connecte avec son mot
 
 ## Périmètre du MVP
 
-La première version publique ne couvre que **cinq secteurs** :
+La première version publique ne couvre que **six secteurs** :
 
 - Plomberie
 - Électricité
 - Climatisation
 - Serrurerie
 - Menuiserie
+- Pressing (catégorie `pressing`, rubrique Entretien)
+
+**Pressing et pack** : le pressing se cherche comme les autres services (vocabulaire dans
+`config/secteurs.php`, prestations et prix par pièce dans `PrestationSeeder`). En demandant un
+pressing, le client **compose son pack** (`screens/besoin/PackPressing.tsx`) : chemises,
+pantalons, costumes, bazin, draps… avec − / + et le total estimé. Les articles et leurs prix
+indicatifs par pièce sont dans `config/pressing.php` (**à valider avec les pressings**) ;
+l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
+(`Demande::composerPack`), quel que soit ce que l'application envoie.
 
 Tout le reste est **masqué, pas supprimé**. Les données sont toujours en base et les écrans
 restent dans le code. Les secteurs reviendront un par un, au fil de l'usage. Cette section

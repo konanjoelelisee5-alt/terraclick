@@ -47,8 +47,8 @@ class AnnuaireTest extends TestCase
             ->assertJsonPath('data.0.rubriques.1.categories.10.nom', 'Plombiers');
 
         // Maison & Bâtiment : Koffi, Ali, Élec Yakro, Solar Mamadou, ClimaCool, Soleil Énergie, Bakayoko,
-        // Serrurerie N'Guessan, Menuiserie Konaté.
-        $this->assertSame(9, $reponse->json('data.0.nombre_prestataires'));
+        // Serrurerie N'Guessan, Menuiserie Konaté, Pressing Éclat, Yakro Pressing.
+        $this->assertSame(11, $reponse->json('data.0.nombre_prestataires'));
         $this->assertSame(0, $reponse->json('data.11.nombre_prestataires'));
     }
 
@@ -73,7 +73,7 @@ class AnnuaireTest extends TestCase
 
         $habitat = Quartier::where('slug', 'habitat')->value('id');
         $this->assertEqualsCanonicalizing(
-            ['Koffi Tanoh', 'ClimaCool CI'],
+            ['Koffi Tanoh', 'ClimaCool CI', 'Pressing Éclat'],
             $this->getJson("/api/prestataires?quartier={$habitat}")->json('data.*.nom'),
         );
     }

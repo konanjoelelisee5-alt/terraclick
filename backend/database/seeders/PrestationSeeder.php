@@ -61,6 +61,15 @@ class PrestationSeeder extends Seeder
             ['Pose de porte ou fenêtre', ['pose*' => 3, 'poser' => 3, 'installer' => 2, 'neuve*' => 1], 25000, 90000],
             ['Lit et étagères', ['lit' => 3, 'etagere*' => 3, 'sommier*' => 3], 40000, 200000],
         ],
+        'pressing' => [
+            ['Lavage et repassage', ['lavage' => 2, 'laver' => 2, 'repass*' => 3, 'linge*' => 2, 'lessive*' => 2, 'chemise*' => 2, 'pantalon*' => 2], 300, 1500, 'par pièce'],
+            ['Nettoyage à sec', ['nettoyage a sec' => 3, 'sec' => 2, 'delicat*' => 2, 'soie' => 2, 'laine' => 2], 1000, 3500, 'par pièce'],
+            ['Costume et tenue de cérémonie', ['costume*' => 3, 'veste*' => 3, 'tenue*' => 2, 'ceremonie*' => 2, 'mariage*' => 2, 'smoking*' => 3], 2000, 6000, 'par pièce'],
+            ['Bazin, pagne et boubou', ['bazin*' => 3, 'pagne*' => 3, 'boubou*' => 3, 'wax' => 2, 'amidon*' => 2], 1000, 4000, 'par pièce'],
+            ['Draps, couettes et rideaux', ['drap*' => 3, 'couette*' => 3, 'rideau*' => 3, 'couverture*' => 3, 'nappe*' => 2], 1500, 6000, 'par pièce'],
+            ['Détachage', ['tache*' => 3, 'detach*' => 3, 'encre' => 2, 'huile' => 1], 1000, 3000, 'par pièce'],
+            ['Collecte et livraison à domicile', ['livraison' => 3, 'livrer' => 3, 'collecte*' => 3, 'a domicile' => 2, 'recuperer' => 2, 'ramasser' => 2], 500, 2000, 'par trajet'],
+        ],
     ];
 
     /** Prix propres à certains techniciens de démonstration (sinon, le prix indicatif s'applique). */

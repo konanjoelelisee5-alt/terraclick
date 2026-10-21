@@ -106,6 +106,8 @@ export type Besoin = {
   /** AAAA-MM-JJ, avec quand = « date ». */
   date: string;
   photos: File[];
+  /** Pack pressing : articles choisis et leur nombre (prix calculés par l'API). */
+  pack: { cle: string; quantite: number }[];
   mode: "recommande" | "choisi" | null;
   prestataire: PrestataireApi | null;
   paiement: "especes" | "mobile_money";

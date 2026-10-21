@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'user_id', 'secteur', 'probleme', 'precision', 'quartier_id', 'repere', 'quand', 'date_souhaitee',
-    'mode', 'prestataire_id', 'paiement', 'estimation', 'creneau', 'photos', 'statut',
+    'mode', 'prestataire_id', 'paiement', 'estimation', 'creneau', 'photos', 'articles', 'statut',
 ])]
 class Demande extends Model
 {
@@ -34,6 +34,7 @@ class Demande extends Model
         return [
             'date_souhaitee' => 'date',
             'photos' => 'array',
+            'articles' => 'array',
             'estimation' => 'integer',
         ];
     }
@@ -45,6 +46,28 @@ class Demande extends Model
             $demande->forceFill(['reference' => sprintf('DEM-%s-%05d', $demande->created_at->format('Y'), $demande->id)])->saveQuietly();
             $demande->evenements()->create(['user_id' => $demande->user_id, 'auteur' => 'client', 'statut' => 'envoyee']);
         });
+    }
+
+    /**
+     * Lignes du pack pressing à partir des articles choisis : nom et prix par pièce viennent de
+     * config/pressing.php (jamais du client) ; un même article cité deux fois est regroupé.
+     *
+     * @param  list<array{cle: string, quantite: int}>  $articles
+     * @return list<array{cle: string, nom: string, quantite: int, prix_unitaire: int, total: int}>
+     */
+    public static function composerPack(array $articles): array
+    {
+        $catalogue = config('pressing.articles');
+
+        return collect($articles)
+            ->groupBy('cle')
+            ->map(function ($lignes, string $cle) use ($catalogue) {
+                $quantite = (int) $lignes->sum('quantite');
+
+                return ['cle' => $cle, 'nom' => $catalogue[$cle]['nom'], 'quantite' => $quantite, 'prix_unitaire' => $catalogue[$cle]['prix'], 'total' => $quantite * $catalogue[$cle]['prix']];
+            })
+            ->values()
+            ->all();
     }
 
     public function client(): BelongsTo

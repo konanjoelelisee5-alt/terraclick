@@ -7,6 +7,7 @@ import { useApp } from "../../state/app";
 import { Icon } from "../../components/Icon";
 import { VisuelSecteur } from "../../components/VisuelSecteur";
 import { CARTE } from "../../components/ui";
+import { PackPressing } from "./PackPressing";
 import { AIDE, CadreParcours, Choix, QUANDS, TITRE_ETAPE, estUrgent, resumeBesoin } from "./commun";
 
 const AUTRE = "Autre";
@@ -46,7 +47,9 @@ export function Besoin() {
     etape === 0
       ? !b.secteur && "Choisissez un service."
       : etape === 1
-        ? (!b.probleme && "Choisissez votre problème.") || (b.probleme === AUTRE && b.precision.trim().length < 3 && "Décrivez votre problème en quelques mots.")
+        ? b.secteur === "pressing"
+          ? !b.pack.length && "Ajoutez au moins un article à votre pack."
+          : (!b.probleme && "Choisissez votre problème.") || (b.probleme === AUTRE && b.precision.trim().length < 3 && "Décrivez votre problème en quelques mots.")
         : etape === 2
           ? !b.quartier && "Indiquez votre quartier."
           : etape === 3
@@ -192,7 +195,10 @@ export function Besoin() {
       progression={etape / 4}
       actions={suivant}
     >
-      {etape === 1 && (
+      {/* Pressing : le client compose son pack plutôt que de choisir un problème. */}
+      {etape === 1 && b.secteur === "pressing" && <PackPressing />}
+
+      {etape === 1 && b.secteur !== "pressing" && (
         <>
           <h1 style={TITRE_ETAPE}>Quel est le problème ?</h1>
           <p style={AIDE}>Choisissez ce qui ressemble le plus à votre situation.</p>

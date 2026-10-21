@@ -194,15 +194,15 @@ if (MODULE_CONSTRUCTION) {
   await ctx.close();
 }
 
-// G bis · MVP : seuls les cinq secteurs sont ouverts, le module Construction est masqué
+// G bis · MVP : seuls les six secteurs sont ouverts, le module Construction est masqué
 if (!MODULE_CONSTRUCTION) {
   const { ctx, p } = await neuve();
   ok('MVP : pas d’entrée « Construction » ni « Mes projets »',
      (await p.getByRole('button', { name: 'Construction', exact: true }).count()) === 0 &&
        (await p.getByRole('button', { name: 'Mes projets', exact: true }).count()) === 0);
-  ok('MVP : les cinq secteurs sur l’accueil',
-     (await Promise.all(['Plomberie', 'Électricité', 'Climatisation', 'Serrurerie', 'Menuiserie']
-       .map((s) => p.getByRole('button', { name: s, exact: true }).isVisible()))).every(Boolean));
+  ok('MVP : les six secteurs sur l’accueil, dont le pressing',
+     (await Promise.all(['Plomberie', 'Électricité', 'Climatisation', 'Serrurerie', 'Menuiserie', 'Pressing']
+       .map((s) => p.getByRole('button', { name: s, exact: true }).first().isVisible()))).every(Boolean));
   await p.locator('[data-r="search-depts"]').click();
   await apparait(p.getByRole('button', { name: 'Serruriers', exact: true }));
   ok('MVP : le méga-menu ne montre que les métiers ouverts',
@@ -497,6 +497,55 @@ const numeroInscrit = numeroNeuf();
   await ctx.close();
 }
 
+// G septies · Pressing : un service comme les autres, cherché depuis l'accueil
+{
+  const { ctx, p } = await neuve(390, 844);
+  await p.getByPlaceholder('Rechercher sur TerraClick').fill('repassage de mes chemises');
+  await p.locator('[data-r="search-go"]').click();
+  ok('pressing : « repassage » mène aux pressings, au prix par pièce',
+     (await apparait(p.getByRole('heading', { name: 'Lavage et repassage' }))) &&
+       (await p.locator('[data-r="prix-indicatif"]').getByText('300 – 1 500 F par pièce').isVisible()) &&
+       (await p.locator('[data-r="resultat"]').filter({ hasText: 'Pressing Éclat' }).count()) === 1);
+  ok('pressing : ses prestations en onglets', await p.locator('[data-r="onglets-resultats"]').getByRole('button', { name: 'Nettoyage à sec' }).isVisible());
+  await ctx.close();
+}
+
+// G octies · Pack pressing : le client choisit un pressing, compose son pack, l'envoie ; l'API recalcule le total
+{
+  const { ctx, p } = await neuve(390, 844);
+  await p.locator('[data-r="fil-avatar"]').click();
+  await connecterPage(p);
+  await apparait(p.locator('[data-r="profil-mobile"]'));
+  await p.goto('http://localhost:4173/'); await apparait(p.locator('[data-r="accueil-fil"]'));
+  await p.getByPlaceholder('Rechercher sur TerraClick').fill('pressing');
+  await p.locator('[data-r="search-go"]').click();
+  await p.locator('[data-r="resultat"]').filter({ hasText: 'Pressing Éclat' }).locator('[data-r="titre-resultat"]').click();
+  await p.getByRole('button', { name: 'Demander ce technicien' }).click();
+  ok('pack : le pressing ouvre « Composez votre pack »', await apparait(p.getByRole('heading', { name: 'Composez votre pack' })));
+  const continuer = p.getByRole('button', { name: 'Continuer', exact: true });
+  ok('pack : « Continuer » bloqué tant que le pack est vide', await continuer.isDisabled());
+  for (let i = 0; i < 3; i++) await p.getByRole('button', { name: 'Ajouter : Chemise' }).click();
+  await p.getByRole('button', { name: 'Ajouter : Costume (veste et pantalon)' }).click();
+  ok('pack : nombre de pièces et total estimé en direct', (await p.locator('[data-r="total-pack"]').textContent()).replace(/\s/g, ' ').includes('4 pièces') &&
+     (await p.locator('[data-r="total-pack"]').textContent()).replace(/[\s ]/g, '').includes('4500F'));
+  await continuer.click();
+  await p.getByLabel('Quartier à Yamoussoukro').selectOption({ label: 'Habitat' });
+  await continuer.click();
+  await p.getByRole('radio', { name: /Demain/ }).click();
+  await continuer.click();
+  await p.getByRole('button', { name: 'Passer cette étape' }).click();
+  await p.getByRole('button', { name: /Continuer avec Pressing Éclat/ }).click();
+  ok('pack : récapitulé à la confirmation', await apparait(p.locator('[data-r="confirmation-pack"]').getByText('3 × Chemise')));
+  await p.getByRole('button', { name: 'Confirmer ma demande' }).click();
+  ok('pack : demande envoyée', await apparait(p.getByRole('heading', { name: 'Demande envoyée' })));
+  const pack = await p.evaluate(async () => {
+    const r = await fetch('/api/demandes?par_page=1', { headers: { Accept: 'application/json', Authorization: 'Bearer ' + localStorage.getItem('sy.jeton') } });
+    return (await r.json()).data[0].pack;
+  });
+  ok('pack : enregistré avec le total recalculé par l’API', pack?.pieces === 4 && pack?.total === 4500);
+  await ctx.close();
+}
+
 // K bis · Accueil mobile « fil » (CONFIG.accueilMobile) : nom au centre, recherche, raccourcis, fil d'actualité
 {
   const { ctx, p } = await neuve(390, 844);
@@ -513,7 +562,7 @@ const numeroInscrit = numeroNeuf();
   ok('accueil fil : ni « Urgence » ni « Programmer »',
      await p.evaluate(() => ![...document.querySelectorAll('[data-r="accueil-fil"] button')].some((b) => /^(Urgence|Programmer)$/.test(b.textContent.trim()))));
   const raccourcis = () => p.locator('[data-r="raccourcis"] button').allTextContents();
-  ok('raccourcis : les cinq secteurs', (await raccourcis()).length === 5);
+  ok('raccourcis : les six secteurs, dont le pressing', (await raccourcis()).length === 6 && (await raccourcis()).includes('Pressing'));
   ok('fil d’actualité : de vraies activités de la plateforme', await apparait(p.locator('[data-r="actualite"]').first()));
   const onglets = await p.locator('[data-r="tabbar"] button').allTextContents();
   ok('barre du bas : Accueil, Favoris, Messages, Profil', onglets.join('|') === 'Accueil|Favoris|Messages|Profil');

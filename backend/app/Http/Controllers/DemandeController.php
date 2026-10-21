@@ -23,6 +23,8 @@ class DemandeController extends Controller
     public function store(CreerDemandeRequest $request): JsonResponse
     {
         $donnees = $request->safe()->except('photos');
+        // Pack pressing : prix et total recalculés depuis le catalogue des articles.
+        $donnees['articles'] = empty($donnees['articles']) ? null : Demande::composerPack($donnees['articles']);
 
         if ($id = $donnees['prestataire_id'] ?? null) {
             $this->verifierTechnicien(Prestataire::findOrFail($id), $donnees['secteur']);

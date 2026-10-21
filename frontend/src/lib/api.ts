@@ -155,6 +155,8 @@ export type DemandeApi = {
   prestataire: PrestataireApi | null;
   paiement: "especes" | "mobile_money";
   photos: string[];
+  /** Pack pressing : articles, pièces et total estimé (prix indicatifs du catalogue). */
+  pack: { articles: { cle: string; nom: string; quantite: number; prix_unitaire: number; total: number }[]; pieces: number; total: number; total_affichage: string } | null;
   statut: StatutDemande;
   /** « Envoyée », « Marquée terminée »… */
   statut_libelle: string;
@@ -165,6 +167,9 @@ export type DemandeApi = {
   evenements?: { statut: StatutDemande; libelle: string; auteur: "client" | "technicien" | "systeme"; message: string | null; date: string }[];
   cree_le: string;
 };
+
+/** Article du pack pressing et son prix indicatif par pièce. */
+export type ArticlePressing = { cle: string; nom: string; prix: number; prix_affichage: string };
 
 export type StatutDemande = "envoyee" | "acceptee" | "refusee" | "en_cours" | "terminee" | "confirmee" | "annulee";
 
@@ -351,6 +356,8 @@ export const api = {
   },
   creerDemande: (formulaire: FormData) =>
     requete<{ data: DemandeApi; message: string }>("/demandes", { methode: "POST", corps: formulaire }),
+  articlesPressing: () =>
+    requete<{ data: ArticlePressing[] }>("/pressing/articles").then((r) => r.data),
   mesDemandes: (signal?: AbortSignal) => requete<Page<DemandeApi>>("/demandes?par_page=100", { signal }).then((r) => r.data),
   demande: (id: number, signal?: AbortSignal) => requete<{ data: DemandeApi }>(`/demandes/${id}`, { signal }).then((r) => r.data),
   annulerDemande: (id: number, motif: string | null) =>

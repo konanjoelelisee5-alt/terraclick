@@ -31,13 +31,13 @@ class MvpTest extends TestCase
 
         $categories = collect($reponse->json('data.0.rubriques'))->flatMap(fn ($r) => array_column($r['categories'], 'nom'));
         $this->assertEqualsCanonicalizing(
-            ['Menuisiers', 'Serruriers', 'Plombiers', 'Électriciens', 'Climatisation : vente et réparation', 'Entretien plomberie', 'Entretien électricité'],
+            ['Menuisiers', 'Serruriers', 'Plombiers', 'Électriciens', 'Climatisation : vente et réparation', 'Entretien plomberie', 'Entretien électricité', 'Pressing'],
             $categories->all(),
         );
         $this->assertNotContains('Immobilier', array_column($reponse->json('data.0.rubriques'), 'nom'));
 
-        // Koffi, Ali, Élec Yakro, ClimaCool, Serrurerie N'Guessan, Menuiserie Konaté.
-        $this->assertSame(6, $reponse->json('data.0.nombre_prestataires'));
+        // Koffi, Ali, Élec Yakro, ClimaCool, Serrurerie N'Guessan, Menuiserie Konaté, les deux pressings.
+        $this->assertSame(8, $reponse->json('data.0.nombre_prestataires'));
     }
 
     public function test_la_recherche_tait_les_metiers_masques(): void
@@ -45,7 +45,7 @@ class MvpTest extends TestCase
         $noms = $this->getJson('/api/prestataires?par_page=50')->assertOk()->json('data.*.nom');
 
         $this->assertEqualsCanonicalizing(
-            ['Koffi Tanoh', 'Ali Diomandé', 'Élec Yakro', 'ClimaCool CI', 'Serrurerie N\'Guessan', 'Menuiserie Konaté'],
+            ['Koffi Tanoh', 'Ali Diomandé', 'Élec Yakro', 'ClimaCool CI', 'Serrurerie N\'Guessan', 'Menuiserie Konaté', 'Pressing Éclat', 'Yakro Pressing'],
             $noms,
         );
         $this->assertSame([], $this->getJson('/api/prestataires?q=garage')->json('data'));

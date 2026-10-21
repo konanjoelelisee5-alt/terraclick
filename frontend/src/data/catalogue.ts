@@ -24,7 +24,7 @@ export type Prestataire = {
 export const VILLES = ["Yamoussoukro", "Abidjan", "Bouaké", "Daloa"];
 
 /**
- * Les cinq secteurs ouverts dans la première version (MVP). Les autres métiers sont
+ * Les six secteurs ouverts dans la première version (MVP). Les autres métiers sont
  * masqués, pas supprimés : le README en tient la liste, et l'API applique la même
  * règle (backend/config/mvp.php). `categorie` est le slug de l'annuaire.
  *
@@ -56,6 +56,7 @@ export const SECTEURS: readonly Secteur[] = [
   },
   { cle: "serrurerie", nom: "Serrurerie", metier: "Serrurier", icone: "key-round", categorie: "serruriers", image: `${PHOTOS}serrurerie.webp` },
   { cle: "menuiserie", nom: "Menuiserie", metier: "Menuisier", icone: "hammer", categorie: "menuisiers", image: `${PHOTOS}menuiserie.webp` },
+  { cle: "pressing", nom: "Pressing", metier: "Pressing", icone: "shirt", categorie: "pressing" },
 ];
 
 export const PROS: Prestataire[] = [

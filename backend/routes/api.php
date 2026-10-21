@@ -62,6 +62,7 @@ Route::post('recherches', [RechercheController::class, 'store'])->middleware('th
 Route::get('secteurs', [BesoinController::class, 'secteurs']);
 Route::get('analyse', [BesoinController::class, 'analyse']);
 Route::get('recommandations', [BesoinController::class, 'recommandations']);
+Route::get('pressing/articles', [BesoinController::class, 'articlesPressing']);
 
 // Annuaire, en accès libre
 Route::get('villes', [AnnuaireController::class, 'villes']);

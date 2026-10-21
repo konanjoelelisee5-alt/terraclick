@@ -78,6 +78,21 @@ class PrestataireSeeder extends Seeder
             'delai_reponse_minutes' => 60, 'latitude' => 6.8120, 'longitude' => -5.2880, 'en_vedette' => true,
             'categories' => ['menuisiers'],
         ],
+        // Pressings de démonstration : pas encore d'avis sur la plateforme.
+        [
+            'nom' => 'Pressing Éclat', 'metier' => 'Pressing', 'quartier' => 'habitat',
+            'description' => 'Lavage, repassage et nettoyage à sec. Costumes, bazin et draps. Collecte et livraison à domicile.',
+            'note_moyenne' => 0, 'nombre_avis' => 0, 'prix_min' => 300, 'prix_max' => 6000,
+            'delai_reponse_minutes' => 30, 'latitude' => 6.8330, 'longitude' => -5.2840,
+            'categories' => ['pressing'],
+        ],
+        [
+            'nom' => 'Yakro Pressing', 'metier' => 'Pressing', 'quartier' => 'centre-ville',
+            'description' => 'Nettoyage à sec, détachage et tenues de cérémonie. Retrait en 48 h.',
+            'note_moyenne' => 0, 'nombre_avis' => 0, 'prix_min' => 500, 'prix_max' => 6000,
+            'delai_reponse_minutes' => 45, 'latitude' => 6.8210, 'longitude' => -5.2760,
+            'categories' => ['pressing'],
+        ],
         [
             'nom' => 'Soleil Énergie', 'metier' => 'Panneaux solaires', 'quartier' => 'assabou',
             'description' => 'Études et installations solaires pour particuliers et commerces. Devis gratuit.',

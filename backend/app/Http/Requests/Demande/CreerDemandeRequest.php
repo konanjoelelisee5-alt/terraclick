@@ -12,10 +12,16 @@ class CreerDemandeRequest extends FormRequest
 {
     public const AUTRE = 'Autre';
 
+    /** Problème d'une demande au pressing composée article par article. */
+    public const PACK = 'Pack pressing';
+
     public function rules(): array
     {
         $secteurs = app(AnalyseurBesoin::class)->secteursOuverts();
         $problemes = [...($secteurs[$this->input('secteur')]['problemes'] ?? []), self::AUTRE];
+        if ($this->input('secteur') === 'pressing') {
+            $problemes[] = self::PACK;
+        }
 
         return [
             'secteur' => ['required', 'string', Rule::in(array_keys($secteurs))],
@@ -31,6 +37,10 @@ class CreerDemandeRequest extends FormRequest
             'paiement' => ['required', Rule::in(Demande::PAIEMENTS)],
             'photos' => ['nullable', 'array', 'max:3'],
             'photos.*' => ['image', 'max:5120'],
+            // Pack pressing : les articles et leur nombre ; les prix viennent de config/pressing.php.
+            'articles' => [Rule::requiredIf($this->input('probleme') === self::PACK), 'nullable', 'array', 'max:30'],
+            'articles.*.cle' => ['required', Rule::in(array_keys(config('pressing.articles')))],
+            'articles.*.quantite' => ['required', 'integer', 'min:1', 'max:200'],
         ];
     }
 
@@ -48,6 +58,9 @@ class CreerDemandeRequest extends FormRequest
             'photos.max' => 'Trois photos au plus.',
             'photos.*.image' => 'Seules les photos sont acceptées.',
             'photos.*.max' => 'Chaque photo doit peser moins de 5 Mo.',
+            'articles.required' => 'Ajoutez au moins un article à votre pack.',
+            'articles.*.cle.in' => 'Cet article n\'est pas proposé.',
+            'articles.*.quantite.min' => 'Indiquez au moins une pièce.',
         ];
     }
 }

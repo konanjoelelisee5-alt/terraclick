@@ -75,7 +75,7 @@ export const DEMANDE_DETAIL = {
   photos: ["Photo 1", "Photo 2"],
 };
 
-/** Services proposables par un prestataire : les cinq secteurs du MVP (voir catalogue.ts). */
+/** Services proposables par un prestataire : les six secteurs du MVP (voir catalogue.ts). */
 export const SERVICES = ["Plomberie", "Électricité", "Climatisation", "Serrurerie", "Menuiserie"];
 export const SERVICES_ACTIFS = ["Plomberie"];
 

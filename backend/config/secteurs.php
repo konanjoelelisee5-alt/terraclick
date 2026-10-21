@@ -89,4 +89,17 @@ return [
         ],
     ],
 
+    'pressing' => [
+        'nom' => 'Pressing',
+        'categories' => ['pressing'],
+        'problemes' => ['Lavage et repassage', 'Nettoyage à sec', 'Costume ou tenue de cérémonie', 'Draps, couettes et rideaux', 'Tache difficile'],
+        'mots' => [
+            'pressing*' => 3, 'blanchisseri*' => 3, 'teinturerie*' => 3,
+            'repass*' => 2, 'nettoyage a sec' => 2, 'linge*' => 2, 'lessive*' => 2, 'costume*' => 2,
+            'chemise*' => 2, 'robe*' => 2, 'bazin*' => 2, 'pagne*' => 2, 'boubou*' => 2, 'tenue*' => 2,
+            'drap*' => 2, 'couette*' => 2, 'rideau*' => 2, 'tache*' => 2, 'vetement*' => 2, 'habit*' => 2,
+            'laver' => 1, 'lavage' => 1, 'tapis' => 1,
+        ],
+    ],
+
 ];

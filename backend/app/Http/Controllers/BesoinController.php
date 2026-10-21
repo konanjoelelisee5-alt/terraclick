@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\PrestataireResource;
 use App\Models\Prestataire;
 use App\Services\AnalyseurBesoin;
+use App\Support\Montant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -81,5 +82,13 @@ class BesoinController extends Controller
             ->get();
 
         return PrestataireResource::collection($prestataires);
+    }
+
+    /** GET /api/pressing/articles — articles du pack pressing et leur prix indicatif par pièce. */
+    public function articlesPressing(): JsonResponse
+    {
+        return response()->json(['data' => collect(config('pressing.articles'))
+            ->map(fn (array $a, string $cle) => ['cle' => $cle, 'nom' => $a['nom'], 'prix' => $a['prix'], 'prix_affichage' => Montant::format($a['prix'])])
+            ->values()]);
     }
 }

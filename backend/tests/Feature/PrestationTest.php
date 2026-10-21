@@ -66,6 +66,22 @@ class PrestationTest extends TestCase
             ->assertJsonPath('data.0.prestation.prix.affichage', '8 000 – 25 000 F');
     }
 
+    public function test_le_pressing_se_cherche_comme_les_autres_services(): void
+    {
+        $reponse = $this->chercher(['q' => 'pressing'])
+            ->assertJsonPath('analyse.secteurs', ['Pressing'])
+            ->assertJsonPath('analyse.secteur.categorie', 'pressing');
+        $this->assertEqualsCanonicalizing(['Pressing Éclat', 'Yakro Pressing'], $reponse->json('data.*.nom'));
+        $this->assertContains('Nettoyage à sec', $reponse->json('analyse.prestations.*.nom'));
+
+        $this->chercher(['q' => 'repassage de mes chemises'])
+            ->assertJsonPath('analyse.secteurs', ['Pressing'])
+            ->assertJsonPath('analyse.prestation.nom', 'Lavage et repassage')
+            ->assertJsonPath('analyse.prestation.prix.affichage', '300 – 1 500 F par pièce');
+
+        $this->chercher(['q' => 'faire laver mon bazin'])->assertJsonPath('analyse.prestation.nom', 'Bazin, pagne et boubou');
+    }
+
     public function test_robinet_casse_n_est_pas_confondu_avec_un_tuyau(): void
     {
         $this->chercher(['q' => 'robinet cassé'])->assertJsonPath('analyse.prestation.nom', 'Remplacement de robinet');

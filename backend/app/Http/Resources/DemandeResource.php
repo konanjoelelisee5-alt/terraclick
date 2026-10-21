@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Demande;
+use App\Support\Montant;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -56,6 +57,13 @@ class DemandeResource extends JsonResource
             'prestataire' => PrestataireResource::make($this->whenLoaded('prestataire')),
             'paiement' => $this->paiement,
             'photos' => collect($this->photos ?? [])->map(fn (string $chemin) => Storage::disk('public')->url($chemin))->all(),
+            // Pack pressing : articles, nombre de pièces et total estimé (prix indicatifs).
+            'pack' => $this->articles ? [
+                'articles' => $this->articles,
+                'pieces' => array_sum(array_column($this->articles, 'quantite')),
+                'total' => array_sum(array_column($this->articles, 'total')),
+                'total_affichage' => Montant::format(array_sum(array_column($this->articles, 'total'))),
+            ] : null,
             'statut' => $this->statut,
             'statut_libelle' => self::libelleStatut($this->statut),
             // Réponse du technicien quand il accepte.

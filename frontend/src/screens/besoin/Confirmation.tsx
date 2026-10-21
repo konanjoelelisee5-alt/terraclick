@@ -21,6 +21,8 @@ export function Confirmation() {
   const { etat, go, exigerCompte, modifierBesoin, ville } = useApp();
   const b = etat.besoin;
   const secteur = secteurParCle(b.secteur);
+  // Pack pressing : les noms des articles, pour le récapitulatif.
+  const { donnees: articles } = useApi(() => (b.pack.length ? api.articlesPressing() : Promise.resolve([])), [b.pack.length > 0]);
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
 
@@ -55,6 +57,11 @@ export function Confirmation() {
     f.append("prestataire_id", String(technicien.id));
     f.append("paiement", b.paiement);
     b.photos.forEach((photo) => f.append("photos[]", photo));
+    // Pack pressing : seuls les articles et leur nombre partent ; l'API calcule les prix.
+    b.pack.forEach((a, i) => {
+      f.append(`articles[${i}][cle]`, a.cle);
+      f.append(`articles[${i}][quantite]`, String(a.quantite));
+    });
 
     try {
       const { data } = await api.creerDemande(f);
@@ -95,6 +102,15 @@ export function Confirmation() {
               {resumeBesoin(b, quartier)}
             </span>
             {b.repere && <span style={{ display: "block", fontSize: "13.5px", color: "var(--color-neutral-700)" }}>Repère : {b.repere}</span>}
+            {b.pack.length > 0 && (
+              <ul data-r="confirmation-pack" style={{ margin: "6px 0 0", paddingLeft: 18, fontSize: "13.5px", color: "var(--color-neutral-700)" }}>
+                {b.pack.map((a) => (
+                  <li key={a.cle}>
+                    {a.quantite} × {articles?.find((x) => x.cle === a.cle)?.nom ?? a.cle}
+                  </li>
+                ))}
+              </ul>
+            )}
             {b.photos.length > 0 && (
               <span style={{ display: "block", fontSize: "13.5px", color: "var(--color-neutral-700)" }}>
                 {b.photos.length} photo{b.photos.length > 1 ? "s" : ""} jointe{b.photos.length > 1 ? "s" : ""}

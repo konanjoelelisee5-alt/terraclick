@@ -168,6 +168,22 @@ export function ClientSuivi() {
             <div className="sy-card__body" style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: "14px" }}>
               <h2 style={{ ...TITRE_CARTE, marginBottom: 4 }}>Votre demande</h2>
               <span>{d.resume}</span>
+              {d.pack && (
+                <div data-r="suivi-pack" style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
+                  {d.pack.articles.map((a) => (
+                    <span key={a.cle} style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                      <span>
+                        {a.quantite} × {a.nom}
+                      </span>
+                      <span style={{ ...MONO, whiteSpace: "nowrap" }}>{francs(a.total)}</span>
+                    </span>
+                  ))}
+                  <strong style={{ display: "flex", justifyContent: "space-between", gap: 10, borderTop: "1px solid var(--border-subtle)", paddingTop: 6 }}>
+                    <span>{d.pack.pieces} pièces · total estimé</span>
+                    <span>{d.pack.total_affichage}</span>
+                  </strong>
+                </div>
+              )}
               {d.repere && <span style={{ color: "var(--text-muted)" }}>Repère : {d.repere}</span>}
               {d.precision && <span style={{ color: "var(--text-muted)" }}>« {d.precision} »</span>}
             </div>
