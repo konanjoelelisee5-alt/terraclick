@@ -1,12 +1,17 @@
 import { useEffect, useRef } from "react";
 import { useApp } from "../state/app";
 import { Icon } from "../components/Icon";
+import { useEstMobile } from "../lib/useEstMobile";
 
 const SUGGESTIONS = ["C'est combien ?", "Vous êtes dispo quand ?", "Vous venez à Habitat ?"];
 
-/** Messagerie interne : la mise en relation se fait ici avant tout appel. */
+/**
+ * Messagerie interne : la mise en relation se fait ici avant tout appel. Sur téléphone, la
+ * barre de la conversation (photo, nom du technicien, Appeler) remplace l'en-tête du site.
+ */
 export function Chat() {
-  const { etat, set, go, envoyerMessage } = useApp();
+  const { etat, set, envoyerMessage } = useApp();
+  const estMobile = useEstMobile();
   const filRef = useRef<HTMLDivElement>(null);
 
   // Le fil suit toujours le dernier message.
@@ -21,24 +26,23 @@ export function Chat() {
       style={{
         maxWidth: 780,
         margin: "0 auto",
-        padding: "20px 24px 32px",
+        padding: estMobile ? "0 16px 12px" : "20px 24px 32px",
         display: "flex",
         flexDirection: "column",
-        height: "calc(100dvh - 68px)",
+        // Téléphone : pas d'en-tête du site, mais la barre d'onglets en bas.
+        height: estMobile ? "calc(100dvh - 100px - env(safe-area-inset-bottom))" : "calc(100dvh - 68px)",
       }}
     >
-      <div
+      <header
+        data-r="entete-chat"
         style={{
           display: "flex",
           alignItems: "center",
           gap: 12,
-          paddingBottom: 14,
+          padding: estMobile ? "calc(10px + env(safe-area-inset-top)) 0 12px" : "0 0 14px",
           borderBottom: "1px solid var(--color-divider)",
         }}
       >
-        <button onClick={() => go("home")} className="sy-btn sy-btn--ghost sy-btn--md" aria-label="Retour">
-          ←
-        </button>
         <span
           style={{
             width: 44,
@@ -53,17 +57,17 @@ export function Chat() {
         >
           {etat.active.ini}
         </span>
-        <div>
-          <div style={{ fontFamily: "var(--font-heading)", fontSize: "18px" }}>{etat.active.nom}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: "var(--font-heading)", fontSize: "18px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{etat.active.nom}</div>
           <div style={{ fontSize: "12.5px", color: "var(--color-accent-2-700)" }}>
             en ligne · {etat.active.metier}
           </div>
         </div>
-        <button className="sy-btn sy-btn--outline sy-btn--md" style={{ marginLeft: "auto", gap: 7 }}>
+        <button className="sy-btn sy-btn--outline sy-btn--md" style={{ flex: "none", gap: 7 }}>
           <Icon name="phone" size={16} strokeWidth={2.75} />
           Appeler
         </button>
-      </div>
+      </header>
 
       <div
         ref={filRef}

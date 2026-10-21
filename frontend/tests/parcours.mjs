@@ -515,6 +515,22 @@ const numeroInscrit = numeroNeuf();
   await ctx.close();
 }
 
+// G nonies · Messages sur téléphone : l'en-tête est celui de la conversation, sans flèche retour
+{
+  const { ctx, p } = await neuve(390, 844);
+  await p.locator('[data-r="fil-avatar"]').click();
+  await connecterPage(p);
+  await apparait(p.locator('[data-r="profil-mobile"]'));
+  await p.getByRole('button', { name: /Messages/ }).first().click();
+  const entete = p.locator('[data-r="entete-chat"]');
+  ok('messages : photo, nom du technicien et « Appeler » en haut',
+     (await apparait(entete)) && (await entete.getByRole('button', { name: 'Appeler' }).isVisible()) && (await entete.boundingBox()).y < 20);
+  ok('messages : ni logo, ni cloche, ni flèche retour',
+     (await p.locator('[data-r="page"] > header').count()) === 0 && (await p.getByRole('button', { name: /^Notifications/ }).count()) === 0 &&
+     (await p.getByRole('button', { name: 'Retour', exact: true }).count()) === 0);
+  await ctx.close();
+}
+
 // G octies · Pack pressing : le client choisit un pressing, compose son pack, l'envoie ; l'API recalcule le total
 {
   const { ctx, p } = await neuve(390, 844);

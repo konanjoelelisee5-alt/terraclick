@@ -137,10 +137,10 @@ function Coque() {
   const masque = !CONFIG.moduleConstruction && ECRANS_CONSTRUCTION.includes(etat.screen);
   const Ecran = masque ? Home : ECRANS[etat.screen];
   // Sur téléphone, les onglets secondaires (Profil, Favoris) portent leur propre en-tête à
-  // grand titre : ni logo ni choix de ville.
+  // grand titre : ni logo ni choix de ville. Messages : l'en-tête est celui de la conversation.
   const estMobile = useEstMobile();
   const sansEntete =
-    estMobile && ["home", "clientDashboard", "favoris", "connexion", "inscription", "pack", ...(CONFIG.ficheMobile === "profil" ? ["fiche"] : [])].includes(etat.screen);
+    estMobile && ["home", "clientDashboard", "favoris", "connexion", "inscription", "pack", "chat", ...(CONFIG.ficheMobile === "profil" ? ["fiche"] : [])].includes(etat.screen);
 
   // Un clic hors du méga-menu le referme. L'écoute porte sur `mousedown` et non
   // sur `click` : le clic qui ouvre le panneau depuis l'en-tête continue de
@@ -159,7 +159,7 @@ function Coque() {
 
   // L'espace prestataire est une application à part : ni en-tête d'annuaire,
   // ni pied de page, ni barre d'onglets du site public.
-  if (/^pro[A-Z]/.test(etat.screen)) {
+  if (/^pro[A-Z]/.test(etat.screen) || etat.screen === "demandesRecues") {
     return (
       <div style={{ fontFamily: "var(--font-body)", color: "var(--color-text)" }}>
         <Ecran />
