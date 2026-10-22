@@ -5,6 +5,7 @@ use App\Http\Controllers\ActualiteController;
 use App\Http\Controllers\AdminCandidatureController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminRoleController;
+use App\Http\Controllers\AdminSecteurController;
 use App\Http\Controllers\AdresseController;
 use App\Http\Controllers\AnnuaireController;
 use App\Http\Controllers\AuthController;
@@ -81,6 +82,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('utilisateurs/{user}', [AdminController::class, 'modifierUtilisateur'])->whereNumber('user');
         Route::get('prestations', [AdminController::class, 'prestations']);
         Route::patch('prestations/{prestation}', [AdminController::class, 'modifierPrestation'])->whereNumber('prestation')->middleware('permission:catalogue.prix');
+        Route::get('secteurs', [AdminSecteurController::class, 'index'])->middleware('permission:secteurs.voir');
+        Route::middleware('permission:secteurs.gerer')->group(function () {
+            Route::post('secteurs', [AdminSecteurController::class, 'store']);
+            Route::put('secteurs/ordre', [AdminSecteurController::class, 'ordonner']);
+            Route::patch('secteurs/{secteur}', [AdminSecteurController::class, 'update'])->whereNumber('secteur');
+            Route::post('secteurs/{secteur}/prestations', [AdminSecteurController::class, 'ajouterPrestation'])->whereNumber('secteur');
+            Route::patch('sous-services/{prestation}', [AdminSecteurController::class, 'modifierPrestation'])->whereNumber('prestation');
+        });
         Route::get('roles', [AdminRoleController::class, 'index'])->middleware('permission:roles.gerer');
         Route::put('roles/{role}', [AdminRoleController::class, 'update'])->whereNumber('role');
 

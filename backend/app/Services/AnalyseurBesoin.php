@@ -3,13 +3,14 @@
 namespace App\Services;
 
 use App\Models\Prestation;
+use App\Models\Secteur;
 use Illuminate\Support\Str;
 
 /**
  * Lit ce que le client tape dans la barre de recherche — un métier, un service ou une
  * phrase (« l'eau coule sous mon évier ») — et en déduit le ou les secteurs concernés,
- * d'après le vocabulaire de config/secteurs.php. Seuls les secteurs dont une catégorie
- * est ouverte au public sont proposés.
+ * d'après le vocabulaire des secteurs (table `secteurs`, gérée par l'administrateur). Seuls
+ * les secteurs actifs sont proposés.
  */
 class AnalyseurBesoin
 {
@@ -51,21 +52,13 @@ class AnalyseurBesoin
     }
 
     /**
-     * Les secteurs dont au moins une catégorie est ouverte au public, avec ces seules catégories.
+     * Les secteurs actifs, dans l'ordre d'affichage choisi par l'administrateur.
      *
      * @return array<string, array{nom: string, categories: list<string>, problemes: list<string>, mots: array<string, int>}>
      */
     public function secteursOuverts(): array
     {
-        $ouverts = [];
-        foreach (config('secteurs') as $cle => $secteur) {
-            $categories = $this->categoriesOuvertes($secteur['categories']);
-            if ($categories !== []) {
-                $ouverts[$cle] = [...$secteur, 'categories' => $categories, 'problemes' => $secteur['problemes'] ?? []];
-            }
-        }
-
-        return $ouverts;
+        return array_filter(Secteur::actifsEnCatalogue(), fn (array $s) => $s['categories'] !== []);
     }
 
     /** Le problème type du secteur que la demande cite mot pour mot (« fuite d'eau »), sinon null. */
@@ -101,7 +94,7 @@ class AnalyseurBesoin
 
         $meilleure = null;
         $meilleurScore = 2;
-        foreach (Prestation::whereIn('secteur', $candidats)->orderBy('secteur')->orderBy('ordre')->get() as $prestation) {
+        foreach (Prestation::where('actif', true)->whereIn('secteur', $candidats)->orderBy('secteur')->orderBy('ordre')->get() as $prestation) {
             $score = 0;
             foreach ($prestation->mots as $motCle => $poids) {
                 if ($this->reconnait($motCle, $texte, $mots)) {
@@ -117,7 +110,7 @@ class AnalyseurBesoin
     }
 
     /** Minuscules, sans accents ; apostrophes, tirets et ponctuation deviennent des espaces. */
-    private function normaliser(string $texte): string
+    public function normaliser(string $texte): string
     {
         $texte = Str::lower(Str::ascii($texte));
         $texte = preg_replace('/[^a-z0-9]+/', ' ', $texte);
@@ -140,18 +133,5 @@ class AnalyseurBesoin
 
         // Mot exact, pluriel en -s ou -x admis.
         return collect($mots)->contains(fn (string $mot) => in_array($mot, [$motCle, $motCle.'s', $motCle.'x'], true));
-    }
-
-    /**
-     * @param  list<string>  $categories
-     * @return list<string>
-     */
-    private function categoriesOuvertes(array $categories): array
-    {
-        if (! config('mvp.actif')) {
-            return $categories;
-        }
-
-        return array_values(array_intersect($categories, config('mvp.categories')));
     }
 }

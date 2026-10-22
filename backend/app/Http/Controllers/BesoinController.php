@@ -23,9 +23,15 @@ class BesoinController extends Controller
     /** GET /api/secteurs — les services ouverts et leurs problèmes types. */
     public function secteurs(): JsonResponse
     {
+        // Dans l'ordre d'affichage choisi par l'administrateur, avec de quoi les dessiner.
         $secteurs = collect($this->analyseur->secteursOuverts())->map(fn (array $s, string $cle) => [
             'cle' => $cle,
             'nom' => $s['nom'],
+            'metier' => $s['metier'] ?? $s['nom'],
+            'description' => $s['description'] ?? null,
+            'icone' => $s['icone'] ?? 'wrench',
+            'couleur' => $s['couleur'] ?? null,
+            'categorie' => $s['categories'][0],
             'problemes' => $s['problemes'],
         ])->values();
 

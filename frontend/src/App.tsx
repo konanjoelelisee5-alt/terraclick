@@ -1,4 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { api } from "./lib/api";
+import { appliquerSecteurs } from "./data/catalogue";
 import { CONFIG } from "./lib/config";
 import { useEstMobile } from "./lib/useEstMobile";
 import { appliquerTheme } from "./lib/theme";
@@ -39,6 +41,7 @@ import { AdminUtilisateurs } from "./screens/admin/AdminUtilisateurs";
 import { AdminCatalogue } from "./screens/admin/AdminCatalogue";
 import { AdminActivite } from "./screens/admin/AdminActivite";
 import { AdminRoles } from "./screens/admin/AdminRoles";
+import { AdminSecteurs } from "./screens/admin/AdminSecteurs";
 import { premierModule } from "./screens/admin/EspaceAdmin";
 import { peut } from "./lib/acces";
 import { Historique, OngletAccord, Onglets, OngletsRecents, Parametres, Telechargements } from "./screens/menu/EcransMenu";
@@ -138,6 +141,7 @@ const ECRANS: Record<Ecran, () => JSX.Element> = {
   adminCatalogue: AdminCatalogue,
   adminActivite: AdminActivite,
   adminRoles: AdminRoles,
+  adminSecteurs: AdminSecteurs,
 };
 
 /** Écrans du module Construction, inaccessibles quand CONFIG.moduleConstruction est coupé (MVP). */
@@ -219,14 +223,21 @@ function Coque() {
 }
 
 export function App() {
+  // Les secteurs viennent de l'API (gérés par l'administrateur) : s'ils diffèrent de ceux déjà
+  // affichés, l'interface se redessine avec les nouveaux (ordre, noms, icônes, activation).
+  const [versionSecteurs, setVersionSecteurs] = useState(0);
   useEffect(() => {
     appliquerTheme(CONFIG.variante);
+    api.secteurs().then(
+      (liste) => appliquerSecteurs(liste) && setVersionSecteurs((v) => v + 1),
+      () => {},
+    );
   }, []);
 
   return (
     <AppProvider>
       <ToastProvider>
-        <Coque />
+        <Coque key={versionSecteurs} />
       </ToastProvider>
     </AppProvider>
   );

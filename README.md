@@ -206,26 +206,37 @@ recense ce qui est masqué et dit comment le rouvrir.
 
 | Où | Réglage | Effet |
 | --- | --- | --- |
-| API | `backend/config/mvp.php` : `categories` | Liste des slugs de catégories ouvertes. Le méga-menu, la recherche, les vedettes, les fiches et les avis taisent tout le reste. Une rubrique ou un département vidé disparaît. |
+| Espace administrateur | « Secteurs d'activité » (table `secteurs`) | Les catégories ouvertes sont celles des secteurs **actifs**. Le méga-menu, la recherche, les vedettes, les fiches et les avis taisent tout le reste. Une rubrique ou un département vidé disparaît. `config/mvp.php` n'est plus que la liste de départ. |
 | API | `MVP_ACTIF=false` dans `backend/.env` | Rouvre tout l'annuaire d'un coup. |
 | Frontend | `frontend/src/lib/config.ts` : `moduleConstruction` | `false` masque le module Construction (voir plus bas), `true` le rebranche partout. |
 | Frontend | `frontend/src/lib/config.ts` : `modesAccueil` | `false` masque la bascule Recherche / Autour de moi / Box intelligente de l'accueil et l'onglet « Carte » de la barre mobile (voir plus bas), `true` les rebranche. |
 | Frontend | `frontend/src/lib/config.ts` : `carteResultats` | `false` masque la bascule Liste / Carte des résultats, qui restent en liste ; `true` la rebranche. |
 | Frontend | `frontend/src/lib/config.ts` : `motDePasse` | `true` : comptes avec mot de passe. `false` rebranche la connexion par code seul, sans mot de passe (voir « Compte avec mot de passe »). |
 | Frontend | `frontend/src/lib/config.ts` : `actionsAccueilMobile` | `false` masque les boutons « Urgence » et « Programmer » sous l'en-tête de l'accueil mobile (voir plus bas), `true` les rebranche. |
-| Frontend | `frontend/src/data/catalogue.ts` : `SECTEURS` | Les cinq secteurs de l'accueil (raccourcis et cartes), du formulaire de devis et, via `pro.ts`, des services d'un prestataire. |
+| Frontend | `frontend/src/data/catalogue.ts` : `SECTEURS` | Liste du premier affichage seulement : elle est remplacée au démarrage par les secteurs actifs de l'API (`GET /api/secteurs`), dans l'ordre choisi par l'administrateur, et gardée sur l'appareil. |
 | Tests | `frontend/tests/parcours.mjs` : `MODULE_CONSTRUCTION` | Réactive les règles C à F (assistant, contrat, PV, bloc BTP). |
 | Tests | `frontend/tests/parcours.mjs` : `MODES_ACCUEIL` | Réactive la première moitié de la règle N (Box intelligente et « Autour de moi » réservées aux inscrits). |
 | Tests | `frontend/tests/parcours.mjs` : `CARTE_RESULTATS` | Réactive la fin de la règle N (vue carte des résultats réservée aux inscrits). |
 
-**Rouvrir un secteur** :
+**Rouvrir ou ajouter un secteur** : depuis l'espace administrateur, écran **Secteurs d'activité**
+(permission `secteurs.gerer`, administrateur seulement ; le manager voit les chiffres avec `secteurs.voir`).
 
-1. Ajoutez le slug de ses catégories dans `config/mvp.php`, et son vocabulaire dans
-   `config/secteurs.php`. Ce vocabulaire permet à la barre de recherche de reconnaître
-   une phrase comme « ma voiture ne démarre plus ».
-2. Ajoutez-le à `SECTEURS` dans `catalogue.ts`, avec son icône Lucide (déclarée dans
-   `components/Icon.tsx`).
-3. Complétez `MvpTest.php`.
+- **Créer** un secteur : nom, métier, description, icône, couleur, catégories de l'annuaire
+  (sans choix, une catégorie à son nom est créée dans « Autres services »), problèmes proposés
+  au client, mots compris par la recherche (« peint* » reconnaît peinture et peintre). Le nom et
+  le métier sont compris d'office. Un secteur neuf reste **désactivé** tant qu'on ne l'ouvre pas.
+- **Modifier**, **activer** ou **désactiver** : désactivé, il disparaît de l'accueil, de la
+  recherche et des demandes, sans être supprimé (les anciennes demandes gardent son nom).
+- **Classer** : flèches haut et bas, l'ordre est celui de l'accueil client.
+- **Sous-services** : les prestations du secteur et leur prix indicatif ; on les ajoute,
+  on les désactive.
+- **Statistiques** par secteur : demandes, prestataires actifs, interventions réussies
+  (terminées ou confirmées) et leur montant.
+- Icônes et couleurs proposées : `backend/config/secteurs_affichage.php` (chaque icône est
+  aussi déclarée dans `frontend/src/components/Icon.tsx`). Un secteur sans photo s'affiche
+  avec son icône sur un fond de sa couleur.
+- `config/secteurs.php` n'est plus que la liste de départ, recopiée en base par la migration
+  `create_secteurs_table`.
 
 ### Catégories ouvertes
 

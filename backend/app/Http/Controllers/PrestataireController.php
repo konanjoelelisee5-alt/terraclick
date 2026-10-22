@@ -164,7 +164,7 @@ class PrestataireController extends Controller
         return [
             'secteur' => $cle && isset($ouverts[$cle]) ? ['cle' => $cle, 'nom' => $ouverts[$cle]['nom'], 'categorie' => $ouverts[$cle]['categories'][0]] : null,
             'prestation' => $prestation ? $enTableau($prestation) : null,
-            'prestations' => $cle ? Prestation::where('secteur', $cle)->orderBy('ordre')->get()->map($enTableau)->all() : [],
+            'prestations' => $cle ? Prestation::where('secteur', $cle)->where('actif', true)->orderBy('ordre')->get()->map($enTableau)->all() : [],
         ];
     }
 

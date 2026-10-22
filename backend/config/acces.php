@@ -37,6 +37,8 @@ return [
             'utilisateurs.voir' => 'Voir les utilisateurs',
             'utilisateurs.roles' => 'Changer le rôle d\'un utilisateur',
             'catalogue.prix' => 'Modifier les prix indicatifs',
+            'secteurs.voir' => 'Voir les secteurs d\'activité et leurs statistiques',
+            'secteurs.gerer' => 'Créer, modifier, activer et classer les secteurs et leurs sous-services',
             'roles.gerer' => 'Gérer les rôles et leurs permissions',
         ],
     ],
@@ -64,6 +66,7 @@ return [
                 'demandes.voir_toutes',
                 'prestataires.voir', 'prestataires.suspendre',
                 'utilisateurs.voir',
+                'secteurs.voir',
             ],
         ],
         'admin' => [

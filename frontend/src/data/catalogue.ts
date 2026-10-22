@@ -24,26 +24,30 @@ export type Prestataire = {
 export const VILLES = ["Yamoussoukro", "Abidjan", "Bouaké", "Daloa"];
 
 /**
- * Les six secteurs ouverts dans la première version (MVP). Les autres métiers sont
- * masqués, pas supprimés : le README en tient la liste, et l'API applique la même
- * règle (backend/config/mvp.php). `categorie` est le slug de l'annuaire.
+ * Les secteurs ouverts aux clients. L'administrateur les gère depuis son tableau de bord
+ * (création, activation, ordre, icône, couleur) : la liste ci-dessous n'est que celle du
+ * premier affichage, remplacée au démarrage par celle de l'API (GET /api/secteurs), puis
+ * gardée sur l'appareil pour la visite suivante. `categorie` est le slug de l'annuaire.
  *
  * `image` : photo du secteur (public/images/secteurs/, WebP 800 px). Les six secteurs ont
  * leur photo ; sans image, l'icône prendrait le relais.
  */
 export type Secteur = {
-  /** Clé partagée avec l'API (config/secteurs.php). */
+  /** Clé partagée avec l'API (table `secteurs`). */
   cle: string;
   nom: string;
   metier: string;
   icone: string;
   categorie: string;
   image?: string;
+  /** Couleur choisie par l'administrateur (#RRGGBB), pour un secteur sans photo. */
+  couleur?: string | null;
+  description?: string | null;
 };
 
 const PHOTOS = `${import.meta.env.BASE_URL}images/secteurs/`;
 
-export const SECTEURS: readonly Secteur[] = [
+export const SECTEURS: Secteur[] = [
   { cle: "plomberie", nom: "Plomberie", metier: "Plombier", icone: "droplets", categorie: "plombiers", image: `${PHOTOS}plomberie.webp` },
   { cle: "electricite", nom: "Électricité", metier: "Électricien", icone: "zap", categorie: "electriciens", image: `${PHOTOS}electricite.webp` },
   {
@@ -123,6 +127,53 @@ export const PROS: Prestataire[] = [
 ];
 
 export const CATS = SECTEURS.map((s) => s.nom);
+
+/** Photos des secteurs d'origine ; un secteur créé plus tard s'affiche avec son icône et sa couleur. */
+const PHOTOS_SECTEURS: Record<string, string> = Object.fromEntries(SECTEURS.map((s) => [s.cle, s.image ?? ""]));
+
+export type SecteurApi = { cle: string; nom: string; metier?: string; description?: string | null; icone?: string; couleur?: string | null; categorie?: string; problemes: string[] };
+
+const CLE_SECTEURS = "terraclick.secteurs";
+
+/**
+ * Remplace la liste des secteurs par celle de l'API (ordre, noms, icônes, activation).
+ * Rend vrai si quelque chose a changé, pour que l'application se redessine.
+ */
+export function appliquerSecteurs(liste: SecteurApi[], memoriser = true): boolean {
+  const neufs: Secteur[] = liste
+    .filter((s) => s.categorie)
+    .map((s) => ({
+      cle: s.cle,
+      nom: s.nom,
+      metier: s.metier ?? s.nom,
+      icone: s.icone ?? "wrench",
+      categorie: s.categorie!,
+      image: PHOTOS_SECTEURS[s.cle] || undefined,
+      couleur: s.couleur ?? null,
+      description: s.description ?? null,
+    }));
+  const forme = (l: Secteur[]) =>
+    JSON.stringify(l.map((s) => [s.cle, s.nom, s.metier, s.icone, s.categorie, s.image ?? null, s.couleur ?? null, s.description ?? null]));
+  if (!neufs.length || forme(neufs) === forme(SECTEURS)) return false;
+  SECTEURS.splice(0, SECTEURS.length, ...neufs);
+  CATS.splice(0, CATS.length, ...neufs.map((s) => s.nom));
+  if (memoriser) {
+    try {
+      localStorage.setItem(CLE_SECTEURS, JSON.stringify(liste));
+    } catch {
+      /* stockage indisponible : la liste sera relue à la prochaine visite */
+    }
+  }
+  return true;
+}
+
+// La liste de la visite précédente, tant que l'API n'a pas répondu.
+try {
+  const gardee = localStorage.getItem(CLE_SECTEURS);
+  if (gardee) appliquerSecteurs(JSON.parse(gardee), false);
+} catch {
+  /* rien de gardé */
+}
 
 export const secteurParCle = (cle: string | null) => SECTEURS.find((s) => s.cle === cle);
 

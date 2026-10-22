@@ -21,11 +21,14 @@ class Categorie extends Model
         return $this->belongsToMany(Prestataire::class);
     }
 
-    /** Catégories ouvertes au public : toutes, ou celles du MVP (config/mvp.php). */
+    /**
+     * Catégories ouvertes au public : celles des secteurs actifs (gérés par l'administrateur),
+     * ou toutes quand le MVP est coupé (config/mvp.php).
+     */
     public function scopeOuvertes(Builder $query): void
     {
         if (config('mvp.actif')) {
-            $query->whereIn('categories.slug', config('mvp.categories'));
+            $query->whereIn('categories.slug', Secteur::categoriesOuvertes());
         }
     }
 }

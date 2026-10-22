@@ -39,8 +39,11 @@ export function VisuelSecteur({ secteur, hauteur, tailleIcone = 28, style }: Pro
     );
   }
 
+  // Couleur choisie par l'administrateur : l'icône dans sa teinte, sur un fond pâle de la même.
+  const teinte = secteur.couleur ? { color: secteur.couleur, background: `${secteur.couleur}1F` } : { color: "var(--color-accent-2-700)" };
+
   return (
-    <span style={{ ...cadre, display: "grid", placeItems: "center", color: "var(--color-accent-2-700)" }}>
+    <span style={{ ...cadre, display: "grid", placeItems: "center", ...teinte }}>
       <Icon name={secteur.icone} size={tailleIcone} strokeWidth={2} />
     </span>
   );

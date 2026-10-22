@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /** Une prestation d'un secteur, son vocabulaire de recherche et son prix indicatif. */
-#[Fillable(['secteur', 'nom', 'slug', 'description', 'mots', 'prix_min', 'prix_max', 'unite', 'ordre'])]
+#[Fillable(['secteur', 'nom', 'slug', 'description', 'mots', 'prix_min', 'prix_max', 'unite', 'actif', 'ordre'])]
 class Prestation extends Model
 {
     protected function casts(): array

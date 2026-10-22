@@ -74,6 +74,7 @@ export type Ecran =
   | "adminCatalogue"
   | "adminActivite"
   | "adminRoles"
+  | "adminSecteurs"
   /* Demandes et commandes reçues, branchées sur l'API */
   | "demandesRecues";
 

@@ -1040,6 +1040,30 @@ const numeroInscrit = numeroNeuf();
      (await apparait(choixRoles.getByText('Client', { exact: true }))) && (await choixRoles.getByText('Administrateur', { exact: true }).count()) === 0 && (await choixRoles.getByText('Manager', { exact: true }).count()) === 0);
   await p.getByRole('button', { name: 'Annuler' }).click();
 
+  // Secteurs d'activité : chiffres, éditeur, activation visible côté client, ordre
+  await rail.getByRole('button', { name: /Secteurs d'activité/ }).click();
+  const menuiserie = p.locator('[data-r="secteur-admin"]').filter({ hasText: 'Menuiserie' });
+  ok('secteurs : les six secteurs, avec leurs chiffres',
+     (await apparait(menuiserie)) && (await p.locator('[data-r="secteur-admin"]').count()) >= 6 && /Interventions réussies/.test(await menuiserie.locator('[data-r="chiffres-secteur"]').textContent()));
+  await menuiserie.locator('[data-r="modifier-secteur"]').click();
+  ok('secteurs : l’éditeur (icône, couleur, catégories, problèmes, mots de recherche)',
+     (await apparait(p.locator('[data-r="editeur-secteur"]'))) && (await p.getByRole('radiogroup', { name: 'Icône' }).getByRole('radio').count()) > 20 &&
+       (await p.getByRole('radiogroup', { name: 'Couleur' }).isVisible()) && (await p.getByText('Mots compris par la recherche').isVisible()));
+  await p.getByRole('button', { name: 'Annuler' }).click();
+  await menuiserie.locator('[data-r="ouvrir-sous-services"]').click();
+  ok('secteurs : les sous-services et leur prix', await apparait(menuiserie.locator('[data-r="sous-service"]').first()));
+
+  await menuiserie.locator('[data-r="basculer-secteur"]').click();
+  await apparait(menuiserie.getByText('Désactivé', { exact: true }));
+  const vue = await neuve(1440, 1000);
+  await apparait(vue.p.locator('[data-r="secteurs-rapides-liste"]'));
+  await vue.p.waitForTimeout(600);
+  ok('secteurs : désactivé, il disparaît de l’accueil client',
+     (await vue.p.locator('[data-r="secteurs-rapides-liste"]').getByText('Plombier').count()) > 0 && (await vue.p.locator('[data-r="secteurs-rapides-liste"]').getByText('Menuisier').count()) === 0);
+  await vue.ctx.close();
+  await menuiserie.locator('[data-r="basculer-secteur"]').click();
+  ok('secteurs : réactivé, il revient', await apparait(menuiserie.getByText('Ouvert aux clients')));
+
   await rail.getByRole('button', { name: /Catalogue et prix/ }).click();
   ok('admin : les prix indicatifs des prestations, modifiables', (await apparait(p.locator('[data-r="prestation-admin"]').first())) && (await p.getByLabel(/^Prix minimum/).count()) > 3);
 

@@ -1,6 +1,8 @@
 /* Client de l'API Laravel (backend/). Les types reprennent les ressources JSON
    de backend/app/Http/Resources ; les noms de champs restent ceux de l'API. */
 
+import type { SecteurApi } from "../data/catalogue";
+
 const BASE = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
 const CLE_JETON = "sy.jeton";
 
@@ -184,6 +186,32 @@ export type RolesAdmin = {
   groupes: { nom: string; permissions: { cle: string; nom: string }[] }[];
 };
 
+/** Secteur d'activité vu par l'équipe : affichage, activation, ordre, sous-services et chiffres. */
+export type SousService = { id: number; nom: string; description: string | null; actif: boolean; prix_min: number | null; prix_max: number | null; prix_affichage: string | null; prestataires: number };
+export type SecteurAdmin = {
+  id: number;
+  cle: string;
+  nom: string;
+  metier: string | null;
+  description: string | null;
+  icone: string;
+  couleur: string | null;
+  actif: boolean;
+  ordre: number;
+  categories: string[];
+  problemes: string[];
+  mots: string[];
+  chiffres: { demandes: number; reussies: number; montant_reussies: number; prestataires: number };
+  prestations: SousService[];
+};
+export type SecteursAdmin = {
+  secteurs: SecteurAdmin[];
+  icones: string[];
+  couleurs: { hex: string; nom: string }[];
+  categories: { slug: string; nom: string; rubrique: string }[];
+};
+export type SecteurSaisie = Partial<Pick<SecteurAdmin, "nom" | "metier" | "description" | "icone" | "couleur" | "actif" | "categories" | "problemes" | "mots">>;
+
 export type PrestationAdmin = {
   id: number;
   secteur: { cle: string; nom: string };
@@ -254,8 +282,8 @@ export type ActualiteApi = {
 
 export type Page<T> = { data: T[]; meta: { total: number; current_page: number; last_page: number } };
 
-/** Un service ouvert et ses problèmes types (première question de l'assistant). */
-export type SecteurApi = { cle: string; nom: string; problemes: string[] };
+/** Un service ouvert, de quoi le dessiner, et ses problèmes types (première question de l'assistant). */
+export type { SecteurApi } from "../data/catalogue";
 
 /** Ce que la barre de recherche a compris d'une saisie libre. */
 export type Analyse = { secteurs: { cle: string; nom: string }[]; probleme: string | null };
@@ -589,6 +617,14 @@ export const api = {
     modifierPrestation: (id: number, prix: { prix_min: number | null; prix_max: number | null }) =>
       requete<{ data: Pick<PrestationAdmin, "id" | "prix_min" | "prix_max" | "prix_affichage"> }>(`/admin/prestations/${id}`, { methode: "PATCH", corps: prix }).then((r) => r.data),
     activite: (signal?: AbortSignal) => requete<{ data: ActiviteAdmin[] }>("/admin/activite", { signal }).then((r) => r.data),
+    secteurs: (signal?: AbortSignal) => requete<{ data: SecteursAdmin }>("/admin/secteurs", { signal }).then((r) => r.data),
+    creerSecteur: (saisie: SecteurSaisie) => requete<{ data: SecteurAdmin }>("/admin/secteurs", { methode: "POST", corps: saisie }).then((r) => r.data),
+    modifierSecteur: (id: number, saisie: SecteurSaisie) => requete<{ data: SecteurAdmin }>(`/admin/secteurs/${id}`, { methode: "PATCH", corps: saisie }).then((r) => r.data),
+    ordonnerSecteurs: (ordre: number[]) => requete<{ data: number[] }>("/admin/secteurs/ordre", { methode: "PUT", corps: { ordre } }).then((r) => r.data),
+    ajouterSousService: (secteur: number, saisie: { nom: string; prix_min?: number | null; prix_max?: number | null }) =>
+      requete<{ data: SousService }>(`/admin/secteurs/${secteur}/prestations`, { methode: "POST", corps: saisie }).then((r) => r.data),
+    modifierSousService: (id: number, saisie: { nom?: string; actif?: boolean }) =>
+      requete<{ data: SousService }>(`/admin/sous-services/${id}`, { methode: "PATCH", corps: saisie }).then((r) => r.data),
   },
   /* Espace prestataire : demandes et commandes reçues */
   demandesRecues: (signal?: AbortSignal) => requete<Page<DemandeProApi>>("/pro/demandes", { signal }).then((r) => r.data),

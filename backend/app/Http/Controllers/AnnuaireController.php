@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\DepartementResource;
 use App\Http\Resources\VilleResource;
 use App\Models\Departement;
+use App\Models\Secteur;
 use App\Models\Ville;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
@@ -30,7 +31,7 @@ class AnnuaireController extends Controller
             ->join('rubriques', 'rubriques.id', '=', 'categories.rubrique_id')
             ->join('prestataires', 'prestataires.id', '=', 'categorie_prestataire.prestataire_id')
             ->where('prestataires.actif', true)
-            ->when(config('mvp.actif'), fn ($q) => $q->whereIn('categories.slug', config('mvp.categories')))
+            ->when(config('mvp.actif'), fn ($q) => $q->whereIn('categories.slug', Secteur::categoriesOuvertes()))
             ->groupBy('rubriques.departement_id')
             ->selectRaw('rubriques.departement_id, COUNT(DISTINCT categorie_prestataire.prestataire_id) AS total')
             ->pluck('total', 'departement_id');

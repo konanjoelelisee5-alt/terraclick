@@ -9,6 +9,7 @@ use App\Models\DocumentPrestataire;
 use App\Models\Prestataire;
 use App\Models\Quartier;
 use App\Models\Role;
+use App\Models\Secteur;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
@@ -65,8 +66,8 @@ class AdminCandidatureController extends Controller
         $this->enAttente($candidature);
 
         DB::transaction(function () use ($request, $candidature) {
-            $metiers = collect($candidature->secteurs)->map(fn (string $s) => config("candidature.metiers.{$s}"))->filter();
-            $categories = collect($candidature->secteurs)->map(fn (string $s) => config("secteurs.{$s}.categories.0"))->filter();
+            $metiers = collect($candidature->secteurs)->map(fn (string $s) => config("candidature.metiers.{$s}") ?? Secteur::catalogue()[$s]['metier'] ?? null)->filter();
+            $categories = collect($candidature->secteurs)->map(fn (string $s) => Secteur::catalogue()[$s]['categories'][0] ?? null)->filter();
             $quartiers = Quartier::whereIn('id', $candidature->quartiers)->pluck('nom');
 
             $fiche = Prestataire::create([

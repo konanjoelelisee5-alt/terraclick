@@ -10,6 +10,7 @@ use App\Models\DemandeEvenement;
 use App\Models\Prestataire;
 use App\Models\Prestation;
 use App\Models\Role;
+use App\Models\Secteur;
 use App\Models\Signalement;
 use App\Models\User;
 use App\Services\AnalyseurBesoin;
@@ -185,9 +186,9 @@ class AdminController extends Controller
     }
 
     /** GET /api/admin/prestations — catalogue des prestations et prix indicatifs, par service. */
-    public function prestations(AnalyseurBesoin $analyseur): JsonResponse
+    public function prestations(): JsonResponse
     {
-        $noms = collect($analyseur->secteursOuverts())->map(fn (array $s) => $s['nom']);
+        $noms = collect(Secteur::catalogue())->map(fn (array $s) => $s['nom']);
 
         return response()->json(['data' => Prestation::query()->withCount('prestataires')->orderBy('secteur')->orderBy('ordre')->get()
             ->map(fn (Prestation $p) => [
@@ -254,7 +255,7 @@ class AdminController extends Controller
             'statut' => $s->statut,
             'reponse' => $s->reponse,
             'client' => ['nom' => $s->auteur?->nom, 'telephone' => $s->auteur ? Telephone::affichage($s->auteur->telephone) : null],
-            'demande' => $d ? ['id' => $d->id, 'reference' => $d->reference, 'secteur' => config("secteurs.{$d->secteur}.nom", $d->secteur), 'statut_libelle' => DemandeResource::libelleStatut($d->statut)] : null,
+            'demande' => $d ? ['id' => $d->id, 'reference' => $d->reference, 'secteur' => Secteur::nomDe($d->secteur), 'statut_libelle' => DemandeResource::libelleStatut($d->statut)] : null,
             'prestataire' => $d?->prestataire ? ['nom' => $d->prestataire->nom, 'telephone' => $d->prestataire->telephone ? Telephone::affichage($d->prestataire->telephone) : null] : null,
             'date' => $s->created_at?->toIso8601String(),
             'traite_le' => $s->traite_le?->toIso8601String(),

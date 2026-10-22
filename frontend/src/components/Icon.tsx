@@ -107,6 +107,18 @@ import {
   Wrench,
   X,
   Zap,
+  Laptop,
+  PaintRoller,
+  Paintbrush,
+  Plug,
+  Refrigerator,
+  Scissors,
+  Smartphone,
+  SprayCan,
+  TreePine,
+  Truck,
+  Tv,
+  WashingMachine,
   type LucideIcon,
 } from "lucide-react";
 
@@ -114,6 +126,18 @@ import {
    exception des étoiles de notation, remplies en Soleil. Aucun emoji, aucun
    glyphe unicode détourné en icône. */
 const ICONES: Record<string, LucideIcon> = {
+  laptop: Laptop,
+  "paint-roller": PaintRoller,
+  paintbrush: Paintbrush,
+  plug: Plug,
+  refrigerator: Refrigerator,
+  scissors: Scissors,
+  smartphone: Smartphone,
+  "spray-can": SprayCan,
+  "tree-pine": TreePine,
+  truck: Truck,
+  tv: Tv,
+  "washing-machine": WashingMachine,
   "alert-triangle": TriangleAlert,
   ambulance: Ambulance,
   "arrow-left": ArrowLeft,

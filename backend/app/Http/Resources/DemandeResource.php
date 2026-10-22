@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Demande;
+use App\Models\Secteur;
 use App\Support\Montant;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -115,7 +116,7 @@ class DemandeResource extends JsonResource
 
     public function toArray(Request $request): array
     {
-        $secteur = config("secteurs.{$this->secteur}.nom", $this->secteur);
+        $secteur = Secteur::nomDe($this->secteur);
         $quand = self::LIBELLES_QUAND[$this->quand] ?? $this->date_souhaitee?->translatedFormat('j F Y');
 
         return [

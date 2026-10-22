@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\Candidature;
 use App\Models\Quartier;
+use App\Models\Secteur;
 use App\Support\Telephone;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -35,7 +36,7 @@ class CandidatureResource extends JsonResource
             'nom_activite' => $this->nom_activite,
             'responsable' => $this->responsable,
             'telephone' => Telephone::affichage($this->telephone),
-            'secteurs' => collect($this->secteurs)->map(fn (string $s) => ['cle' => $s, 'nom' => config("secteurs.{$s}.nom", $s)])->values(),
+            'secteurs' => collect($this->secteurs)->map(fn (string $s) => ['cle' => $s, 'nom' => Secteur::nomDe($s)])->values(),
             'quartier' => QuartierResource::make($this->whenLoaded('quartier')),
             'quartiers' => collect($this->quartiers)->map(fn ($id) => $nomsQuartiers[$id] ?? $id)->values(),
             'description' => $this->description,

@@ -6,6 +6,7 @@ use App\Models\Categorie;
 use App\Models\Prestataire;
 use App\Models\Prestation;
 use App\Models\Quartier;
+use App\Models\Secteur;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
@@ -129,7 +130,7 @@ class CorrecteurRecherche
      */
     private function prefixes(): array
     {
-        return collect(config('secteurs'))
+        return collect(Secteur::actifsEnCatalogue())
             ->flatMap(fn (array $s) => array_keys($s['mots'] ?? []))
             ->filter(fn (string $m) => str_ends_with($m, '*') && strlen($m) >= 5)
             ->map(fn (string $m) => rtrim($m, '*'))
@@ -145,7 +146,7 @@ class CorrecteurRecherche
     private function vocabulaire(): array
     {
         return Cache::remember('correcteur.vocabulaire', now()->addMinutes(10), function () {
-            $textes = collect(config('secteurs'))
+            $textes = collect(Secteur::actifsEnCatalogue())
                 ->flatMap(fn (array $s) => [
                     $s['nom'],
                     ...($s['problemes'] ?? []),
@@ -154,7 +155,8 @@ class CorrecteurRecherche
                 ])
                 ->merge(['plombier', 'électricien', 'climaticien', 'serrurier', 'menuisier', 'pressing', 'technicien', 'dépannage', 'réparation', 'installation', 'entretien'])
                 ->merge(collect(config('pressing.articles'))->pluck('nom'))
-                ->merge(Prestation::query()->pluck('nom'))
+                ->merge(Prestation::query()->where('actif', true)->pluck('nom'))
+                ->merge(collect(Secteur::actifsEnCatalogue())->pluck('metier'))
                 ->merge(Prestataire::query()->visibles()->pluck('metier'))
                 ->merge(Prestataire::query()->visibles()->pluck('nom'))
                 ->merge(Categorie::query()->ouvertes()->pluck('nom'))
