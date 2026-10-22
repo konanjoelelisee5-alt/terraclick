@@ -129,6 +129,14 @@ l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
     - **pièces** vérifiées une à une (vérifiée, ou refusée avec un motif) ; à la validation d'une candidature, toutes ses pièces rejoignent le dossier de la fiche (`prestataires.modifier`) ;
     - **avertissement** inscrit au dossier, relié s'il y a lieu au signalement d'un client (`prestataires.sanctionner`) ;
     - mettre en avant, voir la fiche publique.
+  - **Finances** (`AdminFinanceController`, permissions `finances.voir` et `finances.gerer`, administrateur seulement) — aucun argent ne passe par TerraClick :
+    - commission globale (en %, aucune par défaut) et commission propre à un secteur ; chaque mission confirmée inscrit sa commission au taux du jour (table `commissions`), sur le montant de l'onglet, sinon l'estimation du prestataire, sinon le pack ; une mission annulée, remboursée ou à refaire n'en doit plus ;
+    - négociation directe : interdite, le prestataire propose un prix dans la grille des prix indicatifs du secteur ;
+    - moyens de paiement proposés aux clients (espèces, Mobile Money, virement, autre pour le pressing) : `GET /api/reglages` ;
+    - montants encaissés par les prestataires, commissions, paiements de commission enregistrés par l'équipe (`paiements_commission`), solde de chacun et liste de ceux qui doivent encore ;
+    - rapports CSV (missions, prestataires, paiements) pour Excel ;
+    - valeurs par défaut : `config/finances.php` ; réglages en base : table `reglages`.
+  - **Litiges** (`GET /api/admin/litiges`) : les demandes où le client **ou le prestataire** a déclaré un problème (retard, mauvais travail, prestation non terminée, paiement non effectué, client absent…), avec photos à l'appui ; le détail montre les deux déclarations côte à côte, les boutons Appeler et WhatsApp pour chaque partie, l'historique, et la **décision finale** (`decisions_litige`) : remboursement (montant), nouvelle intervention (la demande redevient acceptée), avertissement, suspension ou blocage du prestataire ; un prestataire est signalé « récidive » au-delà du seuil réglé dans Finances (litiges tranchés contre lui en 90 jours).
   - **Zones et quartiers** (`AdminZoneController`, permissions `zones.voir` et `zones.gerer`) :
     - ajouter un quartier (Yamoussoukro ou une autre ville), l'activer ou le désactiver : désactivé, il n'est plus proposé aux clients et une demande y est refusée ;
     - les services proposés dans chaque quartier (aucune limite par défaut) : un service non proposé est grisé dans le choix du quartier et refusé à l'envoi ;

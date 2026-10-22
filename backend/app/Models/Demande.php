@@ -20,7 +20,7 @@ class Demande extends Model
     public const MODES = ['recommande', 'choisi'];
 
     /** « autre » : moyen à convenir avec le prestataire (virement, carte…). */
-    public const PAIEMENTS = ['especes', 'mobile_money', 'autre'];
+    public const PAIEMENTS = ['especes', 'mobile_money', 'virement', 'autre'];
 
     /**
      * Cycle de vie : envoyee → acceptee → en_cours → terminee → confirmee.
@@ -130,5 +130,15 @@ class Demande extends Model
     public function accord(): HasOne
     {
         return $this->hasOne(Accord::class);
+    }
+
+    public function commission(): HasOne
+    {
+        return $this->hasOne(Commission::class);
+    }
+
+    public function decisions(): HasMany
+    {
+        return $this->hasMany(DecisionLitige::class)->latest('id');
     }
 }

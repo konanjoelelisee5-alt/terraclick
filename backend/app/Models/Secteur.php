@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Cache;
  * problèmes proposés au client et vocabulaire de la barre de recherche. Désactivé, il
  * disparaît de l'application (accueil, recherche, demandes) sans être supprimé.
  */
-#[Fillable(['cle', 'nom', 'metier', 'description', 'icone', 'couleur', 'actif', 'ordre', 'categories', 'problemes', 'mots'])]
+#[Fillable(['cle', 'nom', 'metier', 'description', 'icone', 'couleur', 'commission', 'actif', 'ordre', 'categories', 'problemes', 'mots'])]
 class Secteur extends Model
 {
     private const CACHE = 'secteurs.catalogue';

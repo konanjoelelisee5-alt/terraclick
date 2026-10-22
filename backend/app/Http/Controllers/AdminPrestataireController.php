@@ -191,7 +191,8 @@ class AdminPrestataireController extends Controller
             'signalements' => $signalements->map(fn (Signalement $s) => [
                 'id' => $s->id,
                 'motif' => $s->motif,
-                'motif_libelle' => config("suivi.motifs_signalement.{$s->motif}") ?? config("pressing.motifs_signalement.{$s->motif}") ?? $s->motif,
+                'motif_libelle' => $s->libelle(),
+                'role' => $s->role,
                 'message' => $s->message,
                 'statut' => $s->statut,
                 'demande' => $s->demande?->reference,

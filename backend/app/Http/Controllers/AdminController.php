@@ -258,7 +258,7 @@ class AdminController extends Controller
             'id' => "s{$s->id}",
             'type' => 'signalement',
             'titre' => 'Signalement · '.($s->demande?->reference ?? ''),
-            'texte' => ($s->demande?->motifsSignalement()[$s->motif] ?? $s->motif).($s->message ? " — {$s->message}" : ''),
+            'texte' => $s->libelle().($s->message ? " — {$s->message}" : ''),
             'date' => $s->created_at?->toIso8601String(),
         ]);
 
@@ -272,7 +272,7 @@ class AdminController extends Controller
         return [
             'id' => $s->id,
             'motif' => $s->motif,
-            'motif_libelle' => $d?->motifsSignalement()[$s->motif] ?? $s->motif,
+            'motif_libelle' => $s->libelle($d),
             'message' => $s->message,
             'statut' => $s->statut,
             'reponse' => $s->reponse,

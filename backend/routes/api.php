@@ -5,6 +5,7 @@ use App\Http\Controllers\ActualiteController;
 use App\Http\Controllers\AdminCandidatureController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminDemandeController;
+use App\Http\Controllers\AdminFinanceController;
 use App\Http\Controllers\AdminPrestataireController;
 use App\Http\Controllers\AdminRoleController;
 use App\Http\Controllers\AdminSecteurController;
@@ -110,6 +111,16 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('secteurs/{secteur}/prestations', [AdminSecteurController::class, 'ajouterPrestation'])->whereNumber('secteur');
             Route::patch('sous-services/{prestation}', [AdminSecteurController::class, 'modifierPrestation'])->whereNumber('prestation');
         });
+        Route::get('litiges', [AdminDemandeController::class, 'litiges'])->middleware('permission:demandes.voir_toutes');
+        Route::prefix('finances')->middleware('permission:finances.voir')->group(function () {
+            Route::get('/', [AdminFinanceController::class, 'index']);
+            Route::get('export', [AdminFinanceController::class, 'exporter']);
+            Route::middleware('permission:finances.gerer')->group(function () {
+                Route::put('reglages', [AdminFinanceController::class, 'reglages']);
+                Route::put('secteurs', [AdminFinanceController::class, 'secteurs']);
+                Route::post('paiements', [AdminFinanceController::class, 'payer']);
+            });
+        });
         Route::get('zones', [AdminZoneController::class, 'index'])->middleware('permission:zones.voir');
         Route::middleware('permission:zones.gerer')->group(function () {
             Route::post('zones', [AdminZoneController::class, 'store']);
@@ -133,6 +144,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('pro/demandes')->middleware('permission:pro.demandes')->group(function () {
         Route::get('/', [ProDemandeController::class, 'index']);
         Route::get('{demande}', [ProDemandeController::class, 'show'])->whereNumber('demande');
+        Route::post('{demande}/signaler', [ProDemandeController::class, 'signaler'])->whereNumber('demande');
         foreach (['accepter', 'refuser', 'demarrer', 'terminer', 'etape'] as $action) {
             Route::post("{demande}/{$action}", [ProDemandeController::class, $action])->whereNumber('demande');
         }
@@ -143,6 +155,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('actualites', [ActualiteController::class, 'index']);
 Route::post('recherches', [RechercheController::class, 'store'])->middleware('throttle:60,1');
 Route::get('secteurs', [BesoinController::class, 'secteurs']);
+Route::get('reglages', [BesoinController::class, 'reglages']);
 Route::get('analyse', [BesoinController::class, 'analyse']);
 Route::get('recommandations', [BesoinController::class, 'recommandations']);
 Route::get('pressing/articles', [BesoinController::class, 'articlesPressing']);

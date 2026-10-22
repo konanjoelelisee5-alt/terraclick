@@ -105,12 +105,17 @@ class DemandeController extends Controller
         $donnees = $request->validate([
             'motif' => ['required', Rule::in(array_keys($demande->motifsSignalement()))],
             'message' => [Rule::requiredIf($request->input('motif') === 'autre'), 'nullable', 'string', 'max:1000'],
+            'photos' => ['nullable', 'array', 'max:3'],
+            'photos.*' => ['file', 'mimetypes:image/jpeg,image/png,image/webp', 'max:5120'],
         ], [
             'motif.required' => 'Choisissez ce qui ne va pas.',
             'message.required' => 'Décrivez le problème en quelques mots.',
+            'photos.max' => 'Trois photos au plus.',
+            'photos.*.mimetypes' => 'Une photo au format JPEG, PNG ou WebP.',
         ]);
 
-        $demande->signalements()->create([...$donnees, 'user_id' => $request->user()->id]);
+        $photos = collect($request->file('photos', []))->map(fn ($p) => $p->store("signalements/{$demande->id}", 'public'))->all();
+        $demande->signalements()->create([...collect($donnees)->except('photos')->all(), 'photos' => $photos ?: null, 'role' => 'client', 'user_id' => $request->user()->id]);
 
         return DemandeResource::make($demande->load('quartier', 'prestataire.quartier', 'evenements', 'signalements', 'accord'))
             ->additional(['message' => 'Votre signalement est transmis. Le prestataire et TerraClick vont le traiter.'])

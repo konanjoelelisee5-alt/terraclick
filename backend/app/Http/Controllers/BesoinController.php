@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\PrestataireResource;
 use App\Models\Prestataire;
+use App\Models\Reglage;
 use App\Services\AnalyseurBesoin;
 use App\Support\Montant;
 use Illuminate\Database\Eloquent\Builder;
@@ -36,6 +37,15 @@ class BesoinController extends Controller
         ])->values();
 
         return response()->json(['data' => $secteurs]);
+    }
+
+    /** GET /api/reglages — ce que le client doit savoir des règles de la plateforme. */
+    public function reglages(): JsonResponse
+    {
+        return response()->json(['data' => [
+            'paiements' => collect(Reglage::paiements())->map(fn (string $cle) => ['valeur' => $cle, 'libelle' => config("finances.moyens.{$cle}.0"), 'detail' => config("finances.moyens.{$cle}.1")])->values(),
+            'negociation_directe' => (bool) Reglage::lire('negociation_directe'),
+        ]]);
     }
 
     /**

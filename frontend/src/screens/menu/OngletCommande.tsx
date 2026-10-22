@@ -88,6 +88,7 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
   const [fenetre, setFenetre] = useState<"signaler" | "annuler" | null>(null);
   const [motif, setMotif] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [preuves, setPreuves] = useState<File[]>([]);
   const [notes, setNotes] = useState({ qualite: 0, ponctualite: 0, prix: 0 });
   const [commentaire, setCommentaire] = useState("");
   const [occupe, setOccupe] = useState(false);
@@ -348,11 +349,12 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
               toast("Choisissez un motif", "Dites-nous ce qui ne va pas.", "danger");
               return;
             }
-            const ok = await agir(() => api.signaler(d.id, { motif, message: message.trim() || undefined }), "Signalement envoyé", `${a.prestataire.nom} va le traiter.`);
+            const ok = await agir(() => api.signaler(d.id, { motif, message: message.trim() || undefined, photos: preuves }), "Signalement envoyé", `${a.prestataire.nom} va le traiter.`);
             if (ok) {
               setFenetre(null);
               setMotif(null);
               setMessage("");
+              setPreuves([]);
             }
           }}
         >
@@ -390,6 +392,11 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
             placeholder={motif === "autre" ? "Décrivez le problème" : pressing ? "Détails (facultatif) : quel article, quand…" : "Détails (facultatif) : ce qui s'est passé, quand…"}
             style={{ marginTop: 12, borderRadius: 14 }}
           />
+          <label data-r="preuves-signalement" style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, fontSize: "14px", cursor: "pointer" }}>
+            <Icon name="camera" size={18} />
+            {preuves.length ? `${preuves.length} photo${preuves.length > 1 ? "s" : ""} jointe${preuves.length > 1 ? "s" : ""}` : "Joindre des photos (facultatif, 3 au plus)"}
+            <input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={(e) => setPreuves(Array.from(e.target.files ?? []).slice(0, 3))} />
+          </label>
         </Dialogue>
       )}
 

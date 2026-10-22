@@ -5,10 +5,15 @@ namespace App\Http\Controllers;
 use App\Http\Resources\DemandeProResource;
 use App\Models\Demande;
 use App\Models\Prestataire;
+use App\Models\Prestation;
+use App\Models\Reglage;
 use App\Services\CycleDemande;
+use App\Support\Montant;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Demandes reçues par le technicien connecté : son compte est relié à sa fiche
@@ -46,6 +51,8 @@ class ProDemandeController extends Controller
             'estimation.integer' => 'L\'estimation est un montant en francs CFA.',
         ]);
 
+        $this->verifierGrille($demande, $donnees['estimation'] ?? null);
+
         return $this->reponse($this->cycle->appliquer(
             $this->sienne($request, $demande), 'accepter', $request->user(), $donnees['message'] ?? null,
             ['estimation' => $donnees['estimation'] ?? null, 'creneau' => $donnees['creneau'] ?? null],
@@ -81,6 +88,49 @@ class ProDemandeController extends Controller
     public function etape(Request $request, Demande $demande): DemandeProResource
     {
         return $this->reponse($this->cycle->avancer($this->sienne($request, $demande), $request->user()));
+    }
+
+    /** POST /api/pro/demandes/{demande}/signaler — le prestataire déclare un problème (paiement, client absent…). */
+    public function signaler(Request $request, Demande $demande): DemandeProResource
+    {
+        $demande = $this->sienne($request, $demande);
+        $donnees = $request->validate([
+            'motif' => ['required', Rule::in(array_keys(config('suivi.motifs_prestataire')))],
+            'message' => ['required', 'string', 'min:5', 'max:1000'],
+            'photos' => ['nullable', 'array', 'max:3'],
+            'photos.*' => ['file', 'mimetypes:image/jpeg,image/png,image/webp', 'max:5120'],
+        ], [
+            'motif.required' => 'Choisissez ce qui ne va pas.',
+            'message.required' => 'Décrivez ce qui s\'est passé : l\'équipe TerraClick le lira.',
+        ]);
+        $photos = collect($request->file('photos', []))->map(fn ($p) => $p->store("signalements/{$demande->id}", 'public'))->all();
+        $demande->signalements()->create([
+            ...collect($donnees)->except('photos')->all(),
+            'photos' => $photos ?: null,
+            'role' => 'prestataire',
+            'user_id' => $request->user()->id,
+        ]);
+
+        return $this->reponse($demande);
+    }
+
+    /**
+     * Négociation directe interdite par l'administrateur : l'estimation reste dans la grille des
+     * prix indicatifs du secteur (du plus petit minimum au plus grand maximum).
+     */
+    private function verifierGrille(Demande $demande, ?int $estimation): void
+    {
+        if ($estimation === null || Reglage::lire('negociation_directe')) {
+            return;
+        }
+        $prix = Prestation::where('secteur', $demande->secteur)->where('actif', true);
+        $min = (clone $prix)->min('prix_min');
+        $max = (clone $prix)->max('prix_max');
+        if (($min !== null && $estimation < $min) || ($max !== null && $estimation > $max)) {
+            throw ValidationException::withMessages([
+                'estimation' => sprintf('La négociation directe est désactivée : proposez un prix dans la grille TerraClick (%s).', Montant::fourchette($min, $max)),
+            ]);
+        }
     }
 
     /** La fiche de technicien reliée au compte ; sans fiche, l'espace pro est fermé. */

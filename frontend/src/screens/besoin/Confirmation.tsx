@@ -35,6 +35,7 @@ export function Confirmation() {
   const pressing = b.secteur === "pressing" && b.pack.length > 0;
 
   const { donnees: villes } = useApi(() => api.villes(), []);
+  const { donnees: reglages } = useApi(() => api.reglages(), []);
   const quartierChoisi = villes?.find((v) => v.slug === slugifier(ville))?.quartiers.find((q) => q.id === b.quartier);
   const quartier = quartierChoisi?.nom ?? null;
   // Frais de déplacement fixés par l'équipe pour ce quartier.
@@ -234,14 +235,20 @@ export function Confirmation() {
         <div>
           <span style={{ ...TITRE_BLOC, margin: "8px 0 8px" }}>Comment paierez-vous {pressing ? "le pressing" : "le technicien"} ?</span>
           <div role="radiogroup" aria-label="Paiement" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {(pressing ? [...PAIEMENTS, PAIEMENT_AUTRE] : PAIEMENTS).map((p) => (
+            {(reglages
+              ? // Les moyens proposés par TerraClick ; « Autre moyen » reste propre au pressing.
+                reglages.paiements.filter((p) => pressing || p.valeur !== "autre")
+              : pressing
+                ? [...PAIEMENTS, PAIEMENT_AUTRE]
+                : PAIEMENTS
+            ).map((p) => (
               <Choix
                 key={p.valeur}
                 actif={b.paiement === p.valeur}
                 onClick={() => modifierBesoin({ paiement: p.valeur })}
                 titre={p.libelle}
                 detail={p.detail}
-                icone={p.valeur === "especes" ? "banknote" : p.valeur === "autre" ? "credit-card" : "wallet"}
+                icone={p.valeur === "especes" ? "banknote" : p.valeur === "autre" ? "credit-card" : p.valeur === "virement" ? "landmark" : "wallet"}
               />
             ))}
           </div>

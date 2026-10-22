@@ -165,6 +165,43 @@ export type DemandeAdmin = DemandeApi & {
   actions?: ActionEquipe[];
   cloturable?: boolean;
   historique?: { date: string | null; qui: string; type: string; titre: string; texte: string | null }[];
+  reinterventionnable?: boolean;
+  /** Les déclarations des deux parties, avec leurs preuves. */
+  declarations?: { id: number; role: "client" | "prestataire"; auteur: string | null; motif: string; motif_libelle: string; message: string | null; photos: string[]; statut: string; reponse: string | null; date: string | null }[];
+  decisions?: { id: number; decision: string; mesures: string[]; remboursement: number | null; par: string | null; date: string | null }[];
+  /** Le prestataire fautif à répétition ? */
+  dossier_prestataire?: RecidivePrestataire | null;
+};
+
+export type RecidivePrestataire = { id: number; statut: StatutPrestataire; statut_libelle: string; litiges: number; contre: number; avertissements: number; fenetre_jours: number; seuil: number; recidive: boolean };
+
+export type MesureLitige = "remboursement" | "reintervention" | "avertissement" | "suspension" | "blocage";
+
+/** Une demande en litige, dans la liste de l'équipe. */
+export type LitigeAdmin = {
+  id: number;
+  reference: string;
+  secteur: string | null;
+  client: string | null;
+  prestataire: string | null;
+  statut_libelle: string;
+  motifs: { role: "client" | "prestataire"; libelle: string }[];
+  ouverts: number;
+  preuves: number;
+  depuis: string | null;
+  decision: string | null;
+  recidive: boolean;
+};
+
+/** Finances : réglages, totaux de la période, soldes par prestataire, paiements. */
+export type FinancesAdmin = {
+  periode: { du: string; au: string };
+  reglages: { commission_taux: number | null; negociation_directe: boolean; paiements: string[]; seuil_recidive: number };
+  moyens: { cle: string; libelle: string; detail: string }[];
+  secteurs: { cle: string; nom: string; commission: number | null; actif: boolean }[];
+  totaux: { missions: number; encaisse: number; commissions: number; paye: number; reste_du: number; impayes: number };
+  prestataires: { id: number; nom: string; missions: number; encaisse: number; commissions: number; paye: number; solde: number; dernier_paiement: string | null }[];
+  paiements: { id: number; prestataire_id: number; prestataire: string | null; montant: number; moyen: string; moyen_libelle: string; reference: string | null; note: string | null; par: string | null; paye_le: string | null }[];
 };
 
 /** Un prestataire à qui confier une demande. */
@@ -385,7 +422,7 @@ export type DemandeApi = {
   /** Suivi d'une intervention (hors pressing : celui-ci est dans `commande`). */
   suivi: { cle: string; libelle: string; fait: boolean; date: string | null }[] | null;
   /** Problèmes signalés (présents sur le détail et dans les onglets). */
-  signalements?: { id: number; motif: string; motif_libelle: string; message: string | null; statut: string; date: string }[];
+  signalements?: { id: number; motif: string; motif_libelle: string; message: string | null; statut: string; date: string; role?: "client" | "prestataire"; photos?: string[] }[];
   /** Ce que le client peut signaler : motifs du pressing ou d'une intervention. */
   motifs_signalement: { cle: string; nom: string }[];
   /** L'onglet de la demande (présent à la création et sur le détail). */
@@ -403,7 +440,7 @@ export type DemandeApi = {
   cree_le: string;
 };
 
-export type Paiement = "especes" | "mobile_money" | "autre";
+export type Paiement = "especes" | "mobile_money" | "virement" | "autre";
 
 export type CommandePressing = {
   service: { cle: string; nom: string } | null;
@@ -444,7 +481,7 @@ export type NotificationApi = {
 };
 
 /** Demande reçue par le prestataire connecté (GET /api/pro/demandes). */
-export type DemandeProApi = DemandeApi & { client: { nom: string; telephone: string | null }; relance?: { date: string | null; message: string | null } | null };
+export type DemandeProApi = DemandeApi & { client: { nom: string; telephone: string | null }; relance?: { date: string | null; message: string | null } | null; motifs_prestataire?: { cle: string; nom: string }[] };
 
 /** Article du pack pressing et son prix indicatif par pièce. */
 export type ArticlePressing = { cle: string; nom: string; prix: number; prix_affichage: string; categorie: string; categorie_nom: string };
@@ -647,8 +684,16 @@ export const api = {
   ajouterAdresse: (adresse: { type: AdresseApi["type"]; nom?: string; quartier_id: number; repere?: string }) =>
     requete<{ data: AdresseApi }>("/moi/adresses", { methode: "POST", corps: adresse }).then((r) => r.data),
   supprimerAdresse: (id: number) => requete<null>(`/moi/adresses/${id}`, { methode: "DELETE" }),
-  signaler: (id: number, signalement: { motif: string; message?: string }) =>
-    requete<{ data: DemandeApi }>(`/demandes/${id}/signalements`, { methode: "POST", corps: signalement }).then((r) => r.data),
+  signaler: (id: number, signalement: { motif: string; message?: string; photos?: File[] }) => {
+    // Des photos à l'appui : envoi en multipart.
+    const f = new FormData();
+    f.append("motif", signalement.motif);
+    if (signalement.message) f.append("message", signalement.message);
+    (signalement.photos ?? []).forEach((p) => f.append("photos[]", p));
+    return requete<{ data: DemandeApi }>(`/demandes/${id}/signalements`, { methode: "POST", corps: f }).then((r) => r.data);
+  },
+  /** Règles de la plateforme utiles au client : moyens de paiement proposés, négociation directe. */
+  reglages: () => memoriser("reglages", () => requete<{ data: { paiements: { valeur: Paiement; libelle: string; detail: string }[]; negociation_directe: boolean } }>("/reglages").then((r) => r.data)),
   notifications: (signal?: AbortSignal) => requete<{ data: NotificationApi[] }>("/notifications", { signal }).then((r) => r.data),
   /* « Devenir prestataire » */
   exigencesCandidature: () => memoriser("exigences-candidature", () => requete<{ data: ExigencesCandidature }>("/candidature/exigences").then((r) => r.data)),
@@ -685,8 +730,26 @@ export const api = {
       requete<{ data: DemandeAdmin }>(`/admin/demandes/${id}/attribuer`, { methode: "POST", corps: { prestataire_id, message } }).then((r) => r.data),
     relancerDemande: (id: number, message?: string) => requete<{ data: DemandeAdmin }>(`/admin/demandes/${id}/relancer`, { methode: "POST", corps: { message } }).then((r) => r.data),
     annulerDemandeEquipe: (id: number, motif: string) => requete<{ data: DemandeAdmin }>(`/admin/demandes/${id}/annuler`, { methode: "POST", corps: { motif } }).then((r) => r.data),
-    resoudreLitige: (id: number, decision: string, issue: "aucune" | "annuler" | "cloturer", avertir: boolean) =>
-      requete<{ data: DemandeAdmin }>(`/admin/demandes/${id}/litige`, { methode: "POST", corps: { decision, issue, avertir } }).then((r) => r.data),
+    resoudreLitige: (id: number, decision: string, issue: "aucune" | "annuler" | "cloturer", mesures: MesureLitige[], remboursement?: number | null) =>
+      requete<{ data: DemandeAdmin }>(`/admin/demandes/${id}/litige`, { methode: "POST", corps: { decision, issue, mesures, remboursement } }).then((r) => r.data),
+    litiges: (filtres: { etat?: string; motif?: string; role?: string }, signal?: AbortSignal) =>
+      requete<{ data: LitigeAdmin[] }>(`/admin/litiges${parametres(filtres)}`, { signal }).then((r) => r.data),
+    finances: (periode: { du?: string; au?: string }, signal?: AbortSignal) => requete<{ data: FinancesAdmin }>(`/admin/finances${parametres(periode)}`, { signal }).then((r) => r.data),
+    reglagesFinances: (saisie: Partial<FinancesAdmin["reglages"]>) => requete<{ data: FinancesAdmin["reglages"] }>("/admin/finances/reglages", { methode: "PUT", corps: saisie }).then((r) => r.data),
+    commissionsSecteurs: (commissions: Record<string, number | null>) => requete<unknown>("/admin/finances/secteurs", { methode: "PUT", corps: { commissions } }),
+    enregistrerPaiement: (saisie: { prestataire_id: number; montant: number; moyen: string; reference?: string; note?: string; paye_le?: string }) =>
+      requete<{ data: FinancesAdmin["paiements"][number] & { solde: number } }>("/admin/finances/paiements", { methode: "POST", corps: saisie }).then((r) => r.data),
+    /** Rapport financier en CSV, lu avec le jeton puis proposé au téléchargement. */
+    exporterFinances: async (rapport: "missions" | "prestataires" | "paiements", periode: { du?: string; au?: string }) => {
+      const j = jeton.lire();
+      const reponse = await fetch(`${BASE}/admin/finances/export${parametres({ rapport, ...periode })}`, { headers: j ? { Authorization: `Bearer ${j}` } : {} });
+      if (!reponse.ok) throw new ErreurApi("Le rapport n'a pas pu être préparé.", reponse.status);
+      const lien = document.createElement("a");
+      lien.href = URL.createObjectURL(await reponse.blob());
+      lien.download = `terraclick-${rapport}-${periode.du ?? ""}-${periode.au ?? ""}.csv`;
+      lien.click();
+      setTimeout(() => URL.revokeObjectURL(lien.href), 5000);
+    },
     prestataires: (filtres: { q?: string; etat?: "actifs" | "suspendus" | "bloques" | "tous"; secteur?: string; quartier?: number; note_min?: number }, signal?: AbortSignal) =>
       requete<{ data: PrestataireAdmin[] }>(`/admin/prestataires${parametres(filtres)}`, { signal }).then((r) => r.data),
     modifierPrestataire: (id: number, patch: { actif?: boolean; en_vedette?: boolean }) =>
@@ -728,6 +791,8 @@ export const api = {
   },
   /* Espace prestataire : demandes et commandes reçues */
   demandesRecues: (signal?: AbortSignal) => requete<Page<DemandeProApi>>("/pro/demandes", { signal }).then((r) => r.data),
+  signalerCommePro: (id: number, signalement: { motif: string; message: string }) =>
+    requete<{ data: DemandeProApi }>(`/pro/demandes/${id}/signaler`, { methode: "POST", corps: signalement }).then((r) => r.data),
   agirSurDemande: (id: number, action: "accepter" | "refuser" | "demarrer" | "terminer" | "etape", corps?: Record<string, unknown>) =>
     requete<{ data: DemandeProApi }>(`/pro/demandes/${id}/${action}`, { methode: "POST", corps: corps ?? {} }).then((r) => r.data),
   mesDemandes: (signal?: AbortSignal) => requete<Page<DemandeApi>>("/demandes?par_page=100", { signal }).then((r) => r.data),

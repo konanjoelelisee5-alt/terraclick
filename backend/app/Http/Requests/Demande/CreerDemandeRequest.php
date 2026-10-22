@@ -4,6 +4,7 @@ namespace App\Http\Requests\Demande;
 
 use App\Models\Demande;
 use App\Models\Quartier;
+use App\Models\Reglage;
 use App\Services\AnalyseurBesoin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -36,7 +37,7 @@ class CreerDemandeRequest extends FormRequest
             'date_souhaitee' => ['nullable', 'required_if:quand,date', 'date', 'after_or_equal:today'],
             'mode' => ['required', Rule::in(Demande::MODES)],
             'prestataire_id' => ['nullable', 'integer', 'exists:prestataires,id'],
-            'paiement' => ['required', Rule::in(Demande::PAIEMENTS)],
+            'paiement' => ['required', Rule::in(Reglage::paiements())],
             'photos' => ['nullable', 'array', 'max:3'],
             'photos.*' => ['image', 'max:5120'],
             // Pack pressing : les articles et leur nombre ; les prix viennent de config/pressing.php.

@@ -29,6 +29,9 @@ export function DemandesRecues() {
   const [refus, setRefus] = useState<DemandeProApi | null>(null);
   const [motif, setMotif] = useState("");
   const [occupe, setOccupe] = useState<number | null>(null);
+  const [signale, setSignale] = useState<DemandeProApi | null>(null);
+  const [motifPro, setMotifPro] = useState<string | null>(null);
+  const [recit, setRecit] = useState("");
 
   useEffect(() => {
     const arret = new AbortController();
@@ -105,6 +108,7 @@ export function DemandesRecues() {
             onEtape={() => agir(d, "etape", `Étape : ${d.commande?.etape_suivante?.libelle}`)}
             onDemarrer={() => agir(d, "demarrer", "Intervention démarrée")}
             onTerminer={() => agir(d, "terminer", "Intervention terminée")}
+            onSignaler={() => setSignale(d)}
           />
         ))}
       </div>
@@ -135,6 +139,43 @@ export function DemandesRecues() {
           />
         </Dialogue>
       )}
+
+      {signale && (
+        <Dialogue
+          titre="Signaler un problème"
+          description="L'équipe TerraClick lit votre déclaration, écoute aussi le client, puis décide."
+          icone="flag"
+          fond="var(--state-danger-soft)"
+          encre="var(--state-danger)"
+          confirmer="Envoyer"
+          onFermer={() => setSignale(null)}
+          onConfirmer={async () => {
+            if (!motifPro || recit.trim().length < 5) {
+              toast("Déclaration incomplète", "Choisissez le motif et décrivez ce qui s'est passé.", "danger");
+              return;
+            }
+            try {
+              const maj = await api.signalerCommePro(signale.id, { motif: motifPro, message: recit.trim() });
+              setDemandes((liste) => liste?.map((x) => (x.id === maj.id ? maj : x)) ?? null);
+              toast("Problème signalé", "L'équipe TerraClick va l'examiner.");
+              setSignale(null);
+              setMotifPro(null);
+              setRecit("");
+            } catch (e) {
+              toast("Signalement impossible", messageErreur(e), "danger");
+            }
+          }}
+        >
+          <div role="radiogroup" aria-label="Motif" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+            {(signale.motifs_prestataire ?? []).map((m) => (
+              <button key={m.cle} type="button" role="radio" aria-checked={motifPro === m.cle} onClick={() => setMotifPro(m.cle)} className={`sy-tag${motifPro === m.cle ? " sy-tag--selected" : ""}`}>
+                {m.nom}
+              </button>
+            ))}
+          </div>
+          <textarea className="sy-textarea" aria-label="Ce qui s'est passé" value={recit} onChange={(e) => setRecit(e.target.value)} placeholder="Ce qui s'est passé, quand…" style={{ borderRadius: 14 }} />
+        </Dialogue>
+      )}
     </EspacePro>
   );
 }
@@ -147,6 +188,7 @@ function CarteRecue(props: {
   onEtape: () => void;
   onDemarrer: () => void;
   onTerminer: () => void;
+  onSignaler: () => void;
 }) {
   const { d } = props;
   const c = d.commande;
@@ -248,6 +290,11 @@ function CarteRecue(props: {
         {!c && d.statut === "en_cours" && (
           <button disabled={props.occupe} onClick={props.onTerminer} className="sy-btn sy-btn--primary sy-btn--md">
             Marquer terminée
+          </button>
+        )}
+        {["acceptee", "en_cours", "terminee", "confirmee"].includes(d.statut) && (
+          <button data-r="signaler-pro" disabled={props.occupe} onClick={props.onSignaler} className="sy-btn sy-btn--ghost sy-btn--md" style={{ color: "var(--state-danger)" }}>
+            Signaler un problème
           </button>
         )}
       </div>

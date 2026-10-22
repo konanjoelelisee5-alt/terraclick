@@ -28,7 +28,12 @@ const GROUPES: { titre: string; entrees: Entree[] }[] = [
     entrees: [
       { ecran: "adminCandidatures", libelle: "Candidatures", court: "Candidatures", icone: "badge-check", permission: "candidatures.voir", compteur: "candidatures" },
       { ecran: "adminSignalements", libelle: "Signalements", court: "Signalements", icone: "flag", permission: "signalements.voir", compteur: "signalements" },
+      { ecran: "adminLitiges", libelle: "Litiges", court: "Litiges", icone: "scale", permission: "demandes.voir_toutes" },
     ],
+  },
+  {
+    titre: "Finances",
+    entrees: [{ ecran: "adminFinances", libelle: "Commissions et paiements", court: "Finances", icone: "wallet", permission: "finances.voir" }],
   },
   {
     titre: "Annuaire",

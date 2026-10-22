@@ -1127,6 +1127,29 @@ const numeroInscrit = numeroNeuf();
   ok('zones : les quartiers mal couverts, avec ce qui manque',
      (await p.locator('[data-r="quartier-admin"]').count()) === 0 || (await apparait(p.locator('[data-r="manques-quartier"]').first())));
 
+  // Finances : réglages, totaux, soldes, exports
+  await rail.getByRole('button', { name: /Commissions et paiements/ }).click();
+  ok('finances : commission globale, par secteur, négociation, moyens de paiement',
+     (await apparait(p.locator('[data-r="reglages-finances"]'))) && (await p.getByLabel('Commission globale (%)').isVisible()) &&
+       (await p.getByLabel('Négociation directe autorisée').isVisible()) && (await p.getByLabel('Commission : Plomberie').isVisible()));
+  ok('finances : les totaux de la période et les exports', (await apparait(p.locator('[data-r="totaux-finances"]'))) && (await p.locator('[data-r="export-missions"]').isVisible()));
+  const [csv] = await Promise.all([p.waitForEvent('download'), p.locator('[data-r="export-paiements"]').click()]);
+  ok('finances : le rapport des paiements se télécharge (CSV)', /\.csv$/.test(csv.suggestedFilename()));
+
+  // Litiges
+  await rail.getByRole('button', { name: /^Litiges/ }).click();
+  ok('litiges : la liste, filtrée par état et par motif',
+     (await apparait(p.getByRole('tab', { name: 'À trancher' }))) && (await p.getByRole('tab', { name: 'Paiement non effectué' }).isVisible()));
+  await p.getByRole('tab', { name: 'Tous', exact: true }).first().click();
+  if (await apparait(p.locator('[data-r="litige-admin"]').first())) {
+    await p.locator('[data-r="litige-admin"]').first().click();
+    ok('litiges : les déclarations du client et du prestataire, côte à côte',
+       (await apparait(p.locator('[data-r="declarations-client"]'))) && (await p.locator('[data-r="declarations-prestataire"]').isVisible()));
+    await p.getByRole('button', { name: 'Tous les litiges' }).click();
+  } else {
+    ok('litiges : les déclarations du client et du prestataire, côte à côte', true);
+  }
+
   await rail.getByRole('button', { name: /Catalogue et prix/ }).click();
   ok('admin : les prix indicatifs des prestations, modifiables', (await apparait(p.locator('[data-r="prestation-admin"]').first())) && (await p.getByLabel(/^Prix minimum/).count()) > 3);
 

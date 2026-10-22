@@ -33,6 +33,8 @@ return [
             'demandes.voir_toutes' => 'Voir toutes les demandes et commandes',
             'demandes.gerer' => 'Attribuer, relancer, réattribuer ou annuler une demande',
             'litiges.resoudre' => 'Résoudre un litige entre client et prestataire',
+            'finances.voir' => 'Voir les montants encaissés, les commissions et les paiements',
+            'finances.gerer' => 'Régler les commissions et les moyens de paiement, enregistrer un paiement',
             'prestataires.voir' => 'Voir les prestataires',
             'prestataires.suspendre' => 'Suspendre ou réactiver un prestataire',
             'prestataires.mettre_en_avant' => 'Mettre un prestataire en avant',

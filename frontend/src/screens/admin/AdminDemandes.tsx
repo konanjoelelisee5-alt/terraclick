@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { SECTEURS } from "../../data/catalogue";
-import { api, messageErreur, type CandidatDemande, type DemandeAdmin, type PrestataireAdmin } from "../../lib/api";
+import { api, messageErreur, type CandidatDemande, type DemandeAdmin, type MesureLitige, type PrestataireAdmin } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
 import { peut } from "../../lib/acces";
 import { useApp } from "../../state/app";
@@ -199,7 +199,21 @@ export function AdminDemandes() {
 
 type Fenetre = "attribuer" | "relancer" | "annuler" | "litige" | null;
 
-function DetailDemande({ d, onRetour, onMaj }: { d: DemandeAdmin; onRetour: () => void; onMaj: (d: DemandeAdmin) => void }) {
+const MESURES: { cle: MesureLitige; nom: string; permission?: string }[] = [
+  { cle: "remboursement", nom: "Rembourser le client" },
+  { cle: "reintervention", nom: "Nouvelle intervention du prestataire" },
+  { cle: "avertissement", nom: "Avertir le prestataire" },
+  { cle: "suspension", nom: "Suspendre le prestataire", permission: "prestataires.suspendre" },
+  { cle: "blocage", nom: "Bloquer le prestataire", permission: "prestataires.bloquer" },
+];
+
+/** Téléphone ivoirien affiché (« 07 58 42 19 03 ») → lien d'appel et lien WhatsApp. */
+const liens = (tel: string) => {
+  const chiffres = tel.replace(/\D/g, "");
+  return { appel: `tel:+225${chiffres}`, whatsapp: `https://wa.me/225${chiffres}` };
+};
+
+export function DetailDemande({ d, onRetour, onMaj, retour = "Toutes les demandes" }: { d: DemandeAdmin; onRetour: () => void; onMaj: (d: DemandeAdmin) => void; retour?: string }) {
   const { etat } = useApp();
   const toast = useToast();
   const [fenetre, setFenetre] = useState<Fenetre>(null);
@@ -207,7 +221,8 @@ function DetailDemande({ d, onRetour, onMaj }: { d: DemandeAdmin; onRetour: () =
   const [candidats, setCandidats] = useState<CandidatDemande[] | null>(null);
   const [choisi, setChoisi] = useState<number | null>(null);
   const [issue, setIssue] = useState<"aucune" | "annuler" | "cloturer">("aucune");
-  const [avertir, setAvertir] = useState(false);
+  const [mesures, setMesures] = useState<MesureLitige[]>([]);
+  const [rembourse, setRembourse] = useState("");
   const gerer = peut(etat.auth, "demandes.gerer");
   const litiges = peut(etat.auth, "litiges.resoudre");
   const actions = d.actions ?? [];
@@ -218,7 +233,8 @@ function DetailDemande({ d, onRetour, onMaj }: { d: DemandeAdmin; onRetour: () =
     setTexte("");
     setChoisi(null);
     setIssue("aucune");
-    setAvertir(false);
+    setMesures([]);
+    setRembourse("");
   };
 
   const agir = async (action: () => Promise<DemandeAdmin>, titre: string) => {
@@ -245,7 +261,8 @@ function DetailDemande({ d, onRetour, onMaj }: { d: DemandeAdmin; onRetour: () =
     if (fenetre === "relancer") return agir(() => api.admin.relancerDemande(d.id, texte.trim() || undefined), "Prestataire relancé");
     if (texte.trim().length < 5) return toast("Texte trop court", fenetre === "annuler" ? "Indiquez le motif : le client le lit." : "Écrivez la décision prise.", "danger");
     if (fenetre === "annuler") return agir(() => api.admin.annulerDemandeEquipe(d.id, texte.trim()), "Demande annulée");
-    return agir(() => api.admin.resoudreLitige(d.id, texte.trim(), issue, avertir), "Litige résolu");
+    if (mesures.includes("remboursement") && !Number(rembourse)) return toast("Montant manquant", "Indiquez le montant remboursé au client.", "danger");
+    return agir(() => api.admin.resoudreLitige(d.id, texte.trim(), mesures.includes("reintervention") ? "aucune" : issue, mesures, mesures.includes("remboursement") ? Number(rembourse) : null), "Décision enregistrée");
   };
 
   const urgence = d.quand === "date" ? (d.date_souhaitee ? `Le ${new Date(d.date_souhaitee).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}` : null) : URGENCE[d.quand];
@@ -277,7 +294,7 @@ function DetailDemande({ d, onRetour, onMaj }: { d: DemandeAdmin; onRetour: () =
     <EspaceAdmin titre={d.reference ?? "Demande"}>
       <button onClick={onRetour} className="sy-btn sy-btn--ghost sy-btn--sm" style={{ alignSelf: "flex-start", gap: 6 }}>
         <Icon name="arrow-left" size={16} />
-        Toutes les demandes
+        {retour}
       </button>
 
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -358,6 +375,93 @@ function DetailDemande({ d, onRetour, onMaj }: { d: DemandeAdmin; onRetour: () =
         </div>
       </div>
 
+      {d.dossier_prestataire?.recidive && (
+        <p data-r="recidive" role="alert" style={{ margin: 0, padding: "12px 16px", borderRadius: 14, background: "var(--state-danger-soft)", fontSize: "14.5px" }}>
+          <strong>Prestataire fautif à répétition :</strong> {d.dossier_prestataire.contre} litige{d.dossier_prestataire.contre > 1 ? "s" : ""} tranché{d.dossier_prestataire.contre > 1 ? "s" : ""} contre {d.prestataire?.nom ?? "lui"} en {d.dossier_prestataire.fenetre_jours} jours (seuil : {d.dossier_prestataire.seuil}). Statut actuel : {d.dossier_prestataire.statut_libelle}.
+        </p>
+      )}
+
+      {(d.client.telephone || d.prestataire_contact?.telephone) && (
+        <section className="sy-card" aria-label="Contacter les parties">
+          <div className="sy-card__body" style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+            <h3 style={{ ...TITRE_CARTE, width: "100%" }}>Contacter les parties</h3>
+            {(
+              [
+                ["Client", d.client.nom, d.client.telephone],
+                ["Prestataire", d.prestataire_contact?.nom, d.prestataire_contact?.telephone],
+              ] as [string, string | null | undefined, string | null | undefined][]
+            )
+              .filter(([, , tel]) => tel)
+              .map(([qui, nom, tel]) => (
+                <span key={qui} data-r={`contact-${qui.toLowerCase()}`} style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", flex: "1 1 260px" }}>
+                  <span style={{ fontSize: "13.5px", minWidth: 0 }}>
+                    <strong>{qui}</strong> · {nom ?? ""} · {tel}
+                  </span>
+                  <a href={liens(tel!).appel} className="sy-btn sy-btn--outline sy-btn--sm" style={{ gap: 6 }}>
+                    <Icon name="phone" size={14} />
+                    Appeler
+                  </a>
+                  <a href={liens(tel!).whatsapp} target="_blank" rel="noreferrer" className="sy-btn sy-btn--ghost sy-btn--sm" style={{ gap: 6 }}>
+                    <Icon name="message-circle" size={14} />
+                    WhatsApp
+                  </a>
+                </span>
+              ))}
+          </div>
+        </section>
+      )}
+
+      {(d.declarations ?? []).length > 0 && (
+        <section className="sy-card" aria-label="Déclarations">
+          <div className="sy-card__body" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <h3 style={TITRE_CARTE}>Déclarations du client et du prestataire</h3>
+            <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))" }}>
+              {(["client", "prestataire"] as const).map((role) => {
+                const siennes = (d.declarations ?? []).filter((x) => x.role === role);
+                return (
+                  <div key={role} data-r={`declarations-${role}`} style={{ display: "flex", flexDirection: "column", gap: 8, padding: 12, borderRadius: 12, background: "var(--surface-sunken)" }}>
+                    <strong style={{ fontSize: "14px" }}>{role === "client" ? "Le client" : "Le prestataire"}</strong>
+                    {!siennes.length && <span style={{ fontSize: "13.5px", color: GRIS }}>Aucune déclaration.</span>}
+                    {siennes.map((x) => (
+                      <div key={x.id} style={{ fontSize: "14px" }}>
+                        <span style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                          <strong>{x.motif_libelle}</strong>
+                          <span className={`sy-badge sy-badge--${x.statut === "ouvert" ? "warning" : "neutral"}`}>{x.statut === "ouvert" ? "Ouvert" : "Traité"}</span>
+                          {x.date && <span style={{ fontSize: "12.5px", color: GRIS }}>{dateHeure(x.date)}</span>}
+                        </span>
+                        {x.message && <span style={{ display: "block", marginTop: 2 }}>« {x.message} »</span>}
+                        {x.photos.length > 0 && (
+                          <span data-r="preuves" style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+                            {x.photos.map((url) => (
+                              <a key={url} href={url} target="_blank" rel="noreferrer">
+                                <img src={url} alt="Preuve jointe" style={{ width: 84, height: 84, objectFit: "cover", borderRadius: 8 }} />
+                              </a>
+                            ))}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+            {(d.decisions ?? []).map((x) => (
+              <p key={x.id} data-r="decision-litige" style={{ margin: 0, padding: "10px 14px", borderRadius: 12, background: "var(--kola-50, #FEF3EC)", fontSize: "14px" }}>
+                <strong>Décision finale{x.date ? ` du ${dateHeure(x.date)}` : ""}</strong>
+                {x.par ? ` · ${x.par}` : ""}
+                <span style={{ display: "block", marginTop: 2 }}>{x.decision}</span>
+                {x.mesures.length > 0 && (
+                  <span style={{ display: "block", marginTop: 2, color: GRIS, fontSize: "13px" }}>
+                    {x.mesures.join(" · ")}
+                    {x.remboursement ? ` · ${x.remboursement.toLocaleString("fr-FR")} F remboursés` : ""}
+                  </span>
+                )}
+              </p>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="sy-card" aria-label="Historique">
         <div className="sy-card__body" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <h3 style={TITRE_CARTE}>Historique des échanges et décisions</h3>
@@ -399,7 +503,7 @@ function DetailDemande({ d, onRetour, onMaj }: { d: DemandeAdmin; onRetour: () =
                 ? `Relancer ${d.prestataire?.nom ?? "le prestataire"}`
                 : fenetre === "annuler"
                   ? "Annuler la demande ?"
-                  : "Résoudre le litige"
+                  : "Décision finale du litige"
           }
           description={
             fenetre === "attribuer"
@@ -408,7 +512,7 @@ function DetailDemande({ d, onRetour, onMaj }: { d: DemandeAdmin; onRetour: () =
                 ? "Le prestataire voit votre message sur la demande, dans ses demandes reçues."
                 : fenetre === "annuler"
                   ? "Le client et le prestataire voient la demande annulée, avec votre motif."
-                  : "Votre décision clôt les signalements ouverts. Le client la lit dans ses notifications."
+                  : "Après avoir lu les deux déclarations et contacté les parties : votre décision clôt les signalements ouverts et reste au dossier."
           }
           icone={fenetre === "attribuer" ? "users" : fenetre === "relancer" ? "bell" : fenetre === "annuler" ? "x" : "scale"}
           fond={fenetre === "annuler" ? "var(--state-danger-soft)" : "var(--kola-100)"}
@@ -439,6 +543,7 @@ function DetailDemande({ d, onRetour, onMaj }: { d: DemandeAdmin; onRetour: () =
           )}
           {fenetre === "litige" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 8, fontSize: "14px" }}>
+              <span style={{ fontWeight: 700 }}>Issue de la demande</span>
               {(
                 [
                   ["aucune", "La demande suit son cours"],
@@ -451,12 +556,36 @@ function DetailDemande({ d, onRetour, onMaj }: { d: DemandeAdmin; onRetour: () =
                   {nom}
                 </label>
               ))}
-              {d.prestataire && (
-                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginTop: 4 }}>
-                  <input type="checkbox" checked={avertir} onChange={(e) => setAvertir(e.target.checked)} style={{ accentColor: "var(--kola-500)" }} />
-                  Avertir le prestataire (inscrit à son dossier)
+              <span style={{ fontWeight: 700, marginTop: 6 }}>Mesures</span>
+              {MESURES.filter((m) => (m.cle === "remboursement" || d.prestataire) && (!m.permission || peut(etat.auth, m.permission)))
+                .filter((m) => m.cle !== "reintervention" || d.reinterventionnable)
+                .map((m) => (
+                  <label key={m.cle} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={mesures.includes(m.cle)}
+                      onChange={() =>
+                        setMesures((x) => {
+                          const sans = x.filter((y) => y !== m.cle);
+                          if (x.includes(m.cle)) return sans;
+                          // Suspendre ou bloquer, pas les deux.
+                          const exclu = m.cle === "suspension" ? "blocage" : m.cle === "blocage" ? "suspension" : null;
+                          return [...sans.filter((y) => y !== exclu), m.cle];
+                        })
+                      }
+                      style={{ accentColor: "var(--kola-500)" }}
+                    />
+                    {m.nom}
+                  </label>
+                ))}
+              {mesures.includes("remboursement") && (
+                <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  Montant remboursé
+                  <input className="sy-input" inputMode="numeric" aria-label="Montant remboursé" value={rembourse} onChange={(e) => setRembourse(e.target.value.replace(/\D/g, ""))} style={{ width: 120, minHeight: 38 }} />
+                  F
                 </label>
               )}
+              {mesures.includes("reintervention") && <span style={{ fontSize: "12.5px", color: GRIS }}>La demande redevient « acceptée » : le prestataire doit revenir.</span>}
             </div>
           )}
           <textarea

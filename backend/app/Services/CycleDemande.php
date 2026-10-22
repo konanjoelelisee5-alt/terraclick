@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Accord;
+use App\Models\Commission;
 use App\Models\Demande;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -65,6 +66,9 @@ class CycleDemande
             ]);
 
             $this->suivreAccord($demande, $vers);
+            if ($vers === 'confirmee') {
+                Commission::pourDemande($demande);
+            }
 
             // Demande plus ancienne que les onglets de suivi : elle les rejoint maintenant.
             if ($demande->prestataire_id) {
@@ -88,6 +92,8 @@ class CycleDemande
         'annuler' => [['envoyee', 'refusee', 'acceptee', 'en_cours', 'terminee'], 'annulee', 'annulee'],
         // Litige tranché en faveur de l'intervention : elle est réputée menée à bien.
         'cloturer' => [['acceptee', 'en_cours', 'terminee'], 'confirmee', 'confirmee'],
+        // Litige : le prestataire doit revenir ; la demande redevient acceptée.
+        'reintervenir' => [['en_cours', 'terminee', 'confirmee'], 'acceptee', 'reintervention'],
     ];
 
     private const REFUS_EQUIPE = [
@@ -95,6 +101,7 @@ class CycleDemande
         'relancer' => 'Seule une demande qui attend la réponse du prestataire peut être relancée.',
         'annuler' => 'Cette demande ne peut plus être annulée.',
         'cloturer' => 'Seule une demande acceptée, en cours ou terminée peut être clôturée.',
+        'reintervenir' => 'Une nouvelle intervention se décide sur une demande en cours ou terminée.',
     ];
 
     /**
@@ -124,6 +131,12 @@ class CycleDemande
                 Accord::pourDemande($demande);
             } elseif ($vers) {
                 $this->suivreAccord($demande, $vers);
+            }
+            // Mission accomplie : sa commission. Annulée ou à refaire : plus rien n'est dû pour l'instant.
+            if ($vers === 'confirmee') {
+                Commission::pourDemande($demande);
+            } elseif (in_array($vers, ['annulee', 'acceptee'], true)) {
+                Commission::where('demande_id', $demande->id)->delete();
             }
 
             return $demande;

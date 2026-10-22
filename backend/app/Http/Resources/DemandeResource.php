@@ -34,11 +34,13 @@ class DemandeResource extends JsonResource
         'attribuee' => 'Confiée à un prestataire par l\'équipe',
         'relance' => 'Prestataire relancé par l\'équipe',
         'litige_resolu' => 'Litige résolu par l\'équipe',
+        'reintervention' => 'Nouvelle intervention décidée par l\'équipe',
     ];
 
     private const PAIEMENTS = [
         'especes' => 'Espèces',
         'mobile_money' => 'Mobile Money',
+        'virement' => 'Virement',
         'autre' => 'Autre moyen, à convenir',
     ];
 
@@ -81,7 +83,7 @@ class DemandeResource extends JsonResource
             'signalements' => $this->whenLoaded('signalements', fn () => $this->signalements->map(fn ($s) => [
                 'id' => $s->id,
                 'motif' => $s->motif,
-                'motif_libelle' => config("pressing.motifs_signalement.{$s->motif}", $s->motif),
+                'motif_libelle' => $s->libelle($this->resource),
                 'message' => $s->message,
                 'statut' => $s->statut,
                 'date' => $s->created_at?->toIso8601String(),
@@ -153,7 +155,9 @@ class DemandeResource extends JsonResource
             'signalements' => $this->whenLoaded('signalements', fn () => $this->signalements->map(fn ($s) => [
                 'id' => $s->id,
                 'motif' => $s->motif,
-                'motif_libelle' => $this->motifsSignalement()[$s->motif] ?? $s->motif,
+                'motif_libelle' => $s->libelle($this->resource),
+                'role' => $s->role,
+                'photos' => $s->urlsPhotos(),
                 'message' => $s->message,
                 'statut' => $s->statut,
                 'date' => $s->created_at?->toIso8601String(),
