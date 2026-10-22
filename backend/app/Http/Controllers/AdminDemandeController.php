@@ -148,7 +148,7 @@ class AdminDemandeController extends Controller
             ->when($demande->prestataire_id, fn ($q, $id) => $q->whereKeyNot($id))
             ->with('quartier')
             ->withCount(['demandes as en_cours_count' => fn ($q) => $q->whereIn('statut', ['envoyee', 'acceptee', 'en_cours'])])
-            ->orderByRaw('quartier_id = ? DESC', [$demande->quartier_id])
+            ->orderByRaw('(quartier_id = ? OR EXISTS (SELECT 1 FROM prestataire_quartier pq WHERE pq.prestataire_id = prestataires.id AND pq.quartier_id = ?)) DESC', [$demande->quartier_id, $demande->quartier_id])
             ->orderByDesc('note_moyenne')->orderBy('nom')
             ->limit(30)->get();
 
@@ -157,7 +157,7 @@ class AdminDemandeController extends Controller
             'nom' => $p->nom,
             'metier' => $p->metier,
             'quartier' => $p->quartier?->nom,
-            'meme_quartier' => $p->quartier_id === $demande->quartier_id,
+            'meme_quartier' => $p->quartier_id === $demande->quartier_id || $p->zones()->whereKey($demande->quartier_id)->exists(),
             'note' => (float) $p->note_moyenne,
             'nombre_avis' => $p->nombre_avis,
             'en_cours' => $p->en_cours_count,

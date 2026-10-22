@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Demande;
 
 use App\Models\Demande;
+use App\Models\Quartier;
 use App\Services\AnalyseurBesoin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -49,6 +50,22 @@ class CreerDemandeRequest extends FormRequest
             'heure' => [Rule::requiredIf($pack), 'nullable', Rule::in(config('pressing.heures'))],
             'adresse_libelle' => ['nullable', 'string', 'max:40'],
         ];
+    }
+
+    /** Le quartier doit être ouvert, et le service y être proposé. */
+    public function after(): array
+    {
+        return [function ($validator) {
+            if ($validator->errors()->has('quartier_id') || $validator->errors()->has('secteur')) {
+                return;
+            }
+            $quartier = Quartier::find($this->integer('quartier_id'));
+            if ($quartier && ! $quartier->actif) {
+                $validator->errors()->add('quartier_id', 'TerraClick n\'intervient pas encore dans ce quartier.');
+            } elseif ($quartier && ! $quartier->proposeSecteur((string) $this->input('secteur'))) {
+                $validator->errors()->add('quartier_id', 'Ce service n\'est pas encore proposé dans ce quartier.');
+            }
+        }];
     }
 
     public function messages(): array

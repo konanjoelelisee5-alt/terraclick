@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminDemandeController;
 use App\Http\Controllers\AdminPrestataireController;
 use App\Http\Controllers\AdminRoleController;
 use App\Http\Controllers\AdminSecteurController;
+use App\Http\Controllers\AdminZoneController;
 use App\Http\Controllers\AdresseController;
 use App\Http\Controllers\AnnuaireController;
 use App\Http\Controllers\AuthController;
@@ -109,6 +110,12 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('secteurs/{secteur}/prestations', [AdminSecteurController::class, 'ajouterPrestation'])->whereNumber('secteur');
             Route::patch('sous-services/{prestation}', [AdminSecteurController::class, 'modifierPrestation'])->whereNumber('prestation');
         });
+        Route::get('zones', [AdminZoneController::class, 'index'])->middleware('permission:zones.voir');
+        Route::middleware('permission:zones.gerer')->group(function () {
+            Route::post('zones', [AdminZoneController::class, 'store']);
+            Route::patch('zones/{quartier}', [AdminZoneController::class, 'update'])->whereNumber('quartier');
+        });
+        Route::put('prestataires/{prestataire}/zones', [AdminZoneController::class, 'zonesPrestataire'])->whereNumber('prestataire')->middleware('permission:prestataires.voir');
         Route::get('roles', [AdminRoleController::class, 'index'])->middleware('permission:roles.gerer');
         Route::put('roles/{role}', [AdminRoleController::class, 'update'])->whereNumber('role');
 

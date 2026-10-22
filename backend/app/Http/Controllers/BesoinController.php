@@ -77,7 +77,8 @@ class BesoinController extends Controller
             ->whereNotIn('id', $criteres['exclure'] ?? [])
             ->with('quartier')
             ->withCount(Prestataire::comptesDocuments())
-            ->orderByRaw('quartier_id = ? DESC', [$quartier])
+            // Ceux qui interviennent dans le quartier d'abord : le leur, ou l'une de leurs zones.
+            ->orderByRaw('(quartier_id = ? OR EXISTS (SELECT 1 FROM prestataire_quartier pq WHERE pq.prestataire_id = prestataires.id AND pq.quartier_id = ?)) DESC', [$quartier, $quartier])
             ->orderByDesc('en_vedette')
             ->orderByDesc('note_moyenne')
             ->orderByDesc('nombre_avis')

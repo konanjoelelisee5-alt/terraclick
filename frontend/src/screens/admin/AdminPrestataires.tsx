@@ -363,6 +363,8 @@ function DossierVue({ id, onRetour }: { id: number; onRetour: () => void }) {
         </dl>
       </Bloc>
 
+      <ZonesPrestataire d={d} modifiable={droit("prestataires.modifier")} onMaj={(zones) => setD({ ...d, zones })} />
+
       <Bloc titre="Secteurs">
         <div data-r="secteurs-prestataire" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {(secteurs ?? []).map((s) => {
@@ -520,6 +522,56 @@ function DossierVue({ id, onRetour }: { id: number; onRetour: () => void }) {
         </Dialogue>
       )}
     </section>
+  );
+}
+
+/** Zones d'intervention : les quartiers où il se déplace, en plus du sien. */
+function ZonesPrestataire({ d, modifiable, onMaj }: { d: DossierPrestataire; modifiable: boolean; onMaj: (zones: DossierPrestataire["zones"]) => void }) {
+  const toast = useToast();
+  const { donnees: villes } = useApi(() => api.villes(), []);
+  const [choix, setChoix] = useState<number[] | null>(null);
+  const ids = choix ?? d.zones.map((z) => z.id);
+
+  const enregistrer = async () => {
+    try {
+      onMaj(await api.admin.zonesPrestataire(d.id, ids));
+      setChoix(null);
+      toast("Zones enregistrées", d.nom);
+    } catch (e) {
+      toast("Zones non enregistrées", messageErreur(e), "danger");
+    }
+  };
+
+  return (
+    <Bloc titre={`Zones d'intervention (${ids.length})`}>
+      {!modifiable && !d.zones.length && <p style={{ margin: 0, fontSize: "14px", color: GRIS }}>Seulement son quartier{d.quartier ? ` : ${d.quartier}` : ""}.</p>}
+      {(villes ?? [])
+        .filter((v) => v.quartiers.length)
+        .map((v) => (
+          <div key={v.id} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {(villes?.length ?? 0) > 1 && <span style={{ fontSize: "12.5px", fontWeight: 700, color: GRIS }}>{v.nom}</span>}
+            <div data-r="zones-prestataire" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {v.quartiers.map((q) => {
+                const actif = ids.includes(q.id);
+                return modifiable ? (
+                  <button key={q.id} type="button" aria-pressed={actif} onClick={() => setChoix(actif ? ids.filter((x) => x !== q.id) : [...ids, q.id])} className={`sy-tag${actif ? " sy-tag--selected" : ""}`}>
+                    {q.nom}
+                  </button>
+                ) : actif ? (
+                  <span key={q.id} className="sy-tag sy-tag--selected">
+                    {q.nom}
+                  </span>
+                ) : null;
+              })}
+            </div>
+          </div>
+        ))}
+      {choix && (
+        <button data-r="enregistrer-zones" onClick={enregistrer} className="sy-btn sy-btn--primary sy-btn--sm" style={{ alignSelf: "flex-start" }}>
+          Enregistrer les zones
+        </button>
+      )}
+    </Bloc>
   );
 }
 

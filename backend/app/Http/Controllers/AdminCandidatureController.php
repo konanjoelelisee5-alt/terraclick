@@ -82,6 +82,8 @@ class AdminCandidatureController extends Controller
                 'actif' => true,
             ]);
             $fiche->categories()->sync(Categorie::whereIn('slug', $categories)->pluck('id'));
+            // Ses zones d'intervention : son quartier et ceux qu'il a cités.
+            $fiche->zones()->sync(Quartier::whereIn('id', [$candidature->quartier_id, ...$candidature->quartiers])->pluck('id'));
 
             // Les pièces contrôlées par l'équipe forment le dossier de la fiche, toutes vérifiées.
             foreach ($candidature->documents as $piece) {

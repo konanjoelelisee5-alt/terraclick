@@ -129,6 +129,12 @@ l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
     - **pièces** vérifiées une à une (vérifiée, ou refusée avec un motif) ; à la validation d'une candidature, toutes ses pièces rejoignent le dossier de la fiche (`prestataires.modifier`) ;
     - **avertissement** inscrit au dossier, relié s'il y a lieu au signalement d'un client (`prestataires.sanctionner`) ;
     - mettre en avant, voir la fiche publique.
+  - **Zones et quartiers** (`AdminZoneController`, permissions `zones.voir` et `zones.gerer`) :
+    - ajouter un quartier (Yamoussoukro ou une autre ville), l'activer ou le désactiver : désactivé, il n'est plus proposé aux clients et une demande y est refusée ;
+    - les services proposés dans chaque quartier (aucune limite par défaut) : un service non proposé est grisé dans le choix du quartier et refusé à l'envoi ;
+    - des frais de déplacement par quartier, si nécessaire : affichés au client avant l'envoi et gardés sur la demande (`demandes.frais_deplacement`), même si l'équipe les change ensuite ;
+    - la couverture : pour chaque quartier, le nombre de prestataires actifs qui y interviennent, secteur par secteur ; « Mal couverts » liste les services proposés sans aucun prestataire (« Aucun plombier ») ;
+    - les **zones d'intervention** des prestataires (table `prestataire_quartier`), réglées dans leur dossier, reprises à la migration de leur quartier, de leur candidature et du texte « zone d'intervention » ; elles servent aux résultats par quartier, aux recommandations et aux prestataires proposés pour une attribution ;
   - **Utilisateurs** : chercher par nom ou par numéro, donner ou retirer l'accès administrateur (jamais à soi-même) ;
   - **Catalogue et prix** : les prix indicatifs des prestations, modifiables ;
   - **Journal d'activité** : étapes des demandes, candidatures traitées et signalements.

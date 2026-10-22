@@ -42,6 +42,7 @@ const GROUPES: { titre: string; entrees: Entree[] }[] = [
     titre: "Configuration",
     entrees: [
       { ecran: "adminSecteurs", libelle: "Secteurs d'activité", court: "Secteurs", icone: "layout-grid", permission: "secteurs.voir" },
+      { ecran: "adminZones", libelle: "Zones et quartiers", court: "Zones", icone: "map-pin", permission: "zones.voir" },
       { ecran: "adminCatalogue", libelle: "Catalogue et prix", court: "Prix", icone: "receipt", permission: "catalogue.prix" },
       { ecran: "adminRoles", libelle: "Rôles et permissions", court: "Rôles", icone: "shield-check", permission: "roles.gerer" },
     ],

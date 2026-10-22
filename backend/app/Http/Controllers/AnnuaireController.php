@@ -16,7 +16,8 @@ class AnnuaireController extends Controller
     /** GET /api/villes */
     public function villes(): AnonymousResourceCollection
     {
-        return VilleResource::collection(Ville::with('quartiers')->orderBy('ordre')->get());
+        // Seuls les quartiers ouverts par l'équipe sont proposés.
+        return VilleResource::collection(Ville::with(['quartiers' => fn ($q) => $q->where('actif', true)])->orderBy('ordre')->get());
     }
 
     /**

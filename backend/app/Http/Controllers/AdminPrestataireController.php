@@ -128,7 +128,7 @@ class AdminPrestataireController extends Controller
     /** @return array<string, mixed> */
     private function dossier(Prestataire $p): array
     {
-        $p->load('quartier', 'utilisateur', 'categories', 'documents', 'realisations', 'sanctions.auteur');
+        $p->load('quartier', 'utilisateur', 'categories', 'documents', 'realisations', 'sanctions.auteur', 'zones');
         $catalogue = Secteur::catalogue();
         $slugs = $p->categories->pluck('slug')->all();
 
@@ -163,6 +163,7 @@ class AdminPrestataireController extends Controller
             'nombre_avis' => $p->nombre_avis,
             'secteurs' => collect($catalogue)->filter(fn (array $s) => array_intersect($slugs, $s['categories']))->keys()->values(),
             'categories' => $p->categories->pluck('nom'),
+            'zones' => $p->zones->sortBy('nom')->map(fn ($q) => ['id' => $q->id, 'nom' => $q->nom])->values(),
             'documents' => $p->documents->map(fn (DocumentPrestataire $d) => $this->piece($p, $d))->values(),
             'photos' => $p->realisations->filter(fn (Realisation $r) => $r->image)->map(fn (Realisation $r) => ['legende' => $r->legende, 'image' => $r->image])->values(),
             'activite' => [

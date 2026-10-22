@@ -259,6 +259,7 @@ function DetailDemande({ d, onRetour, onMaj }: { d: DemandeAdmin; onRetour: () =
     ["Client", [d.client.nom, d.client.telephone].filter(Boolean).join(" · ")],
     ["Prestataire", d.prestataire_contact ? [d.prestataire_contact.nom, d.prestataire_contact.telephone].filter(Boolean).join(" · ") : d.prestataire ? d.prestataire.nom : "Aucun"],
     ["Montant", d.pack?.total_affichage ?? (d.estimation !== null ? `${d.estimation.toLocaleString("fr-FR")} F (estimation du prestataire)` : "Pas encore estimé")],
+    ["Frais de déplacement", d.frais_deplacement ? `${d.frais_deplacement.toLocaleString("fr-FR")} F` : null],
     ["Créneau", d.creneau],
     ["Paiement", d.paiement_libelle],
     ["Statut", d.commande?.etape_libelle ?? d.statut_libelle],

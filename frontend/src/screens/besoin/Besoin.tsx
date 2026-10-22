@@ -250,13 +250,26 @@ export function Besoin() {
                   onChange={(e) => modifierBesoin({ quartier: e.target.value ? Number(e.target.value) : null })}
                 >
                   <option value="">Choisissez votre quartier</option>
-                  {quartiers.map((q) => (
-                    <option key={q.id} value={q.id}>
-                      {q.nom}
-                    </option>
-                  ))}
+                  {quartiers.map((q) => {
+                    // L'équipe peut limiter les services d'un quartier.
+                    const indisponible = !!b.secteur && !!q.secteurs && !q.secteurs.includes(b.secteur);
+                    return (
+                      <option key={q.id} value={q.id} disabled={indisponible}>
+                        {q.nom}
+                        {indisponible ? " — service pas encore disponible" : ""}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
+              {(() => {
+                const frais = quartiers.find((q) => q.id === b.quartier)?.frais_deplacement;
+                return frais ? (
+                  <p data-r="frais-deplacement" style={{ ...AIDE, marginTop: 8 }}>
+                    Frais de déplacement dans ce quartier : {frais.toLocaleString("fr-FR")} F.
+                  </p>
+                ) : null;
+              })()}
               <div className="sy-field" style={{ marginTop: 14 }}>
                 <label className="sy-field__label" htmlFor="besoin-repere">
                   Adresse ou point de repère (facultatif)

@@ -10,7 +10,8 @@ const CLE_JETON = "sy.jeton";
 
 export type Position = { lat: number; lng: number };
 
-export type Quartier = { id: number; nom: string; slug: string; ville?: string };
+/** Un quartier ouvert ; `secteurs` : services proposés (null : tous), et frais de déplacement éventuels. */
+export type Quartier = { id: number; nom: string; slug: string; ville?: string; secteurs?: string[] | null; frais_deplacement?: number | null };
 
 export type Ville = { id: number; nom: string; slug: string; position: Position | null; quartiers: Quartier[] };
 
@@ -215,6 +216,8 @@ export type DossierPrestataire = {
   /** Clés des secteurs. */
   secteurs: string[];
   categories: string[];
+  /** Zones d'intervention : les quartiers où il se déplace. */
+  zones: { id: number; nom: string }[];
   documents: PieceDossier[];
   photos: { legende: string; image: string }[];
   activite: { missions: number; acceptees: number; refusees: number; taux_acceptation: number | null; reussies: number; annulees: number; sans_reponse: number; retards: number; litiges: number; litiges_ouverts: number };
@@ -267,6 +270,20 @@ export type SecteursAdmin = {
   categories: { slug: string; nom: string; rubrique: string }[];
 };
 export type SecteurSaisie = Partial<Pick<SecteurAdmin, "nom" | "metier" | "description" | "icone" | "couleur" | "actif" | "categories" | "problemes" | "mots">>;
+
+/** Zones et quartiers vus par l'équipe : réglages et couverture par secteur. */
+export type QuartierAdmin = {
+  id: number;
+  nom: string;
+  actif: boolean;
+  secteurs: string[] | null;
+  frais_deplacement: number | null;
+  prestataires: number;
+  demandes_30j: number;
+  couverture: { cle: string; nom: string; metier: string; propose: boolean; prestataires: number }[];
+  manques: string[];
+};
+export type ZonesAdmin = { villes: { id: number; nom: string; quartiers: QuartierAdmin[] }[]; secteurs: { cle: string; nom: string; metier: string }[]; trous: number };
 
 export type PrestationAdmin = {
   id: number;
@@ -376,6 +393,8 @@ export type DemandeApi = {
   statut: StatutDemande;
   /** « Envoyée », « Marquée terminée »… */
   statut_libelle: string;
+  /** Frais de déplacement du quartier, au moment de l'envoi. */
+  frais_deplacement?: number | null;
   /** Réponse du technicien quand il accepte. */
   estimation: number | null;
   creneau: string | null;
@@ -692,6 +711,13 @@ export const api = {
       requete<{ data: Pick<PrestationAdmin, "id" | "prix_min" | "prix_max" | "prix_affichage"> }>(`/admin/prestations/${id}`, { methode: "PATCH", corps: prix }).then((r) => r.data),
     activite: (signal?: AbortSignal) => requete<{ data: ActiviteAdmin[] }>("/admin/activite", { signal }).then((r) => r.data),
     secteurs: (signal?: AbortSignal) => requete<{ data: SecteursAdmin }>("/admin/secteurs", { signal }).then((r) => r.data),
+    zones: (signal?: AbortSignal) => requete<{ data: ZonesAdmin }>("/admin/zones", { signal }).then((r) => r.data),
+    ajouterQuartier: (saisie: { ville_id: number; nom: string; frais_deplacement?: number | null }) =>
+      requete<{ data: { id: number; nom: string } }>("/admin/zones", { methode: "POST", corps: saisie }).then((r) => r.data),
+    modifierQuartier: (id: number, saisie: Partial<Pick<QuartierAdmin, "nom" | "actif" | "secteurs" | "frais_deplacement">>) =>
+      requete<{ data: Pick<QuartierAdmin, "id" | "nom" | "actif" | "secteurs" | "frais_deplacement"> }>(`/admin/zones/${id}`, { methode: "PATCH", corps: saisie }).then((r) => r.data),
+    zonesPrestataire: (id: number, quartiers: number[]) =>
+      requete<{ data: { id: number; nom: string }[] }>(`/admin/prestataires/${id}/zones`, { methode: "PUT", corps: { quartiers } }).then((r) => r.data),
     creerSecteur: (saisie: SecteurSaisie) => requete<{ data: SecteurAdmin }>("/admin/secteurs", { methode: "POST", corps: saisie }).then((r) => r.data),
     modifierSecteur: (id: number, saisie: SecteurSaisie) => requete<{ data: SecteurAdmin }>(`/admin/secteurs/${id}`, { methode: "PATCH", corps: saisie }).then((r) => r.data),
     ordonnerSecteurs: (ordre: number[]) => requete<{ data: number[] }>("/admin/secteurs/ordre", { methode: "PUT", corps: { ordre } }).then((r) => r.data),

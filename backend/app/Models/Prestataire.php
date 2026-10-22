@@ -84,6 +84,19 @@ class Prestataire extends Model
         return $this->hasMany(Avis::class);
     }
 
+    /** Zones d'intervention : les quartiers où il se déplace, en plus du sien. */
+    public function zones(): BelongsToMany
+    {
+        return $this->belongsToMany(Quartier::class, 'prestataire_quartier');
+    }
+
+    /** Intervient dans ce quartier : c'est le sien, ou l'une de ses zones. */
+    public function scopeCouvre(Builder $query, int $quartier): void
+    {
+        $query->where(fn (Builder $q) => $q->where('prestataires.quartier_id', $quartier)
+            ->orWhereHas('zones', fn (Builder $z) => $z->where('quartiers.id', $quartier)));
+    }
+
     public function sanctions(): HasMany
     {
         return $this->hasMany(SanctionPrestataire::class)->latest('id');

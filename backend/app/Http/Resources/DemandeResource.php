@@ -165,6 +165,7 @@ class DemandeResource extends JsonResource
             'statut_libelle' => self::libelleStatut($this->statut),
             // Réponse du technicien quand il accepte.
             'estimation' => $this->estimation,
+            'frais_deplacement' => $this->frais_deplacement,
             'creneau' => $this->creneau,
             'evenements' => $this->whenLoaded('evenements', fn () => $this->evenements->map(fn ($e) => [
                 'statut' => $e->statut,

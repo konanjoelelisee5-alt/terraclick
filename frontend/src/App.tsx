@@ -42,6 +42,7 @@ import { AdminCatalogue } from "./screens/admin/AdminCatalogue";
 import { AdminActivite } from "./screens/admin/AdminActivite";
 import { AdminRoles } from "./screens/admin/AdminRoles";
 import { AdminSecteurs } from "./screens/admin/AdminSecteurs";
+import { AdminZones } from "./screens/admin/AdminZones";
 import { premierModule } from "./screens/admin/EspaceAdmin";
 import { peut } from "./lib/acces";
 import { Historique, OngletAccord, Onglets, OngletsRecents, Parametres, Telechargements } from "./screens/menu/EcransMenu";
@@ -142,6 +143,7 @@ const ECRANS: Record<Ecran, () => JSX.Element> = {
   adminActivite: AdminActivite,
   adminRoles: AdminRoles,
   adminSecteurs: AdminSecteurs,
+  adminZones: AdminZones,
 };
 
 /** Écrans du module Construction, inaccessibles quand CONFIG.moduleConstruction est coupé (MVP). */

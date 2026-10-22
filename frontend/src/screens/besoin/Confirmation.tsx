@@ -35,7 +35,10 @@ export function Confirmation() {
   const pressing = b.secteur === "pressing" && b.pack.length > 0;
 
   const { donnees: villes } = useApi(() => api.villes(), []);
-  const quartier = villes?.find((v) => v.slug === slugifier(ville))?.quartiers.find((q) => q.id === b.quartier)?.nom ?? null;
+  const quartierChoisi = villes?.find((v) => v.slug === slugifier(ville))?.quartiers.find((q) => q.id === b.quartier);
+  const quartier = quartierChoisi?.nom ?? null;
+  // Frais de déplacement fixés par l'équipe pour ce quartier.
+  const frais = quartierChoisi?.frais_deplacement ?? null;
 
   if (!b.secteur || !b.quartier || !b.prestataire || (pressing && (!b.depot || !b.heure || !b.date))) {
     return (
@@ -62,6 +65,7 @@ export function Confirmation() {
         [b.depot === "pressing" ? "Dépôt prévu" : "Collecte", creneauLisible(b.date, b.heure) ?? ""],
         ["Adresse", [b.adresse, quartier, b.repere].filter(Boolean).join(" · ")],
         ["Instructions", b.precision.trim()],
+        ["Frais de déplacement", frais ? `${frais.toLocaleString("fr-FR")} F` : ""],
       ] as [string, string][]).filter(([, v]) => v)
     : [];
 
@@ -184,6 +188,11 @@ export function Confirmation() {
               {resumeBesoin(b, quartier)}
             </span>
             {b.repere && <span style={{ display: "block", fontSize: "13.5px", color: "var(--color-neutral-700)" }}>Repère : {b.repere}</span>}
+            {frais ? (
+              <span data-r="confirmation-frais" style={{ display: "block", fontSize: "13.5px", color: "var(--color-neutral-700)" }}>
+                Frais de déplacement : {frais.toLocaleString("fr-FR")} F
+              </span>
+            ) : null}
             {b.pack.length > 0 && (
               <ul data-r="confirmation-pack" style={{ margin: "6px 0 0", paddingLeft: 18, fontSize: "13.5px", color: "var(--color-neutral-700)" }}>
                 {b.pack.map((a) => (

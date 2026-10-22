@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'user_id', 'secteur', 'probleme', 'precision', 'quartier_id', 'repere', 'quand', 'date_souhaitee',
-    'mode', 'prestataire_id', 'paiement', 'estimation', 'creneau', 'photos', 'articles', 'statut',
+    'mode', 'prestataire_id', 'paiement', 'estimation', 'frais_deplacement', 'creneau', 'photos', 'articles', 'statut',
     'service', 'express', 'depot', 'heure', 'adresse_libelle', 'etape',
 ])]
 class Demande extends Model

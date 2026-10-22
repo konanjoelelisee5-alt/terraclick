@@ -1035,6 +1035,8 @@ const numeroInscrit = numeroNeuf();
      (await apparait(dossierK.locator('[data-r="activite-prestataire"]'))) && /Taux d'acceptation/.test(await dossierK.locator('[data-r="activite-prestataire"]').textContent()) &&
        (await dossierK.getByRole('region', { name: 'Identité' }).isVisible()) && (await dossierK.locator('[data-r="secteurs-prestataire"]').getByRole('button', { name: 'Plomberie' }).getAttribute('aria-pressed')) === 'true' &&
        (await dossierK.getByRole('region', { name: /^Avis des clients/ }).isVisible()));
+  ok('prestataires : ses zones d’intervention, par quartier',
+     (await dossierK.locator('[data-r="zones-prestataire"]').first().getByRole('button', { name: 'Habitat' }).getAttribute('aria-pressed')) === 'true');
   const sanctionsAvant = await dossierK.locator('[data-r="sanction"]').count();
   await dossierK.locator('[data-r="avertir"]').click();
   await p.getByLabel('Motif', { exact: true }).fill('Ponctualité à surveiller (parcours de test).');
@@ -1107,6 +1109,23 @@ const numeroInscrit = numeroNeuf();
   await vue.ctx.close();
   await menuiserie.locator('[data-r="basculer-secteur"]').click();
   ok('secteurs : réactivé, il revient', await apparait(menuiserie.getByText('Ouvert aux clients')));
+
+  // Zones et quartiers : couverture, trous, désactivation visible côté client
+  await rail.getByRole('button', { name: /Zones et quartiers/ }).click();
+  const kpangbassou = p.locator('[data-r="quartier-admin"]').filter({ hasText: 'Kpangbassou' });
+  ok('zones : chaque quartier, sa couverture par secteur',
+     (await apparait(kpangbassou)) && /Plomberie · \d+/.test(await kpangbassou.locator('[data-r="couverture-quartier"]').textContent()));
+  await kpangbassou.locator('[data-r="regler-quartier"]').click();
+  ok('zones : services proposés et frais de déplacement', (await apparait(kpangbassou.locator('[data-r="reglages-quartier"]'))) && (await kpangbassou.getByLabel(/^Frais de déplacement/).isVisible()));
+  await kpangbassou.locator('[data-r="basculer-quartier"]').click();
+  await apparait(kpangbassou.getByText('Désactivé', { exact: true }));
+  const villesApi = await (await p.request.get("http://localhost:4173/api/villes")).json();
+  ok('zones : désactivé, le quartier n’est plus proposé aux clients', !JSON.stringify(villesApi).includes('Kpangbassou'));
+  await kpangbassou.locator('[data-r="basculer-quartier"]').click();
+  await apparait(kpangbassou.getByText('Ouvert', { exact: true }));
+  await p.getByRole('tab', { name: /^Mal couverts/ }).click();
+  ok('zones : les quartiers mal couverts, avec ce qui manque',
+     (await p.locator('[data-r="quartier-admin"]').count()) === 0 || (await apparait(p.locator('[data-r="manques-quartier"]').first())));
 
   await rail.getByRole('button', { name: /Catalogue et prix/ }).click();
   ok('admin : les prix indicatifs des prestations, modifiables', (await apparait(p.locator('[data-r="prestation-admin"]').first())) && (await p.getByLabel(/^Prix minimum/).count()) > 3);

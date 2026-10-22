@@ -43,6 +43,8 @@ return [
             'utilisateurs.roles' => 'Changer le rôle d\'un utilisateur',
             'catalogue.prix' => 'Modifier les prix indicatifs',
             'secteurs.voir' => 'Voir les secteurs d\'activité et leurs statistiques',
+            'zones.voir' => 'Voir les zones, les quartiers et leur couverture',
+            'zones.gerer' => 'Ajouter, activer, désactiver un quartier ; ses services et ses frais de déplacement',
             'secteurs.gerer' => 'Créer, modifier, activer et classer les secteurs et leurs sous-services',
             'roles.gerer' => 'Gérer les rôles et leurs permissions',
         ],
@@ -71,7 +73,7 @@ return [
                 'demandes.voir_toutes', 'demandes.gerer', 'litiges.resoudre',
                 'prestataires.voir', 'prestataires.suspendre', 'prestataires.modifier', 'prestataires.sanctionner',
                 'utilisateurs.voir',
-                'secteurs.voir',
+                'secteurs.voir', 'zones.voir',
             ],
         ],
         'admin' => [

@@ -7,6 +7,7 @@ use App\Http\Resources\DemandeResource;
 use App\Models\Accord;
 use App\Models\Demande;
 use App\Models\Prestataire;
+use App\Models\Quartier;
 use App\Services\AnalyseurBesoin;
 use App\Services\CycleDemande;
 use Illuminate\Http\JsonResponse;
@@ -35,7 +36,9 @@ class DemandeController extends Controller
         }
 
         $demande = DB::transaction(function () use ($request, $donnees) {
-            $demande = Demande::create([...$donnees, 'user_id' => $request->user()->id]);
+            // Les frais de déplacement du quartier, tels qu'ils sont à l'envoi.
+            $frais = Quartier::whereKey($donnees['quartier_id'])->value('frais_deplacement');
+            $demande = Demande::create([...$donnees, 'user_id' => $request->user()->id, 'frais_deplacement' => $frais]);
 
             $photos = collect($request->file('photos', []))
                 ->map(fn ($photo) => $photo->store("demandes/{$demande->id}", 'public'))

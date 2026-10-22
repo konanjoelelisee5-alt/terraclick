@@ -83,7 +83,8 @@ class PrestataireController extends Controller
         }
 
         if ($quartier = $request->validated('quartier')) {
-            $requete->where('quartier_id', $quartier);
+            // Le quartier du prestataire, ou l'une de ses zones d'intervention.
+            $requete->couvre((int) $quartier);
         }
 
         $tri = $request->validated('tri') ?? ($request->aPosition() ? 'distance' : 'pertinence');
