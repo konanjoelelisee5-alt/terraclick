@@ -15,6 +15,10 @@ fi
 
 php artisan config:cache
 php artisan route:cache
+
+# La base doit répondre : sinon, un message clair dans les journaux de Render, au lieu d'un
+# démarrage bloqué sans fin.
+php artisan terraclick:base
 php artisan migrate --force
 
 php artisan storage:link || true

@@ -61,6 +61,9 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                // Base injoignable (Aiven éteinte, réseau) : échouer vite, avec un message clair,
+                // plutôt que de bloquer le démarrage sans fin.
+                PDO::ATTR_TIMEOUT => (int) env('DB_TIMEOUT', 15),
             ]) : [],
         ],
 
