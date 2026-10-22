@@ -123,6 +123,71 @@ export type CandidatureApi = {
   cree_le: string;
 };
 
+/* ---------- Espace administrateur ---------- */
+
+export type ApercuAdmin = {
+  a_traiter: { candidatures: number; signalements: number; demandes_sans_reponse: number };
+  chiffres: { utilisateurs: number; prestataires_actifs: number; demandes_30j: number; commandes_pressing_30j: number; depannages_accomplis_30j: number; avis_30j: number };
+  demandes_par_secteur: { cle: string; nom: string; nombre: number }[];
+  periode: { depuis: string; jusqu_au: string };
+};
+
+export type SignalementAdmin = {
+  id: number;
+  motif: string;
+  motif_libelle: string;
+  message: string | null;
+  statut: "ouvert" | "traite";
+  reponse: string | null;
+  client: { nom: string | null; telephone: string | null };
+  demande: { id: number; reference: string; secteur: string; statut_libelle: string } | null;
+  prestataire: { nom: string; telephone: string | null } | null;
+  date: string;
+  traite_le: string | null;
+};
+
+export type DemandeAdmin = DemandeApi & { client: { nom: string | null; telephone: string | null } };
+
+export type PrestataireAdmin = {
+  id: number;
+  nom: string;
+  metier: string;
+  quartier: string | null;
+  telephone: string | null;
+  note: number;
+  nombre_avis: number;
+  demandes: number;
+  verifie: boolean;
+  actif: boolean;
+  en_vedette: boolean;
+  compte: { nom: string | null; telephone: string } | null;
+};
+
+export type UtilisateurAdmin = {
+  id: number;
+  nom: string | null;
+  telephone: string;
+  email: string | null;
+  quartier: string | null;
+  demandes: number;
+  prestataire: string | null;
+  est_admin: boolean;
+  inscrit_le: string;
+};
+
+export type PrestationAdmin = {
+  id: number;
+  secteur: { cle: string; nom: string };
+  nom: string;
+  prix_min: number | null;
+  prix_max: number | null;
+  prix_affichage: string | null;
+  unite: string | null;
+  prestataires: number;
+};
+
+export type ActiviteAdmin = { id: string; type: "demande" | "candidature" | "signalement"; titre: string; texte: string; date: string };
+
 /** Session ouverte par l'API : le jeton à garder et le compte. */
 export type Session = { token: string; utilisateur: Utilisateur };
 
@@ -396,7 +461,7 @@ async function requete<T>(chemin: string, { methode = "GET", corps, signal }: Op
   return contenu as T;
 }
 
-function parametres(criteres: CriteresRecherche): string {
+function parametres(criteres: Record<string, string | number | boolean | null | undefined>): string {
   const p = new URLSearchParams();
   for (const [cle, valeur] of Object.entries(criteres)) {
     // Laravel lit 1 / 0 comme booléens, pas « true » / « false ».
@@ -490,6 +555,28 @@ export const api = {
     const reponse = await fetch(url.replace(/^https?:\/\/[^/]+\/api/, BASE), { headers: j ? { Authorization: `Bearer ${j}` } : {} });
     if (!reponse.ok) throw new ErreurApi("La pièce n'a pas pu être ouverte.", reponse.status);
     return URL.createObjectURL(await reponse.blob());
+  },
+  /* Espace administrateur */
+  admin: {
+    apercu: (signal?: AbortSignal) => requete<{ data: ApercuAdmin }>("/admin/apercu", { signal }).then((r) => r.data),
+    signalements: (statut: SignalementAdmin["statut"], signal?: AbortSignal) =>
+      requete<{ data: SignalementAdmin[] }>(`/admin/signalements?statut=${statut}`, { signal }).then((r) => r.data),
+    traiterSignalement: (id: number, reponse: string) =>
+      requete<{ data: SignalementAdmin }>(`/admin/signalements/${id}/traiter`, { methode: "POST", corps: { reponse } }).then((r) => r.data),
+    demandes: (filtres: { statut?: string; secteur?: string; q?: string; page?: number }, signal?: AbortSignal) =>
+      requete<{ data: DemandeAdmin[]; meta: { page: number; derniere: number; total: number } }>(`/admin/demandes${parametres(filtres)}`, { signal }),
+    demande: (id: number, signal?: AbortSignal) => requete<{ data: DemandeAdmin }>(`/admin/demandes/${id}`, { signal }).then((r) => r.data),
+    prestataires: (filtres: { q?: string; etat?: "actifs" | "suspendus" }, signal?: AbortSignal) =>
+      requete<{ data: PrestataireAdmin[] }>(`/admin/prestataires${parametres(filtres)}`, { signal }).then((r) => r.data),
+    modifierPrestataire: (id: number, patch: { actif?: boolean; en_vedette?: boolean }) =>
+      requete<{ data: PrestataireAdmin }>(`/admin/prestataires/${id}`, { methode: "PATCH", corps: patch }).then((r) => r.data),
+    utilisateurs: (q: string, signal?: AbortSignal) => requete<{ data: UtilisateurAdmin[] }>(`/admin/utilisateurs${parametres({ q })}`, { signal }).then((r) => r.data),
+    modifierUtilisateur: (id: number, est_admin: boolean) =>
+      requete<{ data: UtilisateurAdmin }>(`/admin/utilisateurs/${id}`, { methode: "PATCH", corps: { est_admin } }).then((r) => r.data),
+    prestations: (signal?: AbortSignal) => requete<{ data: PrestationAdmin[] }>("/admin/prestations", { signal }).then((r) => r.data),
+    modifierPrestation: (id: number, prix: { prix_min: number | null; prix_max: number | null }) =>
+      requete<{ data: Pick<PrestationAdmin, "id" | "prix_min" | "prix_max" | "prix_affichage"> }>(`/admin/prestations/${id}`, { methode: "PATCH", corps: prix }).then((r) => r.data),
+    activite: (signal?: AbortSignal) => requete<{ data: ActiviteAdmin[] }>("/admin/activite", { signal }).then((r) => r.data),
   },
   /* Espace prestataire : demandes et commandes reçues */
   demandesRecues: (signal?: AbortSignal) => requete<Page<DemandeProApi>>("/pro/demandes", { signal }).then((r) => r.data),

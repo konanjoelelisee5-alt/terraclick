@@ -965,7 +965,8 @@ const numeroInscrit = numeroNeuf();
   await e.p.goto('http://localhost:4173/'); await apparait(e.p.locator('[data-r="accueil-fil"]'));
   await e.p.locator('[data-r="menu-plus-ouvrir"]').click();
   await e.p.getByRole('menuitem', { name: 'Paramètres' }).click();
-  await e.p.locator('[data-r="lien-admin-candidatures"]').click();
+  await e.p.locator('[data-r="lien-admin"]').click();
+  await e.p.getByRole('navigation', { name: "Navigation de l'administration" }).getByRole('button', { name: /Candidatures/ }).click();
   await e.p.locator('[data-r="candidature"]').filter({ hasText: activite }).click();
   const dossier = e.p.locator('[data-r="dossier-candidature"]');
   ok('équipe : le dossier complet, avec la référence de l’artisan',
@@ -982,6 +983,66 @@ const numeroInscrit = numeroNeuf();
   await p.getByRole('menuitem', { name: 'Paramètres' }).click();
   await p.locator('[data-r="devenir-partenaire"]').click();
   ok('prestataire : « Vous êtes prestataire TerraClick », fiche publiée', await apparait(p.getByRole('heading', { name: 'Vous êtes prestataire TerraClick' })));
+  await ctx.close();
+}
+
+// L ter · Espace administrateur : réservé à l'équipe, rail sur ordinateur, modules branchés sur l'API
+{
+  // Un client ne voit ni l'entrée ni l'espace.
+  const c = await neuve(390, 844);
+  await c.p.locator('[data-r="fil-avatar"]').click();
+  await connecterPage(c.p);
+  await apparait(c.p.locator('[data-r="profil-mobile"]'));
+  await c.p.goto('http://localhost:4173/'); await apparait(c.p.locator('[data-r="accueil-fil"]'));
+  await c.p.locator('[data-r="menu-plus-ouvrir"]').click();
+  await c.p.getByRole('menuitem', { name: 'Paramètres' }).click();
+  ok('admin : pas d’entrée pour un client', (await apparait(c.p.locator('[data-r="parametres"]'))) && (await c.p.locator('[data-r="lien-admin"]').count()) === 0);
+  await c.ctx.close();
+
+  // L'équipe entre par Paramètres (téléphone), puis l'espace s'affiche sur ordinateur avec son rail.
+  const { ctx, p } = await neuve(390, 844);
+  await p.locator('[data-r="fil-avatar"]').click();
+  await connecterPage(p, '07 01 01 01 01');
+  await apparait(p.locator('[data-r="profil-mobile"]'));
+  await p.goto('http://localhost:4173/'); await apparait(p.locator('[data-r="accueil-fil"]'));
+  await p.locator('[data-r="menu-plus-ouvrir"]').click();
+  await p.getByRole('menuitem', { name: 'Paramètres' }).click();
+  await p.locator('[data-r="lien-admin"]').click();
+  await p.setViewportSize({ width: 1440, height: 1000 });
+  const rail = p.getByRole('complementary', { name: 'Espace administrateur' });
+  ok('admin : vue d’ensemble, rail sombre et modules',
+     (await apparait(p.locator('[data-r="admin-a-traiter"]'))) && (await rail.isVisible()) &&
+       (await rail.getByRole('button').allTextContents()).join('|').includes('Signalements') && (await p.locator('header').filter({ hasText: 'TerraClick' }).count()) === 0);
+  ok('admin : les chiffres viennent de la base', /^\d+$/.test(((await apparait(p.locator('[data-r="admin-chiffres"] [data-r="valeur-tuile"]').first().filter({ hasText: /^\d+$/ }))) ? '1' : 'x')));
+
+  await rail.getByRole('button', { name: /Prestataires/ }).click();
+  const koffi = p.locator('[data-r="prestataire-admin"]').filter({ hasText: 'Koffi Tanoh' });
+  ok('admin : les prestataires, avec leur compte relié', (await apparait(koffi)) && /Compte : Koffi Tanoh/.test(await koffi.textContent()));
+  await koffi.locator('[data-r="vedette"]').click();
+  ok('admin : mettre en avant', await apparait(koffi.getByText('À la une')));
+  await koffi.locator('[data-r="vedette"]').click();
+  await apparait(koffi.getByRole('button', { name: 'Mettre en avant' }));
+
+  await rail.getByRole('button', { name: /Demandes et commandes/ }).click();
+  ok('admin : toutes les demandes et commandes', await apparait(p.locator('[data-r="demande-admin"]').first()));
+  await p.getByRole('tab', { name: 'Annulées' }).click();
+  await p.locator('[data-r="demande-admin"]').filter({ hasText: 'Annulée' }).first().click();
+  ok('admin : le détail d’une demande et son suivi', await apparait(p.locator('[data-r="detail-demande-admin"]').getByText('Annulée').first()));
+
+  await rail.getByRole('button', { name: /Utilisateurs/ }).click();
+  await p.getByLabel('Nom ou numéro de téléphone').fill('58 42 19');
+  ok('admin : chercher un utilisateur par son numéro', await apparait(p.locator('[data-r="utilisateur-admin"]').filter({ hasText: 'Aya Konan' })));
+
+  await rail.getByRole('button', { name: /Catalogue et prix/ }).click();
+  ok('admin : les prix indicatifs des prestations, modifiables', (await apparait(p.locator('[data-r="prestation-admin"]').first())) && (await p.getByLabel(/^Prix minimum/).count()) > 3);
+
+  await rail.getByRole('button', { name: /Signalements/ }).click();
+  ok('admin : les signalements des clients', await apparait(p.locator('[data-r="signalement-admin"], [role="status"]').first()));
+
+  await rail.getByRole('button', { name: /Journal d'activité/ }).click();
+  ok('admin : le journal d’activité', await apparait(p.locator('[data-r="evenement-admin"]').first()));
+  await rail.getByRole('button', { name: "Quitter l'administration" }).click();
+  ok('admin : « Quitter l’administration » ramène à l’application', await apparait(p.getByText('Recherches populaires').or(p.locator('[data-r="accueil-fil"]')).first()));
   await ctx.close();
 }
 

@@ -31,6 +31,13 @@ import { CommandePressing } from "./screens/besoin/CommandePressing";
 import { DemandesRecues } from "./screens/pro/DemandesRecues";
 import { DevenirPrestataire } from "./screens/prestataire/DevenirPrestataire";
 import { AdminCandidatures } from "./screens/admin/AdminCandidatures";
+import { AdminApercu } from "./screens/admin/AdminApercu";
+import { AdminSignalements } from "./screens/admin/AdminSignalements";
+import { AdminDemandes } from "./screens/admin/AdminDemandes";
+import { AdminPrestataires } from "./screens/admin/AdminPrestataires";
+import { AdminUtilisateurs } from "./screens/admin/AdminUtilisateurs";
+import { AdminCatalogue } from "./screens/admin/AdminCatalogue";
+import { AdminActivite } from "./screens/admin/AdminActivite";
 import { Historique, OngletAccord, Onglets, OngletsRecents, Parametres, Telechargements } from "./screens/menu/EcransMenu";
 import { ConfirmationAccord } from "./components/ConfirmationAccord";
 import { Besoin } from "./screens/besoin/Besoin";
@@ -120,6 +127,13 @@ const ECRANS: Record<Ecran, () => JSX.Element> = {
   demandesRecues: DemandesRecues,
   devenirPrestataire: DevenirPrestataire,
   adminCandidatures: AdminCandidatures,
+  adminApercu: AdminApercu,
+  adminSignalements: AdminSignalements,
+  adminDemandes: AdminDemandes,
+  adminPrestataires: AdminPrestataires,
+  adminUtilisateurs: AdminUtilisateurs,
+  adminCatalogue: AdminCatalogue,
+  adminActivite: AdminActivite,
 };
 
 /** Écrans du module Construction, inaccessibles quand CONFIG.moduleConstruction est coupé (MVP). */
@@ -162,9 +176,9 @@ function Coque() {
     return () => document.removeEventListener("mousedown", fermer);
   }, [etat.deptsOpen, set]);
 
-  // L'espace prestataire est une application à part : ni en-tête d'annuaire,
-  // ni pied de page, ni barre d'onglets du site public.
-  if (/^pro[A-Z]/.test(etat.screen) || etat.screen === "demandesRecues") {
+  // L'espace prestataire et l'espace administrateur sont des applications à part : ni
+  // en-tête d'annuaire, ni pied de page, ni barre d'onglets du site public.
+  if (/^(pro|admin)[A-Z]/.test(etat.screen) || etat.screen === "demandesRecues") {
     return (
       <div style={{ fontFamily: "var(--font-body)", color: "var(--color-text)" }}>
         <Ecran />

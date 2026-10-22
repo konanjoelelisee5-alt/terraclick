@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { api, messageErreur, type CandidatureApi } from "../../lib/api";
-import { useApp } from "../../state/app";
 import { Dialogue } from "../../components/Dialogue";
 import { Icon } from "../../components/Icon";
 import { useToast } from "../../components/Toast";
+import { EspaceAdmin } from "./EspaceAdmin";
 
-/* Équipe TerraClick : les candidatures « Devenir prestataire » à vérifier. Le dossier complet,
+/* Espace administrateur, module « Candidatures » : les candidatures « Devenir prestataire » à vérifier. Le dossier complet,
    les pièces jointes (ouvertes avec le jeton, jamais publiques), puis « Valider » — la fiche
    est créée et publiée — ou « Refuser » avec le motif que le candidat lira pour corriger. */
 
@@ -42,7 +42,6 @@ const LIBELLES_DETAILS: Record<string, string> = {
 const lisible = (v: unknown) => (Array.isArray(v) ? v.join(", ") : typeof v === "boolean" || v === "1" || v === "0" ? (v === true || v === "1" ? "Oui" : "Non") : String(v ?? ""));
 
 export function AdminCandidatures() {
-  const { etat } = useApp();
   const toast = useToast();
   const [statut, setStatut] = useState<CandidatureApi["statut"]>("en_attente");
   const [liste, setListe] = useState<CandidatureApi[] | null>(null);
@@ -59,15 +58,6 @@ export function AdminCandidatures() {
     return () => arret.abort();
   }, [statut, version]);
 
-  if (!etat.auth?.admin) {
-    return (
-      <main style={{ maxWidth: 760, margin: "0 auto", padding: "24px 16px" }}>
-        <h1 style={{ fontSize: "26px", margin: 0 }}>Candidatures</h1>
-        <p style={{ color: GRIS }}>Réservé à l'équipe TerraClick.</p>
-      </main>
-    );
-  }
-
   const traiter = async (action: () => Promise<CandidatureApi>, titre: string, texte: string) => {
     try {
       setOuverte(await action());
@@ -81,11 +71,8 @@ export function AdminCandidatures() {
   };
 
   return (
-    <main data-r="admin-candidatures" style={{ maxWidth: 760, margin: "0 auto", padding: "20px 16px 48px", display: "flex", flexDirection: "column", gap: 16 }}>
-      <div>
-        <h1 style={{ margin: 0, fontSize: "28px", lineHeight: 1.2 }}>Candidatures</h1>
-        <p style={{ margin: "4px 0 0", fontSize: "15px", color: GRIS }}>Dossiers « Devenir prestataire » envoyés à l'équipe.</p>
-      </div>
+    <EspaceAdmin titre="Candidatures" sousTitre="Dossiers « Devenir prestataire » envoyés à l'équipe.">
+      <div data-r="admin-candidatures" style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 820 }}>
 
       {ouverte ? (
         <Dossier c={ouverte} onRetour={() => setOuverte(null)} onValider={() => setFenetre("valider")} onRefuser={() => setFenetre("refuser")} />
@@ -179,7 +166,8 @@ export function AdminCandidatures() {
           <textarea className="sy-textarea" aria-label="Motif" value={motif} onChange={(e) => setMotif(e.target.value)} placeholder="Ex. la photo de la pièce d'identité est floue." style={{ borderRadius: 14 }} />
         </Dialogue>
       )}
-    </main>
+      </div>
+    </EspaceAdmin>
   );
 }
 

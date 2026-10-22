@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccordController;
 use App\Http\Controllers\ActualiteController;
 use App\Http\Controllers\AdminCandidatureController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdresseController;
 use App\Http\Controllers\AnnuaireController;
 use App\Http\Controllers\AuthController;
@@ -62,6 +63,22 @@ Route::middleware('auth:sanctum')->group(function () {
     // « Devenir prestataire » : le dossier envoyé pour vérification, et son suivi.
     Route::get('moi/candidature', [CandidatureController::class, 'moi']);
     Route::post('moi/candidature', [CandidatureController::class, 'store'])->middleware('throttle:10,1');
+
+    // Espace administrateur : vue d'ensemble, signalements, demandes, prestataires, utilisateurs, catalogue.
+    Route::prefix('admin')->middleware('can:admin')->group(function () {
+        Route::get('apercu', [AdminController::class, 'apercu']);
+        Route::get('signalements', [AdminController::class, 'signalements']);
+        Route::post('signalements/{signalement}/traiter', [AdminController::class, 'traiterSignalement'])->whereNumber('signalement');
+        Route::get('demandes', [AdminController::class, 'demandes']);
+        Route::get('demandes/{demande}', [AdminController::class, 'demande'])->whereNumber('demande');
+        Route::get('prestataires', [AdminController::class, 'prestataires']);
+        Route::patch('prestataires/{prestataire}', [AdminController::class, 'modifierPrestataire'])->whereNumber('prestataire');
+        Route::get('utilisateurs', [AdminController::class, 'utilisateurs']);
+        Route::patch('utilisateurs/{user}', [AdminController::class, 'modifierUtilisateur'])->whereNumber('user');
+        Route::get('prestations', [AdminController::class, 'prestations']);
+        Route::patch('prestations/{prestation}', [AdminController::class, 'modifierPrestation'])->whereNumber('prestation');
+        Route::get('activite', [AdminController::class, 'activite']);
+    });
 
     // Équipe TerraClick : vérification des candidatures.
     Route::prefix('admin/candidatures')->middleware('can:admin')->group(function () {

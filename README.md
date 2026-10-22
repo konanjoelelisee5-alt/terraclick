@@ -54,6 +54,20 @@ indicatifs par pièce sont dans `config/pressing.php` (**à valider avec les pre
 l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
 (`Demande::composerPack`), quel que soit ce que l'application envoie.
 
+**Espace administrateur**, d'après la maquette « Servis Yakro » (`Téléchargements/servis-yakro-app`, rôle Administrateur) :
+  
+- Une application à part, comme l'espace pro : rail sombre sur ordinateur, navigation basse et « Plus » sur téléphone (`screens/admin/EspaceAdmin.tsx`).
+- Réservée aux comptes `users.est_admin` : entrée Paramètres → « Espace administrateur », API `/api/admin/*` protégée par `can:admin` (`AdminController`, `AdminCandidatureController`).
+- Modules branchés sur la base :
+  - **Vue d'ensemble** : ce qui attend l'équipe (candidatures, signalements ouverts, demandes sans réponse depuis 2 h), les chiffres des 30 derniers jours, les demandes par service et la dernière activité ;
+  - **Candidatures** : les dossiers « Devenir prestataire », à valider ou à faire corriger ;
+  - **Signalements** : les problèmes signalés par les clients, avec les numéros du client et du prestataire, à marquer traités avec ce qui a été fait ;
+  - **Demandes et commandes** : toutes les demandes, filtrées par statut et par service, cherchées par référence, client ou prestataire, avec leur détail et leur suivi ;
+  - **Prestataires** : suspendre (la fiche sort de l'annuaire, rien n'est supprimé) ou réactiver, mettre en avant, voir le compte relié ;
+  - **Utilisateurs** : chercher par nom ou par numéro, donner ou retirer l'accès administrateur (jamais à soi-même) ;
+  - **Catalogue et prix** : les prix indicatifs des prestations, modifiables ;
+  - **Journal d'activité** : étapes des demandes, candidatures traitées et signalements.
+- Modules de la maquette **pas encore créés**, faute de métier correspondant dans l'application : abonnements, paiements plateforme, webhooks, plans et tarifs, factures, rôles et permissions détaillés (un seul rôle « équipe » aujourd'hui), modération des avis, manager distinct de l'administrateur.
 **Devenir prestataire** (`CONFIG.devenirPrestataire`) :
 
 - `"formulaire"` (valeur actuelle) : un dossier en 5 étapes, envoyé à l'équipe TerraClick (`screens/prestataire/DevenirPrestataire.tsx`).

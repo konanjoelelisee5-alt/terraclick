@@ -65,6 +65,14 @@ export type Ecran =
   /* « Devenir prestataire » et sa vérification par l'équipe */
   | "devenirPrestataire"
   | "adminCandidatures"
+  /* Espace administrateur */
+  | "adminApercu"
+  | "adminSignalements"
+  | "adminDemandes"
+  | "adminPrestataires"
+  | "adminUtilisateurs"
+  | "adminCatalogue"
+  | "adminActivite"
   /* Demandes et commandes reçues, branchées sur l'API */
   | "demandesRecues";
 

@@ -43,6 +43,12 @@ class User extends Authenticatable
         return $this->belongsTo(Quartier::class);
     }
 
+    /** Demandes envoyées par ce compte, en tant que client. */
+    public function demandes(): HasMany
+    {
+        return $this->hasMany(Demande::class);
+    }
+
     public function avis(): HasMany
     {
         return $this->hasMany(Avis::class);

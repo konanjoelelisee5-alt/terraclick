@@ -569,7 +569,7 @@ export function Parametres() {
     },
     { icone: "bell", titre: "Notifications", detail: "Demandes, réponses des techniciens", action: () => exigerCompte(() => go("clientNotifications")) },
     ...(etat.auth?.admin
-      ? [{ icone: "badge-check", titre: "Candidatures à vérifier", detail: "Équipe TerraClick : dossiers « Devenir prestataire »", action: () => go("adminCandidatures"), r: "lien-admin-candidatures" }]
+      ? [{ icone: "shield-check", titre: "Espace administrateur", detail: "Candidatures, signalements, demandes, prestataires, prix", action: () => go("adminApercu"), r: "lien-admin" }]
       : []),
     ...(etat.auth
       ? [{ icone: "inbox", titre: "Commandes reçues", detail: "Pressings et techniciens : les demandes de vos clients", action: () => go("demandesRecues"), r: "lien-demandes-recues" }]

@@ -57,6 +57,17 @@ class Prestataire extends Model
         return $this->belongsToMany(Prestation::class)->withPivot('prix_min', 'prix_max')->withTimestamps();
     }
 
+    /** Le compte relié à la fiche (le prestataire lui-même, ou le gérant). */
+    public function utilisateur(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function demandes(): HasMany
+    {
+        return $this->hasMany(Demande::class);
+    }
+
     public function documents(): HasMany
     {
         return $this->hasMany(DocumentPrestataire::class);
