@@ -51,6 +51,7 @@ class CandidatureController extends Controller
             409,
             'Votre candidature est déjà en cours de vérification.',
         );
+        abort_if(Candidature::where('user_id', $user->id)->where('statut', 'rejetee')->exists(), 409, 'Votre candidature a été rejetée par l\'équipe TerraClick.');
 
         $donnees = $request->safe()->except(['documents', 'engagement']);
         $candidature = DB::transaction(function () use ($request, $user, $donnees) {

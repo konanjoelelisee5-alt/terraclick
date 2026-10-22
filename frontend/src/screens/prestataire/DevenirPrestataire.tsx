@@ -547,10 +547,10 @@ export function DevenirPrestataire() {
   );
 }
 
-/** Le dossier envoyé : en vérification, validé (fiche publiée) ou à corriger (motif de l'équipe). */
+/** Le dossier envoyé : en vérification, validé (fiche publiée), à compléter ou rejeté (motif de l'équipe). */
 function StatutCandidature({ c, onCorriger }: { c: CandidatureApi; onCorriger: () => void }) {
   const { go } = useApp();
-  const ton = c.statut === "validee" ? ["var(--state-success-soft)", "var(--state-success)", "badge-check"] : c.statut === "refusee" ? ["var(--state-danger-soft)", "var(--state-danger)", "alert-triangle"] : ["var(--color-accent-100)", "var(--color-accent-700)", "clock"];
+  const ton = c.statut === "validee" ? ["var(--state-success-soft)", "var(--state-success)", "badge-check"] : c.statut === "refusee" || c.statut === "rejetee" ? ["var(--state-danger-soft)", "var(--state-danger)", "alert-triangle"] : ["var(--color-accent-100)", "var(--color-accent-700)", "clock"];
 
   return (
     <CadreParcours retour={() => go("parametres")}>
@@ -559,17 +559,19 @@ function StatutCandidature({ c, onCorriger }: { c: CandidatureApi; onCorriger: (
           <Icon name={ton[2]} size={34} />
         </span>
         <h1 style={{ ...TITRE_ETAPE, margin: 0 }}>
-          {c.statut === "validee" ? "Vous êtes prestataire TerraClick" : c.statut === "refusee" ? "Votre dossier est à corriger" : "Dossier envoyé"}
+          {c.statut === "validee" ? "Vous êtes prestataire TerraClick" : c.statut === "refusee" ? "Votre dossier est à compléter" : c.statut === "rejetee" ? "Votre candidature n'est pas retenue" : "Dossier envoyé"}
         </h1>
-        <span className={`sy-badge sy-badge--${c.statut === "validee" ? "success" : c.statut === "refusee" ? "neutral" : "brand"}`}>{c.statut_libelle}</span>
+        <span className={`sy-badge sy-badge--${c.statut === "validee" ? "success" : c.statut === "refusee" || c.statut === "rejetee" ? "neutral" : "brand"}`}>{c.statut_libelle}</span>
         <p style={{ margin: 0, fontSize: "15px", maxWidth: "44ch", color: GRIS }}>
           {c.statut === "validee"
             ? "Votre fiche est publiée. Les clients peuvent vous trouver et vous envoyer des demandes."
             : c.statut === "refusee"
-              ? "L'équipe TerraClick a relevé un point à corriger :"
-              : "L'équipe TerraClick vérifie votre dossier. Vous verrez sa réponse ici."}
+              ? "L'équipe TerraClick vous demande de corriger ou de compléter votre dossier :"
+              : c.statut === "rejetee"
+                ? "L'équipe TerraClick a examiné votre dossier et ne peut pas le retenir :"
+                : "L'équipe TerraClick vérifie votre dossier. Vous verrez sa réponse ici."}
         </p>
-        {c.statut === "refusee" && c.motif_refus && (
+        {(c.statut === "refusee" || c.statut === "rejetee") && c.motif_refus && (
           <p data-r="motif-refus" style={{ margin: 0, padding: "12px 16px", borderRadius: 14, background: "var(--state-danger-soft)", fontSize: "15px", fontWeight: 600 }}>
             {c.motif_refus}
           </p>

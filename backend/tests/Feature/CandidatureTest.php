@@ -188,8 +188,34 @@ class CandidatureTest extends TestCase
             ->assertJsonPath('data.statut', 'refusee');
 
         $this->actingAs($this->candidat)->getJson('/api/moi/candidature')
-            ->assertJsonPath('data.statut_libelle', 'À corriger')
+            ->assertJsonPath('data.statut_libelle', 'À compléter')
             ->assertJsonPath('data.motif_refus', 'La photo de la pièce est floue.');
         $this->actingAs($this->candidat)->post('/api/moi/candidature', $this->dossier(), ['Accept' => 'application/json'])->assertCreated();
+    }
+
+    public function test_un_rejet_est_definitif(): void
+    {
+        $this->actingAs($this->candidat)->post('/api/moi/candidature', $this->dossier(), ['Accept' => 'application/json'])->assertCreated();
+        $id = Candidature::firstOrFail()->id;
+
+        $this->actingAs($this->equipe)->postJson("/api/admin/candidatures/{$id}/rejeter", ['motif' => 'Faux documents d\'identité.'])->assertOk()
+            ->assertJsonPath('data.statut', 'rejetee')->assertJsonPath('data.statut_libelle', 'Rejetée');
+        $this->assertFalse(Prestataire::where('user_id', $this->candidat->id)->exists());
+
+        // Le candidat lit le motif, mais ne peut plus renvoyer de dossier.
+        $this->actingAs($this->candidat)->getJson('/api/moi/candidature')->assertJsonPath('data.motif_refus', 'Faux documents d\'identité.');
+        $this->actingAs($this->candidat)->post('/api/moi/candidature', $this->dossier(), ['Accept' => 'application/json'])->assertStatus(409);
+    }
+
+    public function test_la_validation_reprend_toutes_les_pieces_dans_le_dossier_de_la_fiche(): void
+    {
+        $this->actingAs($this->candidat)->post('/api/moi/candidature', $this->dossier(), ['Accept' => 'application/json'])->assertCreated();
+        $candidature = Candidature::with('documents')->firstOrFail();
+        $this->actingAs($this->equipe)->postJson("/api/admin/candidatures/{$candidature->id}/valider")->assertOk();
+
+        $fiche = Prestataire::where('user_id', $this->candidat->id)->firstOrFail();
+        $this->assertSame($candidature->documents->count(), $fiche->documents()->count());
+        $this->assertSame(['verifie'], $fiche->documents()->pluck('statut')->unique()->values()->all());
+        $this->assertTrue($fiche->documents()->where('type', 'photo_visage')->whereNotNull('mime')->exists());
     }
 }

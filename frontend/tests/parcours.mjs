@@ -1024,6 +1024,32 @@ const numeroInscrit = numeroNeuf();
   await koffi.locator('[data-r="vedette"]').click();
   await apparait(koffi.getByRole('button', { name: 'Mettre en avant' }));
 
+  // Filtres, puis le dossier complet de Koffi
+  await p.getByLabel('Secteur', { exact: true }).selectOption('electricite');
+  await p.waitForTimeout(700);
+  ok('prestataires : le filtre par secteur', (await apparait(p.locator('[data-r="prestataire-admin"]').first())) && (await koffi.count()) === 0);
+  await p.getByLabel('Secteur', { exact: true }).selectOption('plomberie');
+  await koffi.locator('[data-r="ouvrir-dossier"]').click();
+  const dossierK = p.locator('[data-r="dossier-prestataire"]');
+  ok('prestataires : le dossier (activité, identité, secteurs, documents, avis, sanctions)',
+     (await apparait(dossierK.locator('[data-r="activite-prestataire"]'))) && /Taux d'acceptation/.test(await dossierK.locator('[data-r="activite-prestataire"]').textContent()) &&
+       (await dossierK.getByRole('region', { name: 'Identité' }).isVisible()) && (await dossierK.locator('[data-r="secteurs-prestataire"]').getByRole('button', { name: 'Plomberie' }).getAttribute('aria-pressed')) === 'true' &&
+       (await dossierK.getByRole('region', { name: /^Avis des clients/ }).isVisible()));
+  const sanctionsAvant = await dossierK.locator('[data-r="sanction"]').count();
+  await dossierK.locator('[data-r="avertir"]').click();
+  await p.getByLabel('Motif', { exact: true }).fill('Ponctualité à surveiller (parcours de test).');
+  await p.getByRole('button', { name: "Inscrire l'avertissement" }).click();
+  ok('prestataires : un avertissement s’inscrit au dossier', await apparait(dossierK.locator('[data-r="sanction"]').nth(sanctionsAvant)));
+  await dossierK.locator('[data-r="statut-bloque"]').click();
+  await p.getByLabel('Motif', { exact: true }).fill('Blocage de test du parcours.');
+  await p.getByRole('dialog').getByRole('button', { name: 'Bloquer' }).click();
+  ok('prestataires : bloquer', await apparait(dossierK.locator('[data-r="statut-prestataire"]').getByText('Bloqué')));
+  await dossierK.locator('[data-r="statut-actif"]').click();
+  await p.getByLabel('Motif', { exact: true }).fill('Déblocage de test du parcours.');
+  await p.getByRole('dialog').getByRole('button', { name: 'Débloquer' }).click();
+  ok('prestataires : débloquer', await apparait(dossierK.locator('[data-r="statut-prestataire"]').getByText('Actif')));
+  await dossierK.getByRole('button', { name: 'Tous les prestataires' }).click();
+
   await rail.getByRole('button', { name: /Demandes et commandes/ }).click();
   ok('admin : toutes les demandes et commandes', await apparait(p.locator('[data-r="demande-admin"]').first()));
   await p.getByRole('tab', { name: 'Annulées' }).click();

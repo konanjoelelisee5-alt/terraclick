@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'user_id', 'quartier_id', 'nom', 'metier', 'description', 'zone_intervention', 'telephone',
     'latitude', 'longitude', 'prix_min', 'prix_max', 'delai_reponse_minutes', 'annee_debut',
     'prestations', 'tarifs', 'horaires', 'garanties', 'note_moyenne', 'nombre_avis',
-    'accepte_suivi', 'en_vedette', 'actif',
+    'accepte_suivi', 'en_vedette', 'actif', 'statut', 'statut_motif', 'statut_le',
 ])]
 class Prestataire extends Model
 {
@@ -35,6 +35,7 @@ class Prestataire extends Model
             'accepte_suivi' => 'boolean',
             'en_vedette' => 'boolean',
             'actif' => 'boolean',
+            'statut_le' => 'datetime',
         ];
     }
 
@@ -81,6 +82,28 @@ class Prestataire extends Model
     public function avis(): HasMany
     {
         return $this->hasMany(Avis::class);
+    }
+
+    public function sanctions(): HasMany
+    {
+        return $this->hasMany(SanctionPrestataire::class)->latest('id');
+    }
+
+    /** Actif, suspendu (fiche masquée, réactivable) ou bloqué (fiche masquée, espace prestataire fermé). */
+    public const STATUTS = ['actif' => 'Actif', 'suspendu' => 'Suspendu', 'bloque' => 'Bloqué'];
+
+    /**
+     * Change le statut et l'inscrit au journal des sanctions. La colonne `actif` suit :
+     * seule une fiche active apparaît aux clients.
+     */
+    public function changerStatut(string $statut, string $motif, ?User $par): void
+    {
+        $this->update(['statut' => $statut, 'actif' => $statut === 'actif', 'statut_motif' => $statut === 'actif' ? null : $motif, 'statut_le' => now()]);
+        $this->sanctions()->create([
+            'type' => ['actif' => 'reactivation', 'suspendu' => 'suspension', 'bloque' => 'blocage'][$statut],
+            'motif' => $motif,
+            'user_id' => $par?->id,
+        ]);
     }
 
     public function scopeActifs(Builder $query): void

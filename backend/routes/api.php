@@ -4,6 +4,7 @@ use App\Http\Controllers\AccordController;
 use App\Http\Controllers\ActualiteController;
 use App\Http\Controllers\AdminCandidatureController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminPrestataireController;
 use App\Http\Controllers\AdminRoleController;
 use App\Http\Controllers\AdminSecteurController;
 use App\Http\Controllers\AdresseController;
@@ -78,6 +79,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('demandes/{demande}', [AdminController::class, 'demande'])->whereNumber('demande')->middleware('permission:demandes.voir_toutes');
         Route::get('prestataires', [AdminController::class, 'prestataires'])->middleware('permission:prestataires.voir');
         Route::patch('prestataires/{prestataire}', [AdminController::class, 'modifierPrestataire'])->whereNumber('prestataire');
+        Route::prefix('prestataires/{prestataire}')->whereNumber('prestataire')->middleware('permission:prestataires.voir')->group(function () {
+            Route::get('/', [AdminPrestataireController::class, 'show']);
+            Route::get('documents/{document}', [AdminPrestataireController::class, 'document'])->whereNumber('document');
+            Route::patch('documents/{document}', [AdminPrestataireController::class, 'verifierDocument'])->whereNumber('document');
+            Route::put('secteurs', [AdminPrestataireController::class, 'secteurs']);
+            Route::post('statut', [AdminPrestataireController::class, 'statut']);
+            Route::post('sanctions', [AdminPrestataireController::class, 'sanctionner']);
+        });
         Route::get('utilisateurs', [AdminController::class, 'utilisateurs'])->middleware('permission:utilisateurs.voir');
         Route::patch('utilisateurs/{user}', [AdminController::class, 'modifierUtilisateur'])->whereNumber('user');
         Route::get('prestations', [AdminController::class, 'prestations']);
@@ -99,6 +108,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('{candidature}/documents/{type}', [AdminCandidatureController::class, 'document'])->whereNumber('candidature');
             Route::post('{candidature}/valider', [AdminCandidatureController::class, 'valider'])->whereNumber('candidature');
             Route::post('{candidature}/refuser', [AdminCandidatureController::class, 'refuser'])->whereNumber('candidature');
+            Route::post('{candidature}/rejeter', [AdminCandidatureController::class, 'rejeter'])->whereNumber('candidature');
         });
     });
 

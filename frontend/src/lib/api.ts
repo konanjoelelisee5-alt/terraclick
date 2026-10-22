@@ -106,7 +106,7 @@ export type CandidatureApi = {
   id: number;
   reference: string;
   type: { cle: TypePrestataire; nom: string };
-  statut: "en_attente" | "validee" | "refusee";
+  statut: "en_attente" | "validee" | "refusee" | "rejetee";
   statut_libelle: string;
   nom_activite: string;
   responsable: string;
@@ -164,8 +164,48 @@ export type PrestataireAdmin = {
   demandes: number;
   verifie: boolean;
   actif: boolean;
+  statut: StatutPrestataire;
+  statut_libelle: string;
+  /** Noms des secteurs où il apparaît. */
+  secteurs: string[];
   en_vedette: boolean;
   compte: { nom: string | null; telephone: string } | null;
+};
+
+export type StatutPrestataire = "actif" | "suspendu" | "bloque";
+
+/** Une pièce du dossier d'un prestataire, vérifiée une à une par l'équipe. */
+export type PieceDossier = { id: number; type: string; libelle: string; statut: "en_attente" | "verifie" | "refuse"; motif: string | null; mime: string; url: string | null; verifie_le: string | null };
+
+/** Le dossier complet d'un prestataire, vu par l'équipe. */
+export type DossierPrestataire = {
+  id: number;
+  nom: string;
+  metier: string;
+  description: string | null;
+  telephone: string | null;
+  quartier: string | null;
+  zone: string | null;
+  experience_annees: number | null;
+  inscrit_le: string | null;
+  compte: { id: number; nom: string | null; telephone: string } | null;
+  statut: StatutPrestataire;
+  statut_libelle: string;
+  statut_motif: string | null;
+  statut_le: string | null;
+  en_vedette: boolean;
+  note: number;
+  nombre_avis: number;
+  /** Clés des secteurs. */
+  secteurs: string[];
+  categories: string[];
+  documents: PieceDossier[];
+  photos: { legende: string; image: string }[];
+  activite: { missions: number; acceptees: number; refusees: number; taux_acceptation: number | null; reussies: number; annulees: number; sans_reponse: number; retards: number; litiges: number; litiges_ouverts: number };
+  avis: { id: number; auteur: string | null; note: number; ponctualite: number; qualite: number; prix: number; commentaire: string | null; date: string | null }[];
+  signalements: { id: number; motif: string; motif_libelle: string; message: string | null; statut: string; demande: string | null; auteur: string | null; date: string | null }[];
+  sanctions: { id: number; type: string; type_libelle: string; motif: string; par: string | null; date: string | null }[];
+  candidature: CandidatureApi | null;
 };
 
 export type UtilisateurAdmin = {
@@ -586,6 +626,8 @@ export const api = {
   validerCandidature: (id: number) => requete<{ data: CandidatureApi }>(`/admin/candidatures/${id}/valider`, { methode: "POST" }).then((r) => r.data),
   refuserCandidature: (id: number, motif: string) =>
     requete<{ data: CandidatureApi }>(`/admin/candidatures/${id}/refuser`, { methode: "POST", corps: { motif } }).then((r) => r.data),
+  rejeterCandidature: (id: number, motif: string) =>
+    requete<{ data: CandidatureApi }>(`/admin/candidatures/${id}/rejeter`, { methode: "POST", corps: { motif } }).then((r) => r.data),
   /** Pièce jointe d'une candidature : lue avec le jeton, rendue en adresse locale (blob). */
   pieceCandidature: async (url: string): Promise<string> => {
     const j = jeton.lire();
@@ -603,10 +645,19 @@ export const api = {
     demandes: (filtres: { statut?: string; secteur?: string; q?: string; page?: number }, signal?: AbortSignal) =>
       requete<{ data: DemandeAdmin[]; meta: { page: number; derniere: number; total: number } }>(`/admin/demandes${parametres(filtres)}`, { signal }),
     demande: (id: number, signal?: AbortSignal) => requete<{ data: DemandeAdmin }>(`/admin/demandes/${id}`, { signal }).then((r) => r.data),
-    prestataires: (filtres: { q?: string; etat?: "actifs" | "suspendus" }, signal?: AbortSignal) =>
+    prestataires: (filtres: { q?: string; etat?: "actifs" | "suspendus" | "bloques" | "tous"; secteur?: string; quartier?: number; note_min?: number }, signal?: AbortSignal) =>
       requete<{ data: PrestataireAdmin[] }>(`/admin/prestataires${parametres(filtres)}`, { signal }).then((r) => r.data),
     modifierPrestataire: (id: number, patch: { actif?: boolean; en_vedette?: boolean }) =>
       requete<{ data: PrestataireAdmin }>(`/admin/prestataires/${id}`, { methode: "PATCH", corps: patch }).then((r) => r.data),
+    dossierPrestataire: (id: number, signal?: AbortSignal) => requete<{ data: DossierPrestataire }>(`/admin/prestataires/${id}`, { signal }).then((r) => r.data),
+    verifierPiece: (prestataire: number, piece: number, statut: PieceDossier["statut"], motif?: string) =>
+      requete<{ data: PieceDossier }>(`/admin/prestataires/${prestataire}/documents/${piece}`, { methode: "PATCH", corps: { statut, motif } }).then((r) => r.data),
+    secteursPrestataire: (id: number, secteurs: string[]) =>
+      requete<{ data: DossierPrestataire }>(`/admin/prestataires/${id}/secteurs`, { methode: "PUT", corps: { secteurs } }).then((r) => r.data),
+    statutPrestataire: (id: number, statut: StatutPrestataire, motif: string) =>
+      requete<{ data: DossierPrestataire }>(`/admin/prestataires/${id}/statut`, { methode: "POST", corps: { statut, motif } }).then((r) => r.data),
+    avertirPrestataire: (id: number, motif: string, signalement_id?: number) =>
+      requete<{ data: DossierPrestataire }>(`/admin/prestataires/${id}/sanctions`, { methode: "POST", corps: { motif, signalement_id } }).then((r) => r.data),
     utilisateurs: (q: string, signal?: AbortSignal) => requete<{ data: UtilisateurAdmin[] }>(`/admin/utilisateurs${parametres({ q })}`, { signal }).then((r) => r.data),
     modifierUtilisateur: (id: number, roles: string[]) =>
       requete<{ data: UtilisateurAdmin }>(`/admin/utilisateurs/${id}`, { methode: "PATCH", corps: { roles } }).then((r) => r.data),

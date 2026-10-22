@@ -124,12 +124,22 @@ class AdminController extends Controller
     /** GET /api/admin/prestataires?q=&etat=actifs|suspendus */
     public function prestataires(Request $request): JsonResponse
     {
-        $filtres = $request->validate(['q' => ['nullable', 'string', 'max:80'], 'etat' => ['nullable', Rule::in(['actifs', 'suspendus'])]]);
+        $filtres = $request->validate([
+            'q' => ['nullable', 'string', 'max:80'],
+            'etat' => ['nullable', Rule::in(['actifs', 'suspendus', 'bloques', 'tous'])],
+            'secteur' => ['nullable', 'string', Rule::in(array_keys(Secteur::catalogue()))],
+            'quartier' => ['nullable', 'integer'],
+            'note_min' => ['nullable', 'numeric', 'min:0', 'max:5'],
+        ]);
+        $statut = ['actifs' => 'actif', 'suspendus' => 'suspendu', 'bloques' => 'bloque'][$filtres['etat'] ?? 'actifs'] ?? null;
         $liste = Prestataire::query()
-            ->with('quartier', 'utilisateur')
+            ->with('quartier', 'utilisateur', 'categories:id,slug')
             ->withCount(['documents', 'documents as documents_verifies_count' => fn ($d) => $d->where('statut', 'verifie')])
             ->withCount('demandes')
-            ->when(($filtres['etat'] ?? 'actifs') === 'suspendus', fn ($q) => $q->where('actif', false), fn ($q) => $q->where('actif', true))
+            ->when($statut, fn ($q, $s) => $q->where('statut', $s))
+            ->when($filtres['secteur'] ?? null, fn ($q, $s) => $q->whereHas('categories', fn ($c) => $c->whereIn('slug', Secteur::catalogue()[$s]['categories'])))
+            ->when($filtres['quartier'] ?? null, fn ($q, $id) => $q->where('quartier_id', $id))
+            ->when(isset($filtres['note_min']), fn ($q) => $q->where('note_moyenne', '>=', $filtres['note_min']))
             ->when($filtres['q'] ?? null, fn ($q, $t) => $q->where(fn ($w) => $w->where('nom', 'like', "%{$t}%")->orWhere('metier', 'like', "%{$t}%")))
             ->orderByDesc('en_vedette')->orderBy('nom')
             ->limit(200)->get();
@@ -140,14 +150,19 @@ class AdminController extends Controller
     /** PATCH /api/admin/prestataires/{prestataire} — suspendre / réactiver, mettre en avant. */
     public function modifierPrestataire(Request $request, Prestataire $prestataire): JsonResponse
     {
-        $donnees = $request->validate(['actif' => ['sometimes', 'boolean'], 'en_vedette' => ['sometimes', 'boolean']]);
+        $donnees = $request->validate(['actif' => ['sometimes', 'boolean'], 'en_vedette' => ['sometimes', 'boolean'], 'motif' => ['nullable', 'string', 'max:1000']]);
+        // Suspendre ou réactiver : comme le statut du dossier, inscrit au journal des sanctions.
         if (array_key_exists('actif', $donnees)) {
-            Gate::authorize('suspendre', $prestataire);
+            $statut = $donnees['actif'] ? 'actif' : 'suspendu';
+            Gate::authorize('changerStatut', [$prestataire, $statut]);
+            if ($statut !== $prestataire->statut) {
+                $prestataire->changerStatut($statut, $donnees['motif'] ?? ($statut === 'actif' ? 'Réactivé par l\'équipe.' : 'Suspendu par l\'équipe.'), $request->user());
+            }
         }
         if (array_key_exists('en_vedette', $donnees)) {
             Gate::authorize('mettreEnAvant', $prestataire);
+            $prestataire->update(['en_vedette' => $donnees['en_vedette']]);
         }
-        $prestataire->update($donnees);
 
         return response()->json(['data' => $this->prestataire($prestataire->load('quartier', 'utilisateur')->loadCount([
             'documents', 'documents as documents_verifies_count' => fn ($d) => $d->where('statut', 'verifie'), 'demandes',
@@ -275,6 +290,11 @@ class AdminController extends Controller
             'demandes' => $p->demandes_count ?? 0,
             'verifie' => ($p->documents_count ?? 0) > 0 && $p->documents_count === $p->documents_verifies_count,
             'actif' => (bool) $p->actif,
+            'statut' => $p->statut,
+            'statut_libelle' => Prestataire::STATUTS[$p->statut] ?? $p->statut,
+            'secteurs' => $p->relationLoaded('categories')
+                ? collect(Secteur::catalogue())->filter(fn (array $s) => $p->categories->pluck('slug')->intersect($s['categories'])->isNotEmpty())->map(fn (array $s) => $s['nom'])->values()
+                : [],
             'en_vedette' => (bool) $p->en_vedette,
             'compte' => $p->utilisateur ? ['nom' => $p->utilisateur->nom, 'telephone' => Telephone::affichage($p->utilisateur->telephone)] : null,
         ];

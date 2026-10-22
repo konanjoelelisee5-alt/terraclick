@@ -9,7 +9,8 @@ import { useApp } from "../../state/app";
 
 /* Espace administrateur, module « Candidatures » : les candidatures « Devenir prestataire » à vérifier. Le dossier complet,
    les pièces jointes (ouvertes avec le jeton, jamais publiques), puis « Valider » — la fiche
-   est créée et publiée — ou « Refuser » avec le motif que le candidat lira pour corriger. */
+   est créée et publiée —, « Demander des compléments » avec le motif que le candidat lira pour
+   corriger, ou « Rejeter » : refus définitif, le candidat ne peut plus renvoyer de dossier. */
 
 const GRIS = "#5C5248";
 
@@ -22,7 +23,8 @@ const CARTE: React.CSSProperties = {
 const STATUTS: { cle: CandidatureApi["statut"]; nom: string }[] = [
   { cle: "en_attente", nom: "À vérifier" },
   { cle: "validee", nom: "Validées" },
-  { cle: "refusee", nom: "À corriger" },
+  { cle: "refusee", nom: "À compléter" },
+  { cle: "rejetee", nom: "Rejetées" },
 ];
 
 const LIBELLES_DETAILS: Record<string, string> = {
@@ -49,7 +51,7 @@ export function AdminCandidatures() {
   const [liste, setListe] = useState<CandidatureApi[] | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [ouverte, setOuverte] = useState<CandidatureApi | null>(null);
-  const [fenetre, setFenetre] = useState<"valider" | "refuser" | null>(null);
+  const [fenetre, setFenetre] = useState<"valider" | "refuser" | "rejeter" | null>(null);
   const [motif, setMotif] = useState("");
   const [version, setVersion] = useState(0);
 
@@ -77,7 +79,7 @@ export function AdminCandidatures() {
       <div data-r="admin-candidatures" style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 820 }}>
 
       {ouverte ? (
-        <Dossier c={ouverte} onRetour={() => setOuverte(null)} onValider={() => setFenetre("valider")} onRefuser={() => setFenetre("refuser")} />
+        <Dossier c={ouverte} onRetour={() => setOuverte(null)} onValider={() => setFenetre("valider")} onRefuser={() => setFenetre("refuser")} onRejeter={() => setFenetre("rejeter")} />
       ) : (
         <>
           <div role="tablist" aria-label="Statut" style={{ display: "flex", borderBottom: "1px solid var(--color-divider)" }}>
@@ -150,8 +152,8 @@ export function AdminCandidatures() {
       )}
       {fenetre === "refuser" && ouverte && (
         <Dialogue
-          titre="Demander une correction"
-          description="Le candidat lit ce motif dans son espace et peut renvoyer un dossier corrigé."
+          titre="Demander des compléments"
+          description="Le candidat lit ce message dans son espace et peut renvoyer un dossier corrigé ou complété."
           icone="alert-triangle"
           fond="var(--state-danger-soft)"
           encre="var(--state-danger)"
@@ -168,12 +170,32 @@ export function AdminCandidatures() {
           <textarea className="sy-textarea" aria-label="Motif" value={motif} onChange={(e) => setMotif(e.target.value)} placeholder="Ex. la photo de la pièce d'identité est floue." style={{ borderRadius: 14 }} />
         </Dialogue>
       )}
+      {fenetre === "rejeter" && ouverte && (
+        <Dialogue
+          titre="Rejeter cette candidature ?"
+          description="Refus définitif : le candidat lit le motif mais ne pourra plus renvoyer de dossier."
+          icone="x"
+          fond="var(--state-danger-soft)"
+          encre="var(--state-danger)"
+          confirmer="Rejeter"
+          onFermer={() => setFenetre(null)}
+          onConfirmer={() => {
+            if (motif.trim().length < 5) {
+              toast("Motif trop court", "Expliquez pourquoi le dossier n'est pas retenu.", "danger");
+              return;
+            }
+            traiter(() => api.rejeterCandidature(ouverte.id, motif.trim()), "Candidature rejetée", "Le candidat est prévenu.");
+          }}
+        >
+          <textarea className="sy-textarea" aria-label="Motif du rejet" value={motif} onChange={(e) => setMotif(e.target.value)} placeholder="Ex. les documents d'identité ne correspondent pas." style={{ borderRadius: 14 }} />
+        </Dialogue>
+      )}
       </div>
     </EspaceAdmin>
   );
 }
 
-function Dossier({ c, onRetour, onValider, onRefuser }: { c: CandidatureApi; onRetour: () => void; onValider: () => void; onRefuser: () => void }) {
+function Dossier({ c, onRetour, onValider, onRefuser, onRejeter }: { c: CandidatureApi; onRetour: () => void; onValider: () => void; onRefuser: () => void; onRejeter: () => void }) {
   const { etat } = useApp();
   const peutTraiter = peut(etat.auth, "candidatures.traiter");
   const lignes: [string, string][] = [
@@ -200,7 +222,7 @@ function Dossier({ c, onRetour, onValider, onRefuser }: { c: CandidatureApi; onR
       </button>
       <div>
         <h2 style={{ margin: 0, fontSize: "24px" }}>{c.nom_activite}</h2>
-        <span className={`sy-badge sy-badge--${c.statut === "validee" ? "success" : c.statut === "refusee" ? "neutral" : "brand"}`}>{c.statut_libelle}</span>
+        <span className={`sy-badge sy-badge--${c.statut === "validee" ? "success" : c.statut === "refusee" || c.statut === "rejetee" ? "neutral" : "brand"}`}>{c.statut_libelle}</span>
       </div>
       <p style={{ ...CARTE, margin: 0, padding: 16, fontSize: "15px", lineHeight: 1.5 }}>{c.description}</p>
       <dl style={{ ...CARTE, margin: 0, padding: 16, display: "grid", gridTemplateColumns: "auto 1fr", gap: "8px 14px", fontSize: "14.5px" }}>
@@ -221,7 +243,7 @@ function Dossier({ c, onRetour, onValider, onRefuser }: { c: CandidatureApi; onR
         ))}
       </div>
 
-      {c.statut === "refusee" && c.motif_refus && (
+      {(c.statut === "refusee" || c.statut === "rejetee") && c.motif_refus && (
         <p style={{ margin: 0, padding: "12px 16px", borderRadius: 14, background: "var(--state-danger-soft)", fontSize: "14.5px" }}>
           <strong>Motif envoyé :</strong> {c.motif_refus}
         </p>
@@ -233,7 +255,10 @@ function Dossier({ c, onRetour, onValider, onRefuser }: { c: CandidatureApi; onR
             Valider
           </button>
           <button data-r="refuser-candidature" onClick={onRefuser} className="sy-btn sy-btn--outline sy-btn--md">
-            Demander une correction
+            Demander des compléments
+          </button>
+          <button data-r="rejeter-candidature" onClick={onRejeter} className="sy-btn sy-btn--ghost sy-btn--md" style={{ color: "var(--state-danger)" }}>
+            Rejeter
           </button>
         </div>
       )}
@@ -242,7 +267,7 @@ function Dossier({ c, onRetour, onValider, onRefuser }: { c: CandidatureApi; onR
 }
 
 /** Une pièce jointe : aperçu pour une photo, lien pour un PDF ; chargée avec le jeton. */
-function Piece({ d }: { d: CandidatureApi["documents"][number] }) {
+export function Piece({ d }: { d: { url: string | null; mime: string; libelle: string } }) {
   const [adresse, setAdresse] = useState<string | null>(null);
   const [erreur, setErreur] = useState(false);
   const image = d.mime.startsWith("image/");

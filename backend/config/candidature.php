@@ -80,7 +80,8 @@ return [
     'statuts' => [
         'en_attente' => 'En cours de vérification',
         'validee' => 'Validée',
-        'refusee' => 'À corriger',
+        'refusee' => 'À compléter',
+        'rejetee' => 'Rejetée',
     ],
 
 ];

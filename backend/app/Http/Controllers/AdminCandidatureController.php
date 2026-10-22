@@ -83,11 +83,17 @@ class AdminCandidatureController extends Controller
             ]);
             $fiche->categories()->sync(Categorie::whereIn('slug', $categories)->pluck('id'));
 
-            // Les pièces contrôlées par l'équipe deviennent les documents vérifiés de la fiche.
+            // Les pièces contrôlées par l'équipe forment le dossier de la fiche, toutes vérifiées.
             foreach ($candidature->documents as $piece) {
-                if ($type = self::DOCUMENTS_FICHE[$piece->type] ?? null) {
-                    DocumentPrestataire::create(['prestataire_id' => $fiche->id, 'type' => $type, 'statut' => 'verifie', 'fichier' => $piece->fichier, 'verifie_le' => now()]);
-                }
+                DocumentPrestataire::create([
+                    'prestataire_id' => $fiche->id,
+                    'type' => self::DOCUMENTS_FICHE[$piece->type] ?? $piece->type,
+                    'statut' => 'verifie',
+                    'fichier' => $piece->fichier,
+                    'mime' => $piece->mime,
+                    'verifie_le' => now(),
+                    'verifie_par' => $request->user()->id,
+                ]);
             }
 
             // Le compte ouvre désormais l'espace prestataire.
@@ -107,7 +113,7 @@ class AdminCandidatureController extends Controller
         return CandidatureResource::make($candidature->refresh()->load('quartier', 'documents'));
     }
 
-    /** POST /api/admin/candidatures/{candidature}/refuser — le motif dit au candidat quoi corriger. */
+    /** POST /api/admin/candidatures/{candidature}/refuser — demander des compléments : le motif dit au candidat quoi corriger ou ajouter. */
     public function refuser(Request $request, Candidature $candidature): CandidatureResource
     {
         Gate::authorize('traiter', $candidature);
@@ -117,6 +123,20 @@ class AdminCandidatureController extends Controller
         ])['motif'];
 
         $candidature->update(['statut' => 'refusee', 'motif_refus' => $motif, 'traite_par' => $request->user()->id, 'traite_le' => now()]);
+
+        return CandidatureResource::make($candidature->load('quartier', 'documents'));
+    }
+
+    /** POST /api/admin/candidatures/{candidature}/rejeter — refus définitif : le candidat ne peut plus renvoyer de dossier. */
+    public function rejeter(Request $request, Candidature $candidature): CandidatureResource
+    {
+        Gate::authorize('traiter', $candidature);
+        $this->enAttente($candidature);
+        $motif = $request->validate(['motif' => ['required', 'string', 'min:5', 'max:1000']], [
+            'motif.required' => 'Indiquez le motif du rejet.',
+        ])['motif'];
+
+        $candidature->update(['statut' => 'rejetee', 'motif_refus' => $motif, 'traite_par' => $request->user()->id, 'traite_le' => now()]);
 
         return CandidatureResource::make($candidature->load('quartier', 'documents'));
     }

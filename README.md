@@ -109,10 +109,18 @@ l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
 - Réservée aux comptes `users.est_admin` : entrée Paramètres → « Espace administrateur », API `/api/admin/*` protégée par `can:admin` (`AdminController`, `AdminCandidatureController`).
 - Modules branchés sur la base :
   - **Vue d'ensemble** : ce qui attend l'équipe (candidatures, signalements ouverts, demandes sans réponse depuis 2 h), les chiffres des 30 derniers jours, les demandes par service et la dernière activité ;
-  - **Candidatures** : les dossiers « Devenir prestataire », à valider ou à faire corriger ;
+  - **Candidatures** : les dossiers « Devenir prestataire », à valider, à faire compléter (le candidat corrige et renvoie) ou à rejeter (refus définitif, il ne peut plus renvoyer de dossier) ;
   - **Signalements** : les problèmes signalés par les clients, avec les numéros du client et du prestataire, à marquer traités avec ce qui a été fait ;
   - **Demandes et commandes** : toutes les demandes, filtrées par statut et par service, cherchées par référence, client ou prestataire, avec leur détail et leur suivi ;
-  - **Prestataires** : suspendre (la fiche sort de l'annuaire, rien n'est supprimé) ou réactiver, mettre en avant, voir le compte relié ;
+  - **Prestataires**, tous secteurs confondus (`AdminPrestataireController`) :
+    - liste filtrée par secteur, quartier, statut (actifs, suspendus, bloqués) et note minimale ;
+    - **dossier** : identité, téléphone, compte relié, zone, expérience, candidature d'origine, secteurs, pièces, photos des réalisations, avis des clients, signalements et journal des sanctions ;
+    - **activité** : missions, réussies, annulées, taux d'acceptation (acceptées sur acceptées + refusées), demandes sans réponse depuis 2 h, retards signalés, litiges ;
+    - **statut**, toujours avec un motif gardé au dossier : actif, suspendu (fiche masquée, réactivable ; permission `prestataires.suspendre`) ou bloqué (fiche masquée et espace prestataire fermé ; `prestataires.bloquer`, administrateur seulement) ;
+    - **secteurs** attribués : un ou plusieurs ; un secteur ajouté apporte sa première catégorie de l'annuaire (`prestataires.modifier`) ;
+    - **pièces** vérifiées une à une (vérifiée, ou refusée avec un motif) ; à la validation d'une candidature, toutes ses pièces rejoignent le dossier de la fiche (`prestataires.modifier`) ;
+    - **avertissement** inscrit au dossier, relié s'il y a lieu au signalement d'un client (`prestataires.sanctionner`) ;
+    - mettre en avant, voir la fiche publique.
   - **Utilisateurs** : chercher par nom ou par numéro, donner ou retirer l'accès administrateur (jamais à soi-même) ;
   - **Catalogue et prix** : les prix indicatifs des prestations, modifiables ;
   - **Journal d'activité** : étapes des demandes, candidatures traitées et signalements.
@@ -133,7 +141,8 @@ l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
 - Le candidat suit son dossier sur le même écran : en vérification, validé, ou à corriger avec le motif de l'équipe ; il corrige alors et renvoie.
 - **Équipe** : les comptes `users.est_admin` voient Paramètres → « Candidatures à vérifier » (`screens/admin/AdminCandidatures.tsx`, `/api/admin/candidatures`).
   - « Valider » crée la fiche du prestataire, avec ses catégories et ses documents vérifiés, la publie et la relie au compte du candidat.
-  - « Demander une correction » envoie un motif au candidat.
+  - « Demander des compléments » envoie un motif au candidat, qui corrige et renvoie.
+  - « Rejeter » est définitif : le candidat lit le motif mais ne peut plus renvoyer de dossier.
   - Compte équipe de démonstration : **07 01 01 01 01**, mot de passe **terraclick2026** (à changer avant le lancement).
 - `"espace"` : l'ancien espace prestataire de démonstration, masqué mais conservé.
 - **En ligne (Render)** : le disque du serveur est effacé à chaque redéploiement. Les pièces jointes, comme les photos des demandes, ont besoin d'un stockage durable (S3, Cloudflare R2…) avant le lancement.

@@ -88,6 +88,7 @@ class ProDemandeController extends Controller
     {
         $fiche = Prestataire::where('user_id', $request->user()->id)->first();
         abort_unless($fiche !== null, 403, 'Votre compte n\'est pas relié à une fiche de technicien.');
+        abort_if($fiche->statut === 'bloque', 403, 'Votre fiche est bloquée par l\'équipe TerraClick. Contactez-la pour en savoir plus.');
 
         return $fiche;
     }
