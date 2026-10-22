@@ -2,6 +2,8 @@ import { useState } from "react";
 import { api, messageErreur, type PrestationAdmin } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
 import { useToast } from "../../components/Toast";
+import { peut } from "../../lib/acces";
+import { useApp } from "../../state/app";
 import { EspaceAdmin, GRIS, TITRE_CARTE } from "./EspaceAdmin";
 
 /* Catalogue et prix : les prestations de chaque service et leur prix indicatif (celui affiché
@@ -35,6 +37,8 @@ export function AdminCatalogue() {
 
 function LignePrestation({ p, onMaj }: { p: PrestationAdmin; onMaj: (p: PrestationAdmin) => void }) {
   const toast = useToast();
+  const { etat } = useApp();
+  const modifiable = peut(etat.auth, "catalogue.prix");
   const [min, setMin] = useState(p.prix_min?.toString() ?? "");
   const [max, setMax] = useState(p.prix_max?.toString() ?? "");
   const change = min !== (p.prix_min?.toString() ?? "") || max !== (p.prix_max?.toString() ?? "");
@@ -62,7 +66,7 @@ function LignePrestation({ p, onMaj }: { p: PrestationAdmin; onMaj: (p: Prestati
       <input className="sy-input" inputMode="numeric" aria-label={`Prix minimum : ${p.nom}`} placeholder="Min." value={min} onChange={(e) => setMin(e.target.value.replace(/\D/g, ""))} style={champ} />
       <span style={{ color: GRIS }}>–</span>
       <input className="sy-input" inputMode="numeric" aria-label={`Prix maximum : ${p.nom}`} placeholder="Max." value={max} onChange={(e) => setMax(e.target.value.replace(/\D/g, ""))} style={champ} />
-      <button onClick={enregistrer} disabled={!change} className="sy-btn sy-btn--primary sy-btn--sm">
+      <button onClick={enregistrer} disabled={!change || !modifiable} className="sy-btn sy-btn--primary sy-btn--sm">
         Enregistrer
       </button>
     </div>

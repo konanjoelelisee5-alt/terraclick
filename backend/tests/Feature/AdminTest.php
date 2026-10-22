@@ -100,10 +100,11 @@ class AdminTest extends TestCase
     {
         $this->actingAs($this->equipe)->getJson('/api/admin/utilisateurs?q=58 42')->assertOk()->assertJsonPath('data.0.nom', 'Aya Konan');
 
-        $this->actingAs($this->equipe)->patchJson("/api/admin/utilisateurs/{$this->aya->id}", ['est_admin' => true])->assertOk()->assertJsonPath('data.est_admin', true);
+        $this->actingAs($this->equipe)->patchJson("/api/admin/utilisateurs/{$this->aya->id}", ['roles' => ['client', 'admin']])->assertOk()
+            ->assertJsonPath('data.roles.1.cle', 'admin');
         $this->actingAs($this->aya->refresh())->getJson('/api/admin/apercu')->assertOk();
 
-        $this->actingAs($this->equipe)->patchJson("/api/admin/utilisateurs/{$this->equipe->id}", ['est_admin' => false])->assertStatus(422);
+        $this->actingAs($this->equipe)->patchJson("/api/admin/utilisateurs/{$this->equipe->id}", ['roles' => ['client']])->assertForbidden();
     }
 
     public function test_modifier_le_prix_indicatif_d_une_prestation(): void

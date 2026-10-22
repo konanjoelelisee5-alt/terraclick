@@ -47,8 +47,12 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Équipe TerraClick : vérification des candidatures de prestataires.
-        Gate::define('admin', fn (User $user) => $user->est_admin);
+        // Chaque permission de config/acces.php est aussi une capacité : @can, Gate::allows(…).
+        foreach (config('acces.permissions') as $permissions) {
+            foreach (array_keys($permissions) as $permission) {
+                Gate::define($permission, fn (User $user) => $user->peut($permission));
+            }
+        }
 
         // Chaque code envoyé coûte un SMS : on freine par numéro et par adresse IP.
         RateLimiter::for('otp-envoi', function (Request $request) {

@@ -4,6 +4,7 @@ use App\Http\Controllers\AccordController;
 use App\Http\Controllers\ActualiteController;
 use App\Http\Controllers\AdminCandidatureController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminRoleController;
 use App\Http\Controllers\AdresseController;
 use App\Http\Controllers\AnnuaireController;
 use App\Http\Controllers\AuthController;
@@ -39,7 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('moi/recherches', [RechercheController::class, 'index']);
     Route::delete('moi/recherches', [RechercheController::class, 'effacer']);
     Route::post('prestataires/{prestataire}/avis', [AvisController::class, 'store']);
-    Route::post('demandes', [DemandeController::class, 'store']);
+    Route::post('demandes', [DemandeController::class, 'store'])->middleware('permission:demandes.envoyer');
     // Onglets : relations abouties, confirmées par le client.
     Route::get('accords', [AccordController::class, 'index']);
     Route::post('accords', [AccordController::class, 'store']);
@@ -65,32 +66,35 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('moi/candidature', [CandidatureController::class, 'store'])->middleware('throttle:10,1');
 
     // Espace administrateur : vue d'ensemble, signalements, demandes, prestataires, utilisateurs, catalogue.
-    Route::prefix('admin')->middleware('can:admin')->group(function () {
-        Route::get('apercu', [AdminController::class, 'apercu']);
-        Route::get('signalements', [AdminController::class, 'signalements']);
+    // Espace administrateur et manager : chaque module s'ouvre à sa permission (config/acces.php),
+    // et les policies vérifient chaque action objet par objet.
+    Route::prefix('admin')->middleware('permission:admin.acceder')->group(function () {
+        Route::get('apercu', [AdminController::class, 'apercu'])->middleware('permission:admin.apercu');
+        Route::get('activite', [AdminController::class, 'activite'])->middleware('permission:admin.activite');
+        Route::get('signalements', [AdminController::class, 'signalements'])->middleware('permission:signalements.voir');
         Route::post('signalements/{signalement}/traiter', [AdminController::class, 'traiterSignalement'])->whereNumber('signalement');
-        Route::get('demandes', [AdminController::class, 'demandes']);
-        Route::get('demandes/{demande}', [AdminController::class, 'demande'])->whereNumber('demande');
-        Route::get('prestataires', [AdminController::class, 'prestataires']);
+        Route::get('demandes', [AdminController::class, 'demandes'])->middleware('permission:demandes.voir_toutes');
+        Route::get('demandes/{demande}', [AdminController::class, 'demande'])->whereNumber('demande')->middleware('permission:demandes.voir_toutes');
+        Route::get('prestataires', [AdminController::class, 'prestataires'])->middleware('permission:prestataires.voir');
         Route::patch('prestataires/{prestataire}', [AdminController::class, 'modifierPrestataire'])->whereNumber('prestataire');
-        Route::get('utilisateurs', [AdminController::class, 'utilisateurs']);
+        Route::get('utilisateurs', [AdminController::class, 'utilisateurs'])->middleware('permission:utilisateurs.voir');
         Route::patch('utilisateurs/{user}', [AdminController::class, 'modifierUtilisateur'])->whereNumber('user');
         Route::get('prestations', [AdminController::class, 'prestations']);
-        Route::patch('prestations/{prestation}', [AdminController::class, 'modifierPrestation'])->whereNumber('prestation');
-        Route::get('activite', [AdminController::class, 'activite']);
-    });
+        Route::patch('prestations/{prestation}', [AdminController::class, 'modifierPrestation'])->whereNumber('prestation')->middleware('permission:catalogue.prix');
+        Route::get('roles', [AdminRoleController::class, 'index'])->middleware('permission:roles.gerer');
+        Route::put('roles/{role}', [AdminRoleController::class, 'update'])->whereNumber('role');
 
-    // Équipe TerraClick : vérification des candidatures.
-    Route::prefix('admin/candidatures')->middleware('can:admin')->group(function () {
-        Route::get('/', [AdminCandidatureController::class, 'index']);
-        Route::get('{candidature}', [AdminCandidatureController::class, 'show'])->whereNumber('candidature');
-        Route::get('{candidature}/documents/{type}', [AdminCandidatureController::class, 'document'])->whereNumber('candidature');
-        Route::post('{candidature}/valider', [AdminCandidatureController::class, 'valider'])->whereNumber('candidature');
-        Route::post('{candidature}/refuser', [AdminCandidatureController::class, 'refuser'])->whereNumber('candidature');
+        Route::prefix('candidatures')->middleware('permission:candidatures.voir')->group(function () {
+            Route::get('/', [AdminCandidatureController::class, 'index']);
+            Route::get('{candidature}', [AdminCandidatureController::class, 'show'])->whereNumber('candidature');
+            Route::get('{candidature}/documents/{type}', [AdminCandidatureController::class, 'document'])->whereNumber('candidature');
+            Route::post('{candidature}/valider', [AdminCandidatureController::class, 'valider'])->whereNumber('candidature');
+            Route::post('{candidature}/refuser', [AdminCandidatureController::class, 'refuser'])->whereNumber('candidature');
+        });
     });
 
     // Espace technicien : demandes reçues par la fiche reliée au compte.
-    Route::prefix('pro/demandes')->group(function () {
+    Route::prefix('pro/demandes')->middleware('permission:pro.demandes')->group(function () {
         Route::get('/', [ProDemandeController::class, 'index']);
         Route::get('{demande}', [ProDemandeController::class, 'show'])->whereNumber('demande');
         foreach (['accepter', 'refuser', 'demarrer', 'terminer', 'etape'] as $action) {

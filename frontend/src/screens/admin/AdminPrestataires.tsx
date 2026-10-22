@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, messageErreur, type PrestataireAdmin } from "../../lib/api";
+import { peut } from "../../lib/acces";
 import { useApp } from "../../state/app";
 import { Dialogue } from "../../components/Dialogue";
 import { Icon } from "../../components/Icon";
@@ -17,6 +18,9 @@ export function AdminPrestataires() {
   const [liste, setListe] = useState<PrestataireAdmin[] | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [suspendre, setSuspendre] = useState<PrestataireAdmin | null>(null);
+  const { etat } = useApp();
+  const peutSuspendre = peut(etat.auth, "prestataires.suspendre");
+  const peutMettreEnAvant = peut(etat.auth, "prestataires.mettre_en_avant");
 
   useEffect(() => {
     const arret = new AbortController();
@@ -71,12 +75,12 @@ export function AdminPrestataires() {
                   Voir la fiche
                 </button>
               )}
-              {p.actif && (
+              {p.actif && peutMettreEnAvant && (
                 <button data-r="vedette" onClick={() => modifier(p, { en_vedette: !p.en_vedette }, p.en_vedette ? "Retiré de la une" : "Mis en avant")} className="sy-btn sy-btn--outline sy-btn--sm">
                   {p.en_vedette ? "Retirer de la une" : "Mettre en avant"}
                 </button>
               )}
-              {p.actif ? (
+              {!peutSuspendre ? null : p.actif ? (
                 <button data-r="suspendre" onClick={() => setSuspendre(p)} className="sy-btn sy-btn--outline sy-btn--sm" style={{ color: "var(--state-danger)", borderColor: "var(--state-danger)", marginLeft: "auto" }}>
                   Suspendre
                 </button>

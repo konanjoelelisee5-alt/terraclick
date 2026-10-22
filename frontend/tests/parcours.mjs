@@ -1041,9 +1041,40 @@ const numeroInscrit = numeroNeuf();
 
   await rail.getByRole('button', { name: /Journal d'activité/ }).click();
   ok('admin : le journal d’activité', await apparait(p.locator('[data-r="evenement-admin"]').first()));
+  await rail.getByRole('button', { name: /Rôles et permissions/ }).click();
+  const matrice = p.locator('[data-r="matrice-roles"]');
+  ok('admin : la matrice des rôles et permissions, par interface',
+     (await apparait(matrice)) && (await matrice.getByRole('checkbox', { name: 'Manager : Traiter un signalement' }).isChecked()) &&
+       !(await matrice.getByRole('checkbox', { name: 'Client : Ouvrir l\'espace administrateur' }).isChecked()) &&
+       (await matrice.getByText('Espace prestataire', { exact: true }).isVisible()));
+  await matrice.getByRole('checkbox', { name: 'Manager : Mettre un prestataire en avant' }).check();
+  ok('admin : une case cochée active « Enregistrer » pour ce rôle', await p.locator('[data-r="enregistrer-role-manager"]').isEnabled());
+  await matrice.getByRole('checkbox', { name: 'Manager : Mettre un prestataire en avant' }).uncheck();
+
   await rail.getByRole('button', { name: "Quitter l'administration" }).click();
   ok('admin : « Quitter l’administration » ramène à l’application', await apparait(p.getByText('Recherches populaires').or(p.locator('[data-r="accueil-fil"]')).first()));
   await ctx.close();
+
+  // Manager : l'opérationnel seulement — ni rôles, ni prix, ni mise en avant
+  const m = await neuve(390, 844);
+  await m.p.locator('[data-r="fil-avatar"]').click();
+  await connecterPage(m.p, '07 02 02 02 02');
+  await apparait(m.p.locator('[data-r="profil-mobile"]'));
+  await m.p.goto('http://localhost:4173/'); await apparait(m.p.locator('[data-r="accueil-fil"]'));
+  await m.p.locator('[data-r="menu-plus-ouvrir"]').click();
+  await m.p.getByRole('menuitem', { name: 'Paramètres' }).click();
+  ok('manager : l’entrée s’appelle « Espace manager »', await apparait(m.p.locator('[data-r="lien-admin"]').getByText('Espace manager')));
+  await m.p.locator('[data-r="lien-admin"]').click();
+  await m.p.setViewportSize({ width: 1440, height: 1000 });
+  const railM = m.p.getByRole('complementary', { name: 'Espace administrateur' });
+  await apparait(railM);
+  const modules = (await railM.getByRole('button').allTextContents()).join('|');
+  ok('manager : candidatures, signalements, demandes, prestataires — sans rôles ni prix',
+     /Candidatures/.test(modules) && /Signalements/.test(modules) && /Prestataires/.test(modules) && !/Rôles et permissions/.test(modules) && !/Catalogue et prix/.test(modules));
+  await railM.getByRole('button', { name: /Prestataires/ }).click();
+  const fiche = m.p.locator('[data-r="prestataire-admin"]').first();
+  ok('manager : il suspend, mais ne met pas en avant', (await apparait(fiche.locator('[data-r="suspendre"]'))) && (await fiche.locator('[data-r="vedette"]').count()) === 0);
+  await m.ctx.close();
 }
 
 // L'ancien espace prestataire de démonstration n'est plus l'entrée (CONFIG.devenirPrestataire = « formulaire ») :

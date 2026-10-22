@@ -18,7 +18,7 @@ class CandidatureResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $admin = (bool) $request->user()?->est_admin;
+        $admin = (bool) $request->user()?->peut('candidatures.voir');
         $pieces = Candidature::documentsPour($this->type);
         $nomsQuartiers = Quartier::whereIn('id', [...$this->quartiers, ...($this->details['quartiers_collecte'] ?? [])])->pluck('nom', 'id');
         $details = $this->details ?? [];

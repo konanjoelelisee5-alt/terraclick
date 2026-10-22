@@ -4,6 +4,8 @@ import { Dialogue } from "../../components/Dialogue";
 import { Icon } from "../../components/Icon";
 import { useToast } from "../../components/Toast";
 import { EspaceAdmin } from "./EspaceAdmin";
+import { peut } from "../../lib/acces";
+import { useApp } from "../../state/app";
 
 /* Espace administrateur, module « Candidatures » : les candidatures « Devenir prestataire » à vérifier. Le dossier complet,
    les pièces jointes (ouvertes avec le jeton, jamais publiques), puis « Valider » — la fiche
@@ -172,6 +174,8 @@ export function AdminCandidatures() {
 }
 
 function Dossier({ c, onRetour, onValider, onRefuser }: { c: CandidatureApi; onRetour: () => void; onValider: () => void; onRefuser: () => void }) {
+  const { etat } = useApp();
+  const peutTraiter = peut(etat.auth, "candidatures.traiter");
   const lignes: [string, string][] = [
     ["Référence", c.reference],
     ["Type", c.type.nom],
@@ -222,7 +226,7 @@ function Dossier({ c, onRetour, onValider, onRefuser }: { c: CandidatureApi; onR
           <strong>Motif envoyé :</strong> {c.motif_refus}
         </p>
       )}
-      {c.statut === "en_attente" && (
+      {c.statut === "en_attente" && peutTraiter && (
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <button data-r="valider-candidature" onClick={onValider} className="sy-btn sy-btn--primary sy-btn--md" style={{ gap: 8 }}>
             <Icon name="badge-check" size={17} />

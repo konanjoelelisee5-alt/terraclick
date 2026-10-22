@@ -9,17 +9,19 @@ use App\Models\Demande;
 use App\Models\DemandeEvenement;
 use App\Models\Prestataire;
 use App\Models\Prestation;
+use App\Models\Role;
 use App\Models\Signalement;
 use App\Models\User;
 use App\Services\AnalyseurBesoin;
 use App\Support\Telephone;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Espace administrateur (comptes `est_admin`) : vue d'ensemble, signalements, demandes et
+ * Espace administrateur et manager (selon les permissions du compte) : vue d'ensemble, signalements, demandes et
  * commandes, prestataires, utilisateurs, catalogue et prix, journal d'activité. Les
  * candidatures ont leur contrôleur (AdminCandidatureController).
  */
@@ -67,6 +69,7 @@ class AdminController extends Controller
         $reponse = $request->validate(['reponse' => ['required', 'string', 'min:3', 'max:1000']], [
             'reponse.required' => 'Notez ce qui a été fait pour ce signalement.',
         ])['reponse'];
+        Gate::authorize('traiter', $signalement);
         if ($signalement->statut === 'traite') {
             throw ValidationException::withMessages(['statut' => 'Ce signalement est déjà traité.']);
         }
@@ -136,7 +139,14 @@ class AdminController extends Controller
     /** PATCH /api/admin/prestataires/{prestataire} — suspendre / réactiver, mettre en avant. */
     public function modifierPrestataire(Request $request, Prestataire $prestataire): JsonResponse
     {
-        $prestataire->update($request->validate(['actif' => ['sometimes', 'boolean'], 'en_vedette' => ['sometimes', 'boolean']]));
+        $donnees = $request->validate(['actif' => ['sometimes', 'boolean'], 'en_vedette' => ['sometimes', 'boolean']]);
+        if (array_key_exists('actif', $donnees)) {
+            Gate::authorize('suspendre', $prestataire);
+        }
+        if (array_key_exists('en_vedette', $donnees)) {
+            Gate::authorize('mettreEnAvant', $prestataire);
+        }
+        $prestataire->update($donnees);
 
         return response()->json(['data' => $this->prestataire($prestataire->load('quartier', 'utilisateur')->loadCount([
             'documents', 'documents as documents_verifies_count' => fn ($d) => $d->where('statut', 'verifie'), 'demandes',
@@ -149,7 +159,7 @@ class AdminController extends Controller
         $q = $request->validate(['q' => ['nullable', 'string', 'max:80']])['q'] ?? null;
         $chiffres = $q !== null ? preg_replace('/\D/', '', $q) : '';
         $liste = User::query()
-            ->with('quartier')
+            ->with('quartier', 'roles')
             ->withCount('demandes')
             ->when($q, fn ($w) => $w->where(fn ($x) => $x->where('nom', 'like', "%{$q}%")
                 ->when(strlen($chiffres) >= 4, fn ($y) => $y->orWhere('telephone', 'like', "%{$chiffres}%"))))
@@ -159,16 +169,19 @@ class AdminController extends Controller
         return response()->json(['data' => $liste->map(fn (User $u) => $this->utilisateur($u, $prestataires[$u->id] ?? null))]);
     }
 
-    /** PATCH /api/admin/utilisateurs/{user} — donner ou retirer l'accès à l'espace administrateur. */
+    /** PATCH /api/admin/utilisateurs/{user} — les rôles du compte (client, prestataire, manager, admin). */
     public function modifierUtilisateur(Request $request, User $user): JsonResponse
     {
-        $admin = $request->validate(['est_admin' => ['required', 'boolean']])['est_admin'];
-        if (! $admin && $user->is($request->user())) {
-            throw ValidationException::withMessages(['est_admin' => 'Vous ne pouvez pas retirer votre propre accès administrateur.']);
-        }
-        $user->forceFill(['est_admin' => $admin])->save();
+        $roles = $request->validate(['roles' => ['required', 'array', 'min:1'], 'roles.*' => ['string', Rule::exists('roles', 'cle')]], [
+            'roles.required' => 'Choisissez au moins un rôle.',
+        ])['roles'];
+        $roles = array_values(array_unique($roles));
+        Gate::authorize('changerRoles', [$user, $roles]);
 
-        return response()->json(['data' => $this->utilisateur($user->load('quartier')->loadCount('demandes'), Prestataire::where('user_id', $user->id)->value('nom'))]);
+        $user->roles()->sync(Role::whereIn('cle', $roles)->pluck('id'));
+        $user->oublierPermissions();
+
+        return response()->json(['data' => $this->utilisateur($user->load('quartier', 'roles')->loadCount('demandes'), Prestataire::where('user_id', $user->id)->value('nom'))]);
     }
 
     /** GET /api/admin/prestations — catalogue des prestations et prix indicatifs, par service. */
@@ -276,7 +289,7 @@ class AdminController extends Controller
             'quartier' => $u->quartier?->nom,
             'demandes' => $u->demandes_count ?? 0,
             'prestataire' => $fiche,
-            'est_admin' => (bool) $u->est_admin,
+            'roles' => $u->roles->map(fn (Role $r) => ['cle' => $r->cle, 'nom' => $r->nom])->values(),
             'inscrit_le' => $u->created_at?->toIso8601String(),
         ];
     }

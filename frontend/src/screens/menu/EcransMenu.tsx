@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useState, type ReactNode } from "react";
 import { CONFIG } from "../../lib/config";
+import { peut } from "../../lib/acces";
 import { SECTEURS } from "../../data/catalogue";
 import { api, messageErreur, type AccordApi, type RechercheApi } from "../../lib/api";
 import { appareilId, effacerHistorique, useHistorique } from "../../lib/historique";
@@ -569,9 +570,9 @@ export function Parametres() {
     },
     { icone: "bell", titre: "Notifications", detail: "Demandes, réponses des techniciens", action: () => exigerCompte(() => go("clientNotifications")) },
     ...(etat.auth?.admin
-      ? [{ icone: "shield-check", titre: "Espace administrateur", detail: "Candidatures, signalements, demandes, prestataires, prix", action: () => go("adminApercu"), r: "lien-admin" }]
+      ? [{ icone: "shield-check", titre: etat.auth.roles?.includes("admin") ? "Espace administrateur" : "Espace manager", detail: "Candidatures, signalements, demandes, prestataires", action: () => go("adminApercu"), r: "lien-admin" }]
       : []),
-    ...(etat.auth
+    ...(peut(etat.auth, "pro.demandes")
       ? [{ icone: "inbox", titre: "Commandes reçues", detail: "Pressings et techniciens : les demandes de vos clients", action: () => go("demandesRecues"), r: "lien-demandes-recues" }]
       : []),
     { icone: "history", titre: "Historique des recherches", detail: "Revoir ou supprimer vos recherches", action: () => go("historique") },

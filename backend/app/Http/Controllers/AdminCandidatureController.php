@@ -8,16 +8,18 @@ use App\Models\Categorie;
 use App\Models\DocumentPrestataire;
 use App\Models\Prestataire;
 use App\Models\Quartier;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Équipe TerraClick (comptes `est_admin`) : vérifie les candidatures, ouvre les pièces jointes,
+ * Équipe TerraClick (permissions candidatures.voir et candidatures.traiter) : vérifie les candidatures, ouvre les pièces jointes,
  * valide — la fiche du prestataire est alors créée et reliée à son compte — ou refuse avec un
  * motif, que le candidat lit pour corriger son dossier.
  */
@@ -50,6 +52,7 @@ class AdminCandidatureController extends Controller
     /** GET /api/admin/candidatures/{candidature}/documents/{type} — une pièce jointe. */
     public function document(Candidature $candidature, string $type): StreamedResponse
     {
+        Gate::authorize('voirPieces', $candidature);
         $document = $candidature->documents()->where('type', $type)->firstOrFail();
 
         return Storage::disk('local')->response($document->fichier, null, ['Content-Type' => $document->mime]);
@@ -58,6 +61,7 @@ class AdminCandidatureController extends Controller
     /** POST /api/admin/candidatures/{candidature}/valider — crée la fiche et la relie au compte. */
     public function valider(Request $request, Candidature $candidature): CandidatureResource
     {
+        Gate::authorize('traiter', $candidature);
         $this->enAttente($candidature);
 
         DB::transaction(function () use ($request, $candidature) {
@@ -85,6 +89,11 @@ class AdminCandidatureController extends Controller
                 }
             }
 
+            // Le compte ouvre désormais l'espace prestataire.
+            if ($role = Role::where('cle', 'prestataire')->first()) {
+                $candidature->utilisateur->roles()->syncWithoutDetaching([$role->id]);
+            }
+
             $candidature->update([
                 'statut' => 'validee',
                 'prestataire_id' => $fiche->id,
@@ -100,6 +109,7 @@ class AdminCandidatureController extends Controller
     /** POST /api/admin/candidatures/{candidature}/refuser — le motif dit au candidat quoi corriger. */
     public function refuser(Request $request, Candidature $candidature): CandidatureResource
     {
+        Gate::authorize('traiter', $candidature);
         $this->enAttente($candidature);
         $motif = $request->validate(['motif' => ['required', 'string', 'min:5', 'max:1000']], [
             'motif.required' => 'Dites au candidat ce qu\'il doit corriger.',

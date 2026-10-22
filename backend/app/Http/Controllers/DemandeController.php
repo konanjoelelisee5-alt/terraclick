@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -114,9 +115,10 @@ class DemandeController extends Controller
             ->setStatusCode(201);
     }
 
+    /** Seul le client de la demande agit dessus (DemandePolicy) ; pour les autres, elle n'existe pas. */
     private function verifierAuteur(Request $request, Demande $demande): void
     {
-        abort_unless($demande->user_id === $request->user()->id, 404, 'Demande introuvable.');
+        Gate::forUser($request->user())->authorize('gererCommeClient', $demande);
     }
 
     /** Le technicien demandé doit être référencé et exercer le service demandé. */

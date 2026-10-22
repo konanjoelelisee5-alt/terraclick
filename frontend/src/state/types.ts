@@ -73,6 +73,7 @@ export type Ecran =
   | "adminUtilisateurs"
   | "adminCatalogue"
   | "adminActivite"
+  | "adminRoles"
   /* Demandes et commandes reçues, branchées sur l'API */
   | "demandesRecues";
 
@@ -81,8 +82,11 @@ export type ModeAccueil = "recherche" | "carte" | "box";
 
 export type EtapeAuth = "tel" | "code" | "profil";
 
-/** `admin` : compte de l'équipe TerraClick (vérification des candidatures). */
-export type Compte = { prenom: string; tel: string; quartier: string; photo: string | null; admin?: boolean };
+/**
+ * `roles` et `permissions` : ce que le compte peut ouvrir (config/acces.php côté API).
+ * `admin` : il ouvre l'espace administrateur (ou manager).
+ */
+export type Compte = { prenom: string; tel: string; quartier: string; photo: string | null; admin?: boolean; roles?: string[]; permissions?: string[] };
 
 export type Message = { moi: boolean; texte: string };
 

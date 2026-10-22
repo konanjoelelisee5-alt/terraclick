@@ -7,6 +7,7 @@ use App\Models\Avis;
 use App\Models\Demande;
 use App\Models\Prestataire;
 use App\Models\Quartier;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -46,16 +47,27 @@ class DemoSeeder extends Seeder
         );
         Prestataire::where('nom', 'Pressing Éclat')->whereNull('user_id')->update(['user_id' => $gerant->id]);
 
-        // Mot de passe de démonstration, posé une seule fois : un changement fait depuis
-        // l'application n'est pas écrasé au déploiement suivant.
-        // Compte de l'équipe TerraClick de démonstration : vérifie les candidatures.
+        // Comptes de l'équipe TerraClick de démonstration : un administrateur (accès complet)
+        // et un manager (vérifications, signalements, demandes, prestataires).
         $equipe = User::updateOrCreate(
             ['telephone' => '+2250701010101'],
             ['nom' => 'Équipe TerraClick', 'telephone_verifie_le' => now()],
         );
-        $equipe->forceFill(['est_admin' => true])->save();
+        $manager = User::updateOrCreate(
+            ['telephone' => '+2250702020202'],
+            ['nom' => 'Diane Koffi', 'ville_id' => $habitat->ville_id, 'quartier_id' => $habitat->id, 'telephone_verifie_le' => now()],
+        );
 
-        foreach ([$aya, $moussa, $koffi, $gerant, $equipe] as $compte) {
+        // Un rôle par interface : admin, manager ; prestataire pour les comptes reliés à une
+        // fiche et client pour les autres (posés par RolesPermissionsSeeder).
+        $this->call(RolesPermissionsSeeder::class);
+        Role::where('cle', 'admin')->firstOrFail()->utilisateurs()->syncWithoutDetaching([$equipe->id]);
+        Role::where('cle', 'manager')->firstOrFail()->utilisateurs()->syncWithoutDetaching([$manager->id]);
+        Role::where('cle', 'client')->firstOrFail()->utilisateurs()->detach([$equipe->id, $manager->id]);
+
+        // Mot de passe de démonstration, posé une seule fois : un changement fait depuis
+        // l'application n'est pas écrasé au déploiement suivant.
+        foreach ([$aya, $moussa, $koffi, $gerant, $equipe, $manager] as $compte) {
             if (! $compte->aUnMotDePasse()) {
                 $compte->forceFill(['password' => self::MOT_DE_PASSE_DEMO])->save();
             }

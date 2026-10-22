@@ -54,6 +54,45 @@ indicatifs par pièce sont dans `config/pressing.php` (**à valider avec les pre
 l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
 (`Demande::composerPack`), quel que soit ce que l'application envoie.
 
+**Rôles et permissions** (`config/acces.php`) : chaque interface s'ouvre à une permission.
+
+- **Rôles de départ** :
+
+  | Rôle | Interfaces |
+  |---|---|
+  | Client | espace client |
+  | Prestataire | espace client et espace prestataire |
+  | Manager | vérifications, signalements, demandes, prestataires (suspendre) et utilisateurs (voir) |
+  | Administrateur | tout, y compris les rôles, les prix et la mise en avant |
+
+  Chaque nouveau compte est client. Une candidature validée donne le rôle prestataire.
+- **Tables** : `roles`, `permissions`, `permission_role`, `role_user`. L'ancienne colonne `users.est_admin` est devenue le rôle administrateur.
+- **Middleware** `permission:…` (`App\Http\Middleware\VerifierPermission`) sur les routes : espace administrateur et chacun de ses modules, espace prestataire (`pro.demandes`), envoi d'une demande (`demandes.envoyer`).
+- **Policies** (`app/Policies`), action par action :
+  - `DemandePolicy` : le client, le prestataire de la demande, l'équipe ; les autres reçoivent un 404 ;
+  - `CandidaturePolicy` : pièces jointes et traitement ;
+  - `SignalementPolicy` ;
+  - `PrestatairePolicy` : suspendre, mettre en avant ;
+  - `UserPolicy` : seul un administrateur donne le rôle administrateur, et personne ne se retire le sien ;
+  - `RolePolicy` : le rôle administrateur ne se modifie pas.
+- Chaque permission est aussi une capacité Laravel (`Gate::allows('signalements.traiter')`).
+- **Base peuplée** par `RolesPermissionsSeeder`, lancé avec les référentiels, même en production. Il ajoute ce qui manque sans écraser les permissions changées depuis l'écran « Rôles et permissions ».
+- **Comptes de démonstration**, mot de passe **terraclick2026** :
+
+  | Rôle | Compte | Numéro |
+  |---|---|---|
+  | Administrateur | Équipe TerraClick | **07 01 01 01 01** |
+  | Manager | Diane Koffi | **07 02 02 02 02** |
+  | Prestataire | Koffi Tanoh | **07 07 07 07 07** |
+  | Prestataire | gérant de Pressing Éclat | **07 08 08 08 08** |
+  | Client | Aya | **07 58 42 19 03** |
+- **Dans l'application**, `/api/moi` renvoie les rôles et les permissions du compte, et l'application n'affiche que le permis :
+  - l'entrée « Espace administrateur » ou « Espace manager » dans Paramètres ;
+  - les modules du rail ;
+  - les boutons d'action ;
+  - « Commandes reçues » seulement pour les prestataires.
+- Écran **Rôles et permissions** (administrateur) : la matrice par interface, une colonne par rôle.
+- Écran **Utilisateurs** : les rôles de chaque compte se changent par cases à cocher.
 **Espace administrateur**, d'après la maquette « Servis Yakro » (`Téléchargements/servis-yakro-app`, rôle Administrateur) :
   
 - Une application à part, comme l'espace pro : rail sombre sur ordinateur, navigation basse et « Plus » sur téléphone (`screens/admin/EspaceAdmin.tsx`).

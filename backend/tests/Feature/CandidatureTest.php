@@ -173,7 +173,8 @@ class CandidatureTest extends TestCase
 
         // La fiche est publique, et le compte ouvre ses demandes reçues.
         $this->getJson("/api/prestataires/{$fiche->id}")->assertOk();
-        $this->actingAs($this->candidat)->getJson('/api/pro/demandes')->assertOk();
+        // Validé : le compte a reçu le rôle prestataire (permissions relues, comme à chaque requête).
+        $this->actingAs($this->candidat->fresh())->getJson('/api/pro/demandes')->assertOk();
         $this->actingAs($this->equipe)->postJson("/api/admin/candidatures/{$id}/valider")->assertStatus(422);
     }
 

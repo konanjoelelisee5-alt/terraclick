@@ -8,6 +8,7 @@ use App\Models\Prestataire;
 use App\Services\CycleDemande;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Demandes reçues par le technicien connecté : son compte est relié à sa fiche
@@ -93,7 +94,9 @@ class ProDemandeController extends Controller
 
     private function sienne(Request $request, Demande $demande): Demande
     {
-        abort_unless($demande->prestataire_id === $this->fiche($request)->id, 404, 'Demande introuvable.');
+        $this->fiche($request);
+        // DemandePolicy : le prestataire de la demande, avec la permission de l'espace pro.
+        Gate::forUser($request->user())->authorize('traiterCommePrestataire', $demande);
 
         return $demande;
     }

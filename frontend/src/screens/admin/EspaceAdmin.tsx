@@ -1,47 +1,51 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { api, type ApercuAdmin } from "../../lib/api";
+import { peut } from "../../lib/acces";
 import { useApp } from "../../state/app";
 import type { Ecran } from "../../state/types";
 import { Icon } from "../../components/Icon";
 
 /* Espace administrateur, d'après la maquette « Servis Yakro » (rôle Administrateur) : une
    application à part, comme l'espace pro — rail sombre sur ordinateur, barre du haut,
-   navigation basse et « Plus » sur téléphone. Réservé aux comptes de l'équipe (`admin`).
+   navigation basse et « Plus » sur téléphone. Chaque module s'ouvre à sa permission : un
+   manager y voit l'opérationnel, un administrateur tout (rôles et permissions, config/acces.php).
    Les modules sont ceux que l'application fait vivre aujourd'hui ; ceux de la maquette sans
    équivalent (abonnements, paiements plateforme, webhooks, plans) viendront avec leur métier. */
 
-type Entree = { ecran: Ecran; libelle: string; court: string; icone: string; compteur?: keyof ApercuAdmin["a_traiter"] };
+type Entree = { ecran: Ecran; libelle: string; court: string; icone: string; permission: string; compteur?: keyof ApercuAdmin["a_traiter"] };
 
 const GROUPES: { titre: string; entrees: Entree[] }[] = [
   {
     titre: "Pilotage",
     entrees: [
-      { ecran: "adminApercu", libelle: "Vue d'ensemble", court: "Accueil", icone: "layout-dashboard" },
-      { ecran: "adminActivite", libelle: "Journal d'activité", court: "Journal", icone: "history" },
+      { ecran: "adminApercu", libelle: "Vue d'ensemble", court: "Accueil", icone: "layout-dashboard", permission: "admin.apercu" },
+      { ecran: "adminActivite", libelle: "Journal d'activité", court: "Journal", icone: "history", permission: "admin.activite" },
     ],
   },
   {
     titre: "Vérification et qualité",
     entrees: [
-      { ecran: "adminCandidatures", libelle: "Candidatures", court: "Candidatures", icone: "badge-check", compteur: "candidatures" },
-      { ecran: "adminSignalements", libelle: "Signalements", court: "Signalements", icone: "flag", compteur: "signalements" },
+      { ecran: "adminCandidatures", libelle: "Candidatures", court: "Candidatures", icone: "badge-check", permission: "candidatures.voir", compteur: "candidatures" },
+      { ecran: "adminSignalements", libelle: "Signalements", court: "Signalements", icone: "flag", permission: "signalements.voir", compteur: "signalements" },
     ],
   },
   {
     titre: "Annuaire",
     entrees: [
-      { ecran: "adminDemandes", libelle: "Demandes et commandes", court: "Demandes", icone: "file-text" },
-      { ecran: "adminPrestataires", libelle: "Prestataires", court: "Prestataires", icone: "briefcase" },
-      { ecran: "adminUtilisateurs", libelle: "Utilisateurs", court: "Utilisateurs", icone: "users" },
+      { ecran: "adminDemandes", libelle: "Demandes et commandes", court: "Demandes", icone: "file-text", permission: "demandes.voir_toutes" },
+      { ecran: "adminPrestataires", libelle: "Prestataires", court: "Prestataires", icone: "briefcase", permission: "prestataires.voir" },
+      { ecran: "adminUtilisateurs", libelle: "Utilisateurs", court: "Utilisateurs", icone: "users", permission: "utilisateurs.voir" },
     ],
   },
   {
     titre: "Configuration",
-    entrees: [{ ecran: "adminCatalogue", libelle: "Catalogue et prix", court: "Prix", icone: "receipt" }],
+    entrees: [
+      { ecran: "adminCatalogue", libelle: "Catalogue et prix", court: "Prix", icone: "receipt", permission: "catalogue.prix" },
+      { ecran: "adminRoles", libelle: "Rôles et permissions", court: "Rôles", icone: "shield-check", permission: "roles.gerer" },
+    ],
   },
 ];
 
-const TOUTES = GROUPES.flatMap((g) => g.entrees);
 
 /** Onglets de la barre basse sur téléphone ; le reste passe par « Plus ». */
 const ONGLETS_BAS: Ecran[] = ["adminApercu", "adminCandidatures", "adminSignalements", "adminDemandes"];
@@ -121,8 +125,14 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
   const { etat, go } = useApp();
   const compteurs = useCompteurs(etat.screen);
   const courant = etat.screen;
+  // Seuls les modules permis à ce compte (le manager n'a ni les rôles ni les prix).
+  const groupes = GROUPES.map((g) => ({ ...g, entrees: g.entrees.filter((e) => peut(etat.auth, e.permission)) })).filter((g) => g.entrees.length);
+  const TOUTES = groupes.flatMap((g) => g.entrees);
+  const ongletsBas = ONGLETS_BAS.filter((e) => TOUTES.some((x) => x.ecran === e));
+  const permis = TOUTES.some((e) => e.ecran === courant);
+  const administrateur = !!etat.auth?.roles?.includes("admin");
   const entreeCourante = TOUTES.find((e) => e.ecran === courant);
-  const groupeCourant = GROUPES.find((g) => g.entrees.some((e) => e.ecran === courant));
+  const groupeCourant = groupes.find((g) => g.entrees.some((e) => e.ecran === courant));
   const [plusOuvert, setPlusOuvert] = useState(false);
   const n = (e: Entree) => (e.compteur && compteurs ? compteurs[e.compteur] : undefined);
 
@@ -134,7 +144,7 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
   const quitter = () => go("home");
 
   // Réservé à l'équipe : un autre compte voit seulement de quoi revenir à l'application.
-  if (!etat.auth?.admin) {
+  if (!peut(etat.auth, "admin.acceder")) {
     return (
       <main style={{ maxWidth: 520, margin: "0 auto", padding: "48px 20px", textAlign: "center" }}>
         <h1 style={{ fontSize: "24px", margin: 0 }}>Espace administrateur</h1>
@@ -155,13 +165,13 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
             tc
           </span>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "15px", color: "#fff" }}>Administration</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "15px", color: "#fff" }}>{administrateur ? "Administration" : "Espace manager"}</div>
             <div style={{ fontSize: "11.5px", color: "rgba(255,255,255,.55)" }}>TerraClick</div>
           </div>
         </div>
 
         <nav style={{ flex: 1, overflowY: "auto", padding: "4px 10px 12px", display: "flex", flexDirection: "column", gap: 14 }}>
-          {GROUPES.map((g) => (
+          {groupes.map((g) => (
             <div key={g.titre} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <span style={{ fontSize: "10.5px", fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase", color: "rgba(255,255,255,.4)", padding: "0 10px 4px" }}>{g.titre}</span>
               {g.entrees.map((e) => {
@@ -202,11 +212,11 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
         <div style={{ borderTop: "1px solid rgba(255,255,255,.1)", padding: 12, display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ width: 32, height: 32, flex: "none", borderRadius: "50%", background: "rgba(255,255,255,.12)", color: "#fff", display: "grid", placeItems: "center", fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "12px" }}>
-              {(etat.auth.prenom || "A").slice(0, 2).toUpperCase()}
+              {(etat.auth?.prenom || "A").slice(0, 2).toUpperCase()}
             </span>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{etat.auth.prenom}</div>
-              <div style={{ fontSize: "11px", color: "rgba(255,255,255,.55)" }}>Administrateur</div>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{etat.auth?.prenom}</div>
+              <div style={{ fontSize: "11px", color: "rgba(255,255,255,.55)" }}>{administrateur ? "Administrateur" : "Manager"}</div>
             </div>
           </div>
           <button
@@ -239,14 +249,20 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
         </header>
 
         <main data-r="pro-content">
-          {sousTitre && <p style={{ margin: 0, fontSize: "14px", color: GRIS }}>{sousTitre}</p>}
-          {children}
+          {permis ? (
+            <>
+              {sousTitre && <p style={{ margin: 0, fontSize: "14px", color: GRIS }}>{sousTitre}</p>}
+              {children}
+            </>
+          ) : (
+            <Vide texte="Votre rôle n'ouvre pas ce module. Demandez l'accès à un administrateur." />
+          )}
         </main>
       </div>
 
       {/* ---- Navigation basse (téléphone) ---- */}
       <nav data-r="pro-bottom" aria-label="Navigation de l'administration">
-        {ONGLETS_BAS.map((ecran) => {
+        {ongletsBas.map((ecran) => {
           const e = TOUTES.find((x) => x.ecran === ecran)!;
           const actif = courant === ecran;
           return (
@@ -263,7 +279,7 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
             </button>
           );
         })}
-        <button type="button" onClick={() => setPlusOuvert(true)} aria-expanded={plusOuvert} style={{ color: ONGLETS_BAS.includes(courant) ? "var(--argile-700)" : "var(--kola-600)" }}>
+        <button type="button" onClick={() => setPlusOuvert(true)} aria-expanded={plusOuvert} style={{ color: ongletsBas.includes(courant) ? "var(--argile-700)" : "var(--kola-600)" }}>
           <Icon name="layout-grid" size={21} />
           Plus
         </button>
@@ -284,7 +300,7 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
               </button>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-              {TOUTES.filter((e) => !ONGLETS_BAS.includes(e.ecran)).map((e) => (
+              {TOUTES.filter((e) => !ongletsBas.includes(e.ecran)).map((e) => (
                 <button
                   key={e.ecran}
                   type="button"

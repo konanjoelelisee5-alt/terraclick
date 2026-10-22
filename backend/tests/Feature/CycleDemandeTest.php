@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Demande;
 use App\Models\Prestataire;
 use App\Models\Quartier;
+use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\CatalogueSeeder;
 use Database\Seeders\DemoSeeder;
@@ -129,6 +130,7 @@ class CycleDemandeTest extends TestCase
         // Un autre technicien ne voit pas la demande adressée à Koffi Tanoh.
         $autreTechnicien = User::factory()->create();
         Prestataire::where('nom', 'Ali Diomandé')->update(['user_id' => $autreTechnicien->id]);
+        $autreTechnicien->roles()->attach(Role::where('cle', 'prestataire')->value('id'));
         $this->assertNotContains($demande->id, $this->actingAs($autreTechnicien)->getJson('/api/pro/demandes')->assertOk()->json('data.*.id'));
         $this->actingAs($autreTechnicien)->postJson("/api/pro/demandes/{$demande->id}/accepter")->assertNotFound();
     }

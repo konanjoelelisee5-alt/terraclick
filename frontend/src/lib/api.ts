@@ -81,8 +81,11 @@ export type Utilisateur = {
   profil_complet: boolean;
   /** Faux pour un compte créé par code seul : il se donne un mot de passe par « Mot de passe oublié ». */
   a_mot_de_passe: boolean;
-  /** Compte de l'équipe TerraClick : vérifie les candidatures des prestataires. */
+  /** Ancien champ : vrai si le compte ouvre l'espace administrateur. */
   est_admin: boolean;
+  /** Rôles (client, prestataire, manager, admin) et permissions du compte (config/acces.php côté API). */
+  roles: string[];
+  permissions: string[];
 };
 
 /** Ce que demande « Devenir prestataire », selon le type (GET /api/candidature/exigences). */
@@ -171,8 +174,14 @@ export type UtilisateurAdmin = {
   quartier: string | null;
   demandes: number;
   prestataire: string | null;
-  est_admin: boolean;
+  roles: { cle: string; nom: string }[];
   inscrit_le: string;
+};
+
+/** La matrice « Rôles et permissions » (GET /api/admin/roles). */
+export type RolesAdmin = {
+  roles: { id: number; cle: string; nom: string; description: string | null; utilisateurs: number; modifiable: boolean; permissions: string[] }[];
+  groupes: { nom: string; permissions: { cle: string; nom: string }[] }[];
 };
 
 export type PrestationAdmin = {
@@ -571,8 +580,11 @@ export const api = {
     modifierPrestataire: (id: number, patch: { actif?: boolean; en_vedette?: boolean }) =>
       requete<{ data: PrestataireAdmin }>(`/admin/prestataires/${id}`, { methode: "PATCH", corps: patch }).then((r) => r.data),
     utilisateurs: (q: string, signal?: AbortSignal) => requete<{ data: UtilisateurAdmin[] }>(`/admin/utilisateurs${parametres({ q })}`, { signal }).then((r) => r.data),
-    modifierUtilisateur: (id: number, est_admin: boolean) =>
-      requete<{ data: UtilisateurAdmin }>(`/admin/utilisateurs/${id}`, { methode: "PATCH", corps: { est_admin } }).then((r) => r.data),
+    modifierUtilisateur: (id: number, roles: string[]) =>
+      requete<{ data: UtilisateurAdmin }>(`/admin/utilisateurs/${id}`, { methode: "PATCH", corps: { roles } }).then((r) => r.data),
+    roles: (signal?: AbortSignal) => requete<{ data: RolesAdmin }>("/admin/roles", { signal }).then((r) => r.data),
+    modifierRole: (id: number, permissions: string[]) =>
+      requete<{ data: { id: number; cle: string; permissions: string[] } }>(`/admin/roles/${id}`, { methode: "PUT", corps: { permissions } }).then((r) => r.data),
     prestations: (signal?: AbortSignal) => requete<{ data: PrestationAdmin[] }>("/admin/prestations", { signal }).then((r) => r.data),
     modifierPrestation: (id: number, prix: { prix_min: number | null; prix_max: number | null }) =>
       requete<{ data: Pick<PrestationAdmin, "id" | "prix_min" | "prix_max" | "prix_affichage"> }>(`/admin/prestations/${id}`, { methode: "PATCH", corps: prix }).then((r) => r.data),

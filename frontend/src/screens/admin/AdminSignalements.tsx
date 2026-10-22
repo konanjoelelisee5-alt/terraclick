@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, messageErreur, type SignalementAdmin } from "../../lib/api";
+import { peut } from "../../lib/acces";
+import { useApp } from "../../state/app";
 import { Dialogue } from "../../components/Dialogue";
 import { Icon } from "../../components/Icon";
 import { useToast } from "../../components/Toast";
@@ -15,6 +17,8 @@ export function AdminSignalements() {
   const [erreur, setErreur] = useState<string | null>(null);
   const [traite, setTraite] = useState<SignalementAdmin | null>(null);
   const [reponse, setReponse] = useState("");
+  const { etat } = useApp();
+  const peutTraiter = peut(etat.auth, "signalements.traiter");
 
   useEffect(() => {
     const arret = new AbortController();
@@ -68,9 +72,9 @@ export function AdminSignalements() {
                     Prestataire
                   </a>
                 )}
-                <button data-r="traiter-signalement" onClick={() => setTraite(s)} className="sy-btn sy-btn--primary sy-btn--sm" style={{ marginLeft: "auto" }}>
+                {peutTraiter && <button data-r="traiter-signalement" onClick={() => setTraite(s)} className="sy-btn sy-btn--primary sy-btn--sm" style={{ marginLeft: "auto" }}>
                   Marquer traité
-                </button>
+                </button>}
               </div>
             )}
           </article>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\EnvoiCodeImpossible;
+use App\Http\Middleware\VerifierPermission;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
@@ -20,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // En ligne, l'API est derrière le proxy de Render, qui termine le HTTPS : sans cette
         // confiance, les adresses générées (photos, pagination) partiraient en http://.
         $middleware->trustProxies(at: '*');
+
+        // Accès par permission (config/acces.php) : ->middleware('permission:admin.acceder').
+        $middleware->alias(['permission' => VerifierPermission::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
