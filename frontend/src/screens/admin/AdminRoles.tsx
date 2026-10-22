@@ -126,9 +126,15 @@ function GroupeLignes(props: {
           </td>
           {props.roles.map((r) => {
             const coche = (props.brouillon[r.id] ?? []).includes(p.cle);
+            // Un rôle client ou prestataire n'ouvre jamais l'espace de l'équipe (refusé par le serveur).
+            const horsEquipe = !r.equipe && props.groupe.nom === "Espace administrateur";
             return (
               <td key={r.id} style={{ textAlign: "center", padding: "6px 8px" }}>
-                {r.modifiable ? (
+                {horsEquipe ? (
+                  <span aria-label={`${r.nom} : ${p.nom} — réservé à l'équipe`} title="Réservé aux comptes de l'équipe" style={{ color: GRIS }}>
+                    —
+                  </span>
+                ) : r.modifiable ? (
                   <input
                     type="checkbox"
                     aria-label={`${r.nom} : ${p.nom}`}

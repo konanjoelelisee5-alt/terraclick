@@ -39,6 +39,8 @@ import { AdminUtilisateurs } from "./screens/admin/AdminUtilisateurs";
 import { AdminCatalogue } from "./screens/admin/AdminCatalogue";
 import { AdminActivite } from "./screens/admin/AdminActivite";
 import { AdminRoles } from "./screens/admin/AdminRoles";
+import { premierModule } from "./screens/admin/EspaceAdmin";
+import { peut } from "./lib/acces";
 import { Historique, OngletAccord, Onglets, OngletsRecents, Parametres, Telechargements } from "./screens/menu/EcransMenu";
 import { ConfirmationAccord } from "./components/ConfirmationAccord";
 import { Besoin } from "./screens/besoin/Besoin";
@@ -154,7 +156,7 @@ const ECRANS_CONSTRUCTION: Ecran[] = [
 ];
 
 function Coque() {
-  const { etat, set } = useApp();
+  const { etat, set, go } = useApp();
   const masque = !CONFIG.moduleConstruction && ECRANS_CONSTRUCTION.includes(etat.screen);
   const Ecran = masque ? Home : ECRANS[etat.screen];
   // Sur téléphone, les onglets secondaires (Profil, Favoris) portent leur propre en-tête à
@@ -177,6 +179,14 @@ function Coque() {
     document.addEventListener("mousedown", fermer);
     return () => document.removeEventListener("mousedown", fermer);
   }, [etat.deptsOpen, set]);
+
+  // Un compte de l'équipe arrive sur son tableau de bord, jamais sur la page de recherche du client.
+  const equipe = CONFIG.espaceEquipe === "tableauDeBord" && peut(etat.auth, "admin.acceder");
+  const horsTableau = equipe && !/^admin[A-Z]/.test(etat.screen);
+  useEffect(() => {
+    if (horsTableau) go(premierModule(etat.auth));
+  }, [horsTableau, etat.auth, go]);
+  if (horsTableau) return null;
 
   // L'espace prestataire et l'espace administrateur sont des applications à part : ni
   // en-tête d'annuaire, ni pied de page, ni barre d'onglets du site public.

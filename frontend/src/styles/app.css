@@ -153,6 +153,11 @@ svg,
   display: none;
 }
 
+/* Tableau de bord de l'équipe : le bouton de menu n'existe que sur tablette et téléphone. */
+[data-r="admin-menu"] {
+  display: none !important;
+}
+
 /* Contenu principal + colonne latérale (actions, état du profil). */
 [data-r="pro-split"] {
   display: grid;
@@ -249,6 +254,36 @@ svg,
   [data-r="pro-top"] {
     padding: 8px 16px;
     min-height: 56px;
+  }
+
+  /* Tableau de bord de l'équipe : pas de navigation basse d'application, le rail sombre
+     devient un menu latéral ouvert par le bouton de la barre du haut. */
+  [data-r="pro-app"][data-mode="tableau"] {
+    padding-bottom: 0;
+  }
+
+  [data-r="admin-menu"] {
+    display: inline-grid !important;
+    flex: none;
+  }
+
+  [data-mode="tableau"][data-menu="ouvert"] [data-r="pro-side"] {
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(280px, 84vw);
+    height: auto;
+    z-index: 60;
+    box-shadow: 12px 0 32px rgba(26, 22, 19, 0.28);
+  }
+
+  [data-r="admin-voile"] {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: rgba(26, 22, 19, 0.45);
   }
 
   [data-r="pro-content"] {

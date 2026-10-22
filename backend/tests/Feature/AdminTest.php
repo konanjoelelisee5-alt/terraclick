@@ -100,9 +100,10 @@ class AdminTest extends TestCase
     {
         $this->actingAs($this->equipe)->getJson('/api/admin/utilisateurs?q=58 42')->assertOk()->assertJsonPath('data.0.nom', 'Aya Konan');
 
-        $this->actingAs($this->equipe)->patchJson("/api/admin/utilisateurs/{$this->aya->id}", ['roles' => ['client', 'admin']])->assertOk()
-            ->assertJsonPath('data.roles.1.cle', 'admin');
-        $this->actingAs($this->aya->refresh())->getJson('/api/admin/apercu')->assertOk();
+        // Un compte client ne passe jamais dans l'équipe : l'équipe a ses propres comptes.
+        $this->actingAs($this->equipe)->patchJson("/api/admin/utilisateurs/{$this->aya->id}", ['roles' => ['client', 'admin']])->assertForbidden();
+        $this->actingAs($this->equipe)->patchJson("/api/admin/utilisateurs/{$this->aya->id}", ['roles' => ['admin']])->assertForbidden();
+        $this->actingAs($this->aya->refresh())->getJson('/api/admin/apercu')->assertForbidden();
 
         $this->actingAs($this->equipe)->patchJson("/api/admin/utilisateurs/{$this->equipe->id}", ['roles' => ['client']])->assertForbidden();
     }

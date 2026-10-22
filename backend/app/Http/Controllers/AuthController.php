@@ -76,7 +76,8 @@ class AuthController extends Controller
 
         // Sans code, rien ne prouve que le numéro appartient à celui qui s'inscrit : un compte
         // existant, même sans mot de passe, n'est jamais repris par une inscription.
-        if ($existant?->aUnMotDePasse() || ($existant && ! $verification)) {
+        // Un compte de l'équipe ne se reprend jamais par l'inscription publique.
+        if ($existant?->aUnMotDePasse() || $existant?->estEquipe() || ($existant && ! $verification)) {
             throw ValidationException::withMessages([
                 'telephone' => 'Ce numéro a déjà un compte. Connectez-vous, ou touchez « Mot de passe oublié ».',
             ]);

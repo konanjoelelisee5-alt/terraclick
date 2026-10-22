@@ -9,7 +9,8 @@ import { EspaceAdmin, GRIS, Recherche, Vide, dateCourte } from "./EspaceAdmin";
 
 /* Utilisateurs : chercher par nom ou numéro, voir leur activité et leurs rôles ; qui en a la
    permission change les rôles (client, prestataire, manager, administrateur). L'API refuse
-   qu'un non-administrateur touche au rôle administrateur, et qu'on se retire le sien. */
+   qu'un non-administrateur touche au rôle administrateur, qu'on se retire le sien, et qu'un
+   compte public passe dans l'équipe (ou l'inverse). */
 
 const ROLES = [
   { cle: "client", nom: "Client", detail: "Envoie des demandes, les suit dans ses onglets." },
@@ -17,6 +18,10 @@ const ROLES = [
   { cle: "manager", nom: "Manager", detail: "Candidatures, signalements, demandes, prestataires." },
   { cle: "admin", nom: "Administrateur", detail: "Accès complet, rôles et prix compris." },
 ];
+
+/** Rôles de l'équipe (config/acces.php, roles_equipe) : un monde à part des comptes publics. */
+const ROLES_EQUIPE = ["manager", "admin"];
+const estEquipe = (u: UtilisateurAdmin) => u.roles.some((r) => ROLES_EQUIPE.includes(r.cle));
 
 const TON: Record<string, string> = { admin: "brand", manager: "warning", prestataire: "info", client: "neutral" };
 
@@ -89,7 +94,11 @@ export function AdminUtilisateurs() {
       {cible && (
         <Dialogue
           titre={`Rôles de ${cible.nom ?? "ce compte"}`}
-          description="Chaque rôle ouvre ses interfaces. Un compte garde au moins un rôle."
+          description={
+            estEquipe(cible)
+              ? "Compte de l'équipe : il reste administrateur ou manager, jamais client."
+              : "Compte public : client ou prestataire. Il ne devient jamais administrateur ou manager, l'équipe a ses propres comptes."
+          }
           icone="shield-check"
           fond="var(--kola-100)"
           encre="var(--kola-700)"
@@ -111,7 +120,7 @@ export function AdminUtilisateurs() {
           }}
         >
           <div role="group" aria-label="Rôles" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {ROLES.map((r) => (
+            {ROLES.filter((r) => ROLES_EQUIPE.includes(r.cle) === estEquipe(cible)).map((r) => (
               <label key={r.cle} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 12px", borderRadius: 12, border: `1.5px solid ${choix.includes(r.cle) ? "var(--kola-500)" : "var(--border-subtle)"}`, cursor: "pointer" }}>
                 <input
                   type="checkbox"

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Demande;
+use App\Models\Permission;
 use App\Models\Prestataire;
 use App\Models\Prestation;
 use App\Models\Role;
@@ -100,6 +101,31 @@ class PermissionsTest extends TestCase
 
         // Un rôle qui n'existe pas est refusé.
         $this->actingAs($this->admin)->patchJson("/api/admin/utilisateurs/{$this->client->id}", ['roles' => ['roi']])->assertStatus(422);
+    }
+
+    public function test_un_client_n_entre_jamais_dans_l_espace_de_l_equipe(): void
+    {
+        // Inscription publique : on ne choisit pas ses rôles, le compte est client.
+        $this->postJson('/api/auth/inscription', [
+            'telephone' => '07 44 55 66 77', 'nom' => 'Awa Koné', 'mot_de_passe' => 'soleil2026',
+            'mot_de_passe_confirmation' => 'soleil2026', 'roles' => ['admin'], 'est_admin' => true,
+        ])->assertCreated()->assertJsonPath('utilisateur.roles', ['client'])->assertJsonPath('utilisateur.est_admin', false);
+
+        // Même un administrateur ne fait pas d'un compte client un administrateur ou un manager.
+        foreach ([['admin'], ['manager'], ['client', 'admin']] as $roles) {
+            $this->actingAs($this->admin)->patchJson("/api/admin/utilisateurs/{$this->client->id}", ['roles' => $roles])->assertForbidden();
+        }
+        // Ni l'inverse : un compte de l'équipe ne devient pas client.
+        $this->actingAs($this->admin)->patchJson("/api/admin/utilisateurs/{$this->manager->id}", ['roles' => ['client']])->assertForbidden();
+
+        // Un rôle public ne reçoit pas les permissions de l'équipe…
+        $client = Role::where('cle', 'client')->firstOrFail();
+        $this->actingAs($this->admin)->putJson("/api/admin/roles/{$client->id}", ['permissions' => ['demandes.envoyer', 'admin.acceder']])->assertStatus(422);
+
+        // … et même écrites directement en base, elles restent sans effet pour un compte client.
+        $client->permissions()->attach(Permission::where('cle', 'admin.acceder')->value('id'));
+        $this->assertFalse($this->client->fresh()->peut('admin.acceder'));
+        $this->actingAs($this->client->fresh())->getJson('/api/admin/apercu')->assertForbidden();
     }
 
     public function test_la_matrice_des_roles_se_modifie_sauf_pour_l_administrateur(): void

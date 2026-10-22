@@ -180,7 +180,7 @@ export type UtilisateurAdmin = {
 
 /** La matrice « Rôles et permissions » (GET /api/admin/roles). */
 export type RolesAdmin = {
-  roles: { id: number; cle: string; nom: string; description: string | null; utilisateurs: number; modifiable: boolean; permissions: string[] }[];
+  roles: { id: number; cle: string; nom: string; description: string | null; utilisateurs: number; modifiable: boolean; equipe: boolean; permissions: string[] }[];
   groupes: { nom: string; permissions: { cle: string; nom: string }[] }[];
 };
 

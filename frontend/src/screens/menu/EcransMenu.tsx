@@ -569,7 +569,8 @@ export function Parametres() {
       action: () => (etat.auth ? go("clientDashboard") : go("connexion", { telDraft: "", apresConnexion: "parametres" })),
     },
     { icone: "bell", titre: "Notifications", detail: "Demandes, réponses des techniciens", action: () => exigerCompte(() => go("clientNotifications")) },
-    ...(etat.auth?.admin
+    // Tableau de bord : l'espace de l'équipe s'ouvre seulement en se connectant avec ses identifiants.
+    ...(etat.auth?.admin && CONFIG.espaceEquipe === "application"
       ? [{ icone: "shield-check", titre: etat.auth.roles?.includes("admin") ? "Espace administrateur" : "Espace manager", detail: "Candidatures, signalements, demandes, prestataires", action: () => go("adminApercu"), r: "lien-admin" }]
       : []),
     ...(peut(etat.auth, "pro.demandes")

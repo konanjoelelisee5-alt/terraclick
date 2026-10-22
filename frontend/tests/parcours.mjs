@@ -961,12 +961,9 @@ const numeroInscrit = numeroNeuf();
   const e = await neuve(390, 844);
   await e.p.locator('[data-r="fil-avatar"]').click();
   await connecterPage(e.p, '07 01 01 01 01');
-  await apparait(e.p.locator('[data-r="profil-mobile"]'));
-  await e.p.goto('http://localhost:4173/'); await apparait(e.p.locator('[data-r="accueil-fil"]'));
-  await e.p.locator('[data-r="menu-plus-ouvrir"]').click();
-  await e.p.getByRole('menuitem', { name: 'Paramètres' }).click();
-  await e.p.locator('[data-r="lien-admin"]').click();
-  await e.p.getByRole('navigation', { name: "Navigation de l'administration" }).getByRole('button', { name: /Candidatures/ }).click();
+  await apparait(e.p.locator('[data-r="admin-a-traiter"]'));
+  await e.p.locator('[data-r="admin-menu"]').click();
+  await e.p.getByRole('complementary', { name: 'Espace administrateur' }).getByRole('button', { name: /Candidatures/ }).click();
   await e.p.locator('[data-r="candidature"]').filter({ hasText: activite }).click();
   const dossier = e.p.locator('[data-r="dossier-candidature"]');
   ok('équipe : le dossier complet, avec la référence de l’artisan',
@@ -999,15 +996,19 @@ const numeroInscrit = numeroNeuf();
   ok('admin : pas d’entrée pour un client', (await apparait(c.p.locator('[data-r="parametres"]'))) && (await c.p.locator('[data-r="lien-admin"]').count()) === 0);
   await c.ctx.close();
 
-  // L'équipe entre par Paramètres (téléphone), puis l'espace s'affiche sur ordinateur avec son rail.
+  // L'équipe arrive sur son tableau de bord, pas sur la page de recherche du client.
   const { ctx, p } = await neuve(390, 844);
   await p.locator('[data-r="fil-avatar"]').click();
   await connecterPage(p, '07 01 01 01 01');
-  await apparait(p.locator('[data-r="profil-mobile"]'));
-  await p.goto('http://localhost:4173/'); await apparait(p.locator('[data-r="accueil-fil"]'));
-  await p.locator('[data-r="menu-plus-ouvrir"]').click();
-  await p.getByRole('menuitem', { name: 'Paramètres' }).click();
-  await p.locator('[data-r="lien-admin"]').click();
+  ok('admin : la connexion ouvre le tableau de bord, pas la recherche',
+     (await apparait(p.locator('[data-r="admin-a-traiter"]'))) && (await p.getByPlaceholder(/Quel est votre problème/).count()) === 0);
+  await p.goto('http://localhost:4173/');
+  ok('admin : rouvrir l’application ramène au tableau de bord', await apparait(p.locator('[data-r="admin-a-traiter"]')));
+  ok('admin : sur téléphone, pas de navigation basse d’application',
+     (await p.getByRole('navigation', { name: "Navigation de l'administration" }).count()) === 0 && !(await p.getByRole('complementary', { name: 'Espace administrateur' }).isVisible()));
+  await p.locator('[data-r="admin-menu"]').click();
+  ok('admin : le menu latéral s’ouvre sur téléphone', await apparait(p.getByRole('complementary', { name: 'Espace administrateur' }).getByRole('button', { name: /Signalements/ })));
+  await p.locator('[data-r="admin-voile"]').click({ position: { x: 370, y: 400 } });
   await p.setViewportSize({ width: 1440, height: 1000 });
   const rail = p.getByRole('complementary', { name: 'Espace administrateur' });
   ok('admin : vue d’ensemble, rail sombre et modules',
@@ -1033,6 +1034,12 @@ const numeroInscrit = numeroNeuf();
   await p.getByLabel('Nom ou numéro de téléphone').fill('58 42 19');
   ok('admin : chercher un utilisateur par son numéro', await apparait(p.locator('[data-r="utilisateur-admin"]').filter({ hasText: 'Aya Konan' })));
 
+  await p.locator('[data-r="utilisateur-admin"]').filter({ hasText: 'Aya Konan' }).locator('[data-r="changer-roles"]').click();
+  const choixRoles = p.getByRole('group', { name: 'Rôles' });
+  ok('admin : un compte client ne se voit proposer ni manager ni administrateur',
+     (await apparait(choixRoles.getByText('Client', { exact: true }))) && (await choixRoles.getByText('Administrateur', { exact: true }).count()) === 0 && (await choixRoles.getByText('Manager', { exact: true }).count()) === 0);
+  await p.getByRole('button', { name: 'Annuler' }).click();
+
   await rail.getByRole('button', { name: /Catalogue et prix/ }).click();
   ok('admin : les prix indicatifs des prestations, modifiables', (await apparait(p.locator('[data-r="prestation-admin"]').first())) && (await p.getByLabel(/^Prix minimum/).count()) > 3);
 
@@ -1045,29 +1052,24 @@ const numeroInscrit = numeroNeuf();
   const matrice = p.locator('[data-r="matrice-roles"]');
   ok('admin : la matrice des rôles et permissions, par interface',
      (await apparait(matrice)) && (await matrice.getByRole('checkbox', { name: 'Manager : Traiter un signalement' }).isChecked()) &&
-       !(await matrice.getByRole('checkbox', { name: 'Client : Ouvrir l\'espace administrateur' }).isChecked()) &&
+       (await matrice.getByRole('checkbox', { name: 'Client : Ouvrir l\'espace administrateur' }).count()) === 0 &&
+       (await matrice.getByLabel('Client : Ouvrir l\'espace administrateur — réservé à l\'équipe').isVisible()) &&
        (await matrice.getByText('Espace prestataire', { exact: true }).isVisible()));
   await matrice.getByRole('checkbox', { name: 'Manager : Mettre un prestataire en avant' }).check();
   ok('admin : une case cochée active « Enregistrer » pour ce rôle', await p.locator('[data-r="enregistrer-role-manager"]').isEnabled());
   await matrice.getByRole('checkbox', { name: 'Manager : Mettre un prestataire en avant' }).uncheck();
 
-  await rail.getByRole('button', { name: "Quitter l'administration" }).click();
-  ok('admin : « Quitter l’administration » ramène à l’application', await apparait(p.getByText('Recherches populaires').or(p.locator('[data-r="accueil-fil"]')).first()));
+  await rail.getByRole('button', { name: 'Se déconnecter' }).click();
+  ok('admin : « Se déconnecter » ferme la session', (await apparait(p.getByText('Recherches populaires').or(p.locator('[data-r="accueil-fil"]')).first())) && (await rail.count()) === 0);
   await ctx.close();
 
   // Manager : l'opérationnel seulement — ni rôles, ni prix, ni mise en avant
   const m = await neuve(390, 844);
   await m.p.locator('[data-r="fil-avatar"]').click();
   await connecterPage(m.p, '07 02 02 02 02');
-  await apparait(m.p.locator('[data-r="profil-mobile"]'));
-  await m.p.goto('http://localhost:4173/'); await apparait(m.p.locator('[data-r="accueil-fil"]'));
-  await m.p.locator('[data-r="menu-plus-ouvrir"]').click();
-  await m.p.getByRole('menuitem', { name: 'Paramètres' }).click();
-  ok('manager : l’entrée s’appelle « Espace manager »', await apparait(m.p.locator('[data-r="lien-admin"]').getByText('Espace manager')));
-  await m.p.locator('[data-r="lien-admin"]').click();
   await m.p.setViewportSize({ width: 1440, height: 1000 });
   const railM = m.p.getByRole('complementary', { name: 'Espace administrateur' });
-  await apparait(railM);
+  ok('manager : il arrive sur l’« Espace manager »', (await apparait(railM.getByText('Espace manager'))) && (await apparait(m.p.locator('[data-r="admin-a-traiter"]'))));
   const modules = (await railM.getByRole('button').allTextContents()).join('|');
   ok('manager : candidatures, signalements, demandes, prestataires — sans rôles ni prix',
      /Candidatures/.test(modules) && /Signalements/.test(modules) && /Prestataires/.test(modules) && !/Rôles et permissions/.test(modules) && !/Catalogue et prix/.test(modules));

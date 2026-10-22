@@ -102,4 +102,12 @@ export const CONFIG = {
    * - « espace » : l'ancien espace prestataire de démonstration (tableau de bord fictif).
    */
   devenirPrestataire: "formulaire" as "formulaire" | "espace",
+  /**
+   * Comptes de l'équipe (administrateur, manager) :
+   * - « tableauDeBord » : ils arrivent sur le tableau de bord, jamais sur la page de recherche
+   *   du client ; menu latéral sur téléphone, « Se déconnecter » pour sortir ;
+   * - « application » : l'ancien comportement (accueil client, entrée par Paramètres,
+   *   navigation basse sur téléphone, « Quitter l'administration »).
+   */
+  espaceEquipe: "tableauDeBord" as "tableauDeBord" | "application",
 } as const;

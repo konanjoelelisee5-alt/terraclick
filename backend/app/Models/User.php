@@ -98,7 +98,24 @@ class User extends Authenticatable
             default => $roles->flatMap->permissions->pluck('cle')->unique()->values()->all(),
         };
 
+        // Un compte public n'ouvre en aucun cas l'interface de l'équipe, quoi qu'en dise la base.
+        if (! $this->estEquipe()) {
+            $permissions = array_diff($permissions, self::permissionsEquipe());
+        }
+
         return $this->permissionsEnMemoire = array_values($permissions);
+    }
+
+    /** Compte de l'équipe (administrateur, manager), distinct des comptes publics. */
+    public function estEquipe(): bool
+    {
+        return $this->roles->pluck('cle')->intersect(config('acces.roles_equipe'))->isNotEmpty();
+    }
+
+    /** @return list<string> les permissions de l'interface de l'équipe */
+    public static function permissionsEquipe(): array
+    {
+        return array_keys(config('acces.permissions.'.config('acces.interface_equipe'), []));
     }
 
     public function peut(string $permission): bool

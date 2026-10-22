@@ -2,8 +2,9 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { api, type ApercuAdmin } from "../../lib/api";
 import { peut } from "../../lib/acces";
 import { useApp } from "../../state/app";
-import type { Ecran } from "../../state/types";
+import type { Compte, Ecran } from "../../state/types";
 import { Icon } from "../../components/Icon";
+import { CONFIG } from "../../lib/config";
 
 /* Espace administrateur, d'après la maquette « Servis Yakro » (rôle Administrateur) : une
    application à part, comme l'espace pro — rail sombre sur ordinateur, barre du haut,
@@ -46,6 +47,11 @@ const GROUPES: { titre: string; entrees: Entree[] }[] = [
   },
 ];
 
+
+/** Premier module ouvert à ce compte : la page d'arrivée de l'équipe. */
+export function premierModule(compte: Compte | null): Ecran {
+  return GROUPES.flatMap((g) => g.entrees).find((e) => peut(compte, e.permission))?.ecran ?? "adminApercu";
+}
 
 /** Onglets de la barre basse sur téléphone ; le reste passe par « Plus ». */
 const ONGLETS_BAS: Ecran[] = ["adminApercu", "adminCandidatures", "adminSignalements", "adminDemandes"];
@@ -122,8 +128,12 @@ function Pastille({ n }: { n?: number }) {
 }
 
 export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: string; sousTitre?: string; actions?: ReactNode; children: ReactNode }) {
-  const { etat, go } = useApp();
+  const { etat, go, deconnecter } = useApp();
   const compteurs = useCompteurs(etat.screen);
+  // Tableau de bord : l'équipe n'a pas d'application client derrière, on en sort en se déconnectant.
+  const tableau = CONFIG.espaceEquipe === "tableauDeBord";
+  const sortie = tableau ? "Se déconnecter" : "Quitter l'administration";
+  const [menuOuvert, setMenuOuvert] = useState(false);
   const courant = etat.screen;
   // Seuls les modules permis à ce compte (le manager n'a ni les rôles ni les prix).
   const groupes = GROUPES.map((g) => ({ ...g, entrees: g.entrees.filter((e) => peut(etat.auth, e.permission)) })).filter((g) => g.entrees.length);
@@ -139,9 +149,13 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
   useEffect(() => {
     window.scrollTo(0, 0);
     setPlusOuvert(false);
+    setMenuOuvert(false);
   }, [etat.screen]);
 
-  const quitter = () => go("home");
+  const quitter = () => {
+    if (tableau) deconnecter();
+    go("home");
+  };
 
   // Réservé à l'équipe : un autre compte voit seulement de quoi revenir à l'application.
   if (!peut(etat.auth, "admin.acceder")) {
@@ -157,8 +171,9 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
   }
 
   return (
-    <div data-r="pro-app" data-espace="admin">
-      {/* ---- Rail sombre (ordinateur) ---- */}
+    <div data-r="pro-app" data-espace="admin" data-mode={tableau ? "tableau" : "application"} data-menu={menuOuvert ? "ouvert" : undefined}>
+      {/* ---- Rail sombre (ordinateur ; menu latéral sur téléphone en tableau de bord) ---- */}
+      {menuOuvert && <div data-r="admin-voile" onClick={() => setMenuOuvert(false)} />}
       <aside data-r="pro-side" aria-label="Espace administrateur">
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "18px 18px 14px" }}>
           <span style={{ width: 34, height: 34, flex: "none", borderRadius: 9, background: "var(--kola-500)", color: "#fff", display: "grid", placeItems: "center", fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "13px" }}>
@@ -224,8 +239,8 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
             onClick={quitter}
             style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, height: 36, borderRadius: 9, cursor: "pointer", font: "inherit", fontSize: "13px", fontWeight: 600, border: "1px solid rgba(255,255,255,.18)", background: "transparent", color: "rgba(255,255,255,.8)" }}
           >
-            <Icon name="x" size={15} />
-            Quitter l'administration
+            <Icon name={tableau ? "log-out" : "x"} size={15} />
+            {sortie}
           </button>
         </div>
       </aside>
@@ -233,6 +248,11 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
       <div data-r="pro-main">
         {/* ---- Barre supérieure ---- */}
         <header data-r="pro-top">
+          {tableau && (
+            <button type="button" className="sy-iconbtn sy-iconbtn--md sy-iconbtn--outline" data-r="admin-menu" aria-label="Menu" aria-expanded={menuOuvert} onClick={() => setMenuOuvert(true)}>
+              <Icon name="menu" size={20} />
+            </button>
+          )}
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ fontSize: "12px", color: "var(--text-muted)", whiteSpace: "nowrap" }}>
               {groupeCourant?.titre ?? "Administration"}
@@ -243,9 +263,11 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
             </h1>
           </div>
           {actions}
-          <button type="button" className="sy-iconbtn sy-iconbtn--md sy-iconbtn--outline" aria-label="Quitter l'administration" onClick={quitter} data-r="admin-quitter-haut">
-            <Icon name="x" size={18} />
-          </button>
+          {!tableau && (
+            <button type="button" className="sy-iconbtn sy-iconbtn--md sy-iconbtn--outline" aria-label="Quitter l'administration" onClick={quitter} data-r="admin-quitter-haut">
+              <Icon name="x" size={18} />
+            </button>
+          )}
         </header>
 
         <main data-r="pro-content">
@@ -260,7 +282,8 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
         </main>
       </div>
 
-      {/* ---- Navigation basse (téléphone) ---- */}
+      {/* ---- Navigation basse (téléphone, mode « application » seulement) ---- */}
+      {!tableau && (
       <nav data-r="pro-bottom" aria-label="Navigation de l'administration">
         {ongletsBas.map((ecran) => {
           const e = TOUTES.find((x) => x.ecran === ecran)!;
@@ -284,8 +307,9 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
           Plus
         </button>
       </nav>
+      )}
 
-      {plusOuvert && (
+      {!tableau && plusOuvert && (
         <div className="sy-dialog__scrim" style={{ alignItems: "flex-end", padding: 0 }} onClick={(e) => e.target === e.currentTarget && setPlusOuvert(false)}>
           <div
             role="dialog"

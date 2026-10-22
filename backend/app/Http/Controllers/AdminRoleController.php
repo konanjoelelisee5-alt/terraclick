@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -28,6 +29,7 @@ class AdminRoleController extends Controller
                 'description' => $r->description,
                 'utilisateurs' => $r->utilisateurs_count,
                 'modifiable' => $r->cle !== Role::ADMIN,
+                'equipe' => in_array($r->cle, config('acces.roles_equipe'), true),
                 'permissions' => $r->cle === Role::ADMIN ? Permission::pluck('cle') : $r->permissions->pluck('cle'),
             ]),
             'groupes' => Permission::orderBy('id')->get()->groupBy('groupe')->map(fn ($liste, string $groupe) => [
@@ -45,6 +47,11 @@ class AdminRoleController extends Controller
             'permissions' => ['present', 'array'],
             'permissions.*' => ['string', Rule::exists('permissions', 'cle')],
         ])['permissions'];
+
+        // Un rôle public (client, prestataire) n'ouvre jamais l'interface de l'équipe.
+        if (! in_array($role->cle, config('acces.roles_equipe'), true) && array_intersect($cles, User::permissionsEquipe())) {
+            return response()->json(['message' => 'Un rôle client ou prestataire n\'ouvre pas l\'espace de l\'équipe.'], 422);
+        }
 
         $role->permissions()->sync(Permission::whereIn('cle', $cles)->pluck('id'));
 

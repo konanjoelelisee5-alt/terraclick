@@ -76,4 +76,12 @@ return [
     // Rôle donné à chaque nouveau compte.
     'role_par_defaut' => 'client',
 
+    /*
+    | Comptes de l'équipe : deux mondes séparés. Seuls ces rôles ouvrent l'interface de l'équipe,
+    | et un compte public (client, prestataire, inscrit par lui-même) ne les reçoit jamais, pas
+    | plus qu'un compte de l'équipe ne reçoit un rôle public. L'équipe a ses propres comptes.
+    */
+    'roles_equipe' => ['manager', 'admin'],
+    'interface_equipe' => 'Espace administrateur',
+
 ];

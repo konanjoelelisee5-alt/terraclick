@@ -66,6 +66,16 @@ l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
   | Administrateur | tout, y compris les rôles, les prix et la mise en avant |
 
   Chaque nouveau compte est client. Une candidature validée donne le rôle prestataire.
+- **Comptes de l'équipe à part** (`roles_equipe` : manager, admin) :
+  - un compte public (client, prestataire, inscrit lui-même) ne reçoit jamais un rôle de l'équipe, et l'inverse non plus (`UserPolicy`) ;
+  - un rôle public ne reçoit pas les permissions de l'« Espace administrateur » (refus 422) ;
+  - même écrites directement en base, ces permissions restent sans effet pour un compte public (`User::permissions()`) ;
+  - l'inscription ne choisit pas de rôle et ne reprend jamais un compte de l'équipe.
+- **Tableau de bord de l'équipe** (`CONFIG.espaceEquipe = "tableauDeBord"`, frontend/src/lib/config.ts) :
+  - on y entre seulement en se connectant avec les identifiants de l'équipe, jamais par Paramètres ;
+  - l'arrivée se fait sur le premier module permis, jamais sur la page de recherche du client ;
+  - sur téléphone, un menu latéral remplace la navigation basse ; on sort par « Se déconnecter ».
+  - `"application"` remet l'ancien comportement : entrée par Paramètres, navigation basse, « Quitter l'administration ».
 - **Tables** : `roles`, `permissions`, `permission_role`, `role_user`. L'ancienne colonne `users.est_admin` est devenue le rôle administrateur.
 - **Middleware** `permission:…` (`App\Http\Middleware\VerifierPermission`) sur les routes : espace administrateur et chacun de ses modules, espace prestataire (`pro.demandes`), envoi d'une demande (`demandes.envoyer`).
 - **Policies** (`app/Policies`), action par action :
@@ -87,7 +97,7 @@ l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
   | Prestataire | gérant de Pressing Éclat | **07 08 08 08 08** |
   | Client | Aya | **07 58 42 19 03** |
 - **Dans l'application**, `/api/moi` renvoie les rôles et les permissions du compte, et l'application n'affiche que le permis :
-  - l'entrée « Espace administrateur » ou « Espace manager » dans Paramètres ;
+  - le nom « Administration » ou « Espace manager » en haut du rail ;
   - les modules du rail ;
   - les boutons d'action ;
   - « Commandes reçues » seulement pour les prestataires.
