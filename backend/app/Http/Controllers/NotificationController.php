@@ -34,11 +34,21 @@ class NotificationController extends Controller
         'terminee' => ['Intervention terminée', 'Confirmez la fin de l\'intervention de :pro.'],
     ];
 
+    /** Décisions de l'équipe TerraClick sur la demande du client. */
+    private const EQUIPE = [
+        'attribuee' => ['Demande confiée à :pro', 'L\'équipe TerraClick a confié votre demande à :pro.'],
+        'annulee' => ['Demande annulée', 'L\'équipe TerraClick a annulé votre demande.'],
+        'confirmee' => ['Demande clôturée', 'L\'équipe TerraClick a clôturé votre demande.'],
+        'litige_resolu' => ['Signalement traité', 'L\'équipe TerraClick a examiné votre signalement.'],
+    ];
+
     /** GET /api/notifications */
     public function __invoke(Request $request): JsonResponse
     {
         $evenements = DemandeEvenement::query()
             ->where('auteur', '!=', 'client')
+            // Une relance s'adresse au prestataire, pas au client.
+            ->where('statut', '!=', 'relance')
             ->whereHas('demande', fn ($q) => $q->where('user_id', $request->user()->id))
             ->with('demande.prestataire', 'demande.accord')
             ->latest('id')
@@ -48,13 +58,13 @@ class NotificationController extends Controller
         return response()->json(['data' => $evenements->map(function (DemandeEvenement $e) {
             $d = $e->demande;
             $pro = $d->prestataire?->nom ?? 'Le prestataire';
-            [$titre, $texte] = ($d->estPressing() ? self::PRESSING : self::AUTRES)[$e->statut]
+            [$titre, $texte] = ($e->auteur === 'equipe' ? self::EQUIPE : ($d->estPressing() ? self::PRESSING : self::AUTRES))[$e->statut]
                 ?? [DemandeResource::libelleStatut($e->statut), $d->reference];
 
             return [
                 'id' => $e->id,
                 'statut' => $e->statut,
-                'titre' => $titre,
+                'titre' => str_replace(':pro', $pro, $titre),
                 'texte' => str_replace(':pro', $pro, $texte).($e->message ? " « {$e->message} »" : ''),
                 'pressing' => $d->estPressing(),
                 'demande_id' => $d->id,

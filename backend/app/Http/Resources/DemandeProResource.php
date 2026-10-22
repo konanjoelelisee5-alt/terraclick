@@ -25,6 +25,10 @@ class DemandeProResource extends DemandeResource
                 'nom' => $mots ? $mots[0].(isset($mots[1]) ? ' '.mb_substr($mots[1], 0, 1).'.' : '') : 'Client',
                 'telephone' => $joignable && $this->client ? Telephone::affichage($this->client->telephone) : null,
             ],
+            // L'équipe TerraClick relance le prestataire qui n'a pas encore répondu.
+            'relance' => $this->statut === 'envoyee' && ($r = $this->evenements()->where('statut', 'relance')->latest('id')->first())
+                ? ['date' => $r->created_at?->toIso8601String(), 'message' => $r->message]
+                : null,
         ];
     }
 }

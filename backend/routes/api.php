@@ -4,6 +4,7 @@ use App\Http\Controllers\AccordController;
 use App\Http\Controllers\ActualiteController;
 use App\Http\Controllers\AdminCandidatureController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminDemandeController;
 use App\Http\Controllers\AdminPrestataireController;
 use App\Http\Controllers\AdminRoleController;
 use App\Http\Controllers\AdminSecteurController;
@@ -77,6 +78,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('signalements/{signalement}/traiter', [AdminController::class, 'traiterSignalement'])->whereNumber('signalement');
         Route::get('demandes', [AdminController::class, 'demandes'])->middleware('permission:demandes.voir_toutes');
         Route::get('demandes/{demande}', [AdminController::class, 'demande'])->whereNumber('demande')->middleware('permission:demandes.voir_toutes');
+        Route::prefix('demandes/{demande}')->whereNumber('demande')->group(function () {
+            Route::middleware('permission:demandes.gerer')->group(function () {
+                Route::get('candidats', [AdminDemandeController::class, 'candidats']);
+                Route::post('attribuer', [AdminDemandeController::class, 'attribuer']);
+                Route::post('relancer', [AdminDemandeController::class, 'relancer']);
+                Route::post('annuler', [AdminDemandeController::class, 'annuler']);
+            });
+            Route::post('litige', [AdminDemandeController::class, 'litige'])->middleware('permission:litiges.resoudre');
+        });
         Route::get('prestataires', [AdminController::class, 'prestataires'])->middleware('permission:prestataires.voir');
         Route::patch('prestataires/{prestataire}', [AdminController::class, 'modifierPrestataire'])->whereNumber('prestataire');
         Route::prefix('prestataires/{prestataire}')->whereNumber('prestataire')->middleware('permission:prestataires.voir')->group(function () {

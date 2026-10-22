@@ -30,6 +30,10 @@ class DemandeResource extends JsonResource
         'terminee' => 'Marquée terminée',
         'confirmee' => 'Terminée',
         'annulee' => 'Annulée',
+        // Décisions de l'équipe TerraClick, inscrites au journal de la demande.
+        'attribuee' => 'Confiée à un prestataire par l\'équipe',
+        'relance' => 'Prestataire relancé par l\'équipe',
+        'litige_resolu' => 'Litige résolu par l\'équipe',
     ];
 
     private const PAIEMENTS = [

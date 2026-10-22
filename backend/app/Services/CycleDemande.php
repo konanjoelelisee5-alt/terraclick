@@ -76,6 +76,61 @@ class CycleDemande
     }
 
     /**
+     * Décisions de l'équipe TerraClick : action → [statuts de départ permis, statut d'arrivée
+     * (null : inchangé), étape inscrite au journal].
+     *
+     * @var array<string, array{0: list<string>, 1: ?string, 2: string}>
+     */
+    public const ACTIONS_EQUIPE = [
+        // Attribuer, ou réattribuer après un refus ou un silence : le nouveau prestataire reçoit la demande.
+        'attribuer' => [['envoyee', 'refusee'], 'envoyee', 'attribuee'],
+        'relancer' => [['envoyee'], null, 'relance'],
+        'annuler' => [['envoyee', 'refusee', 'acceptee', 'en_cours', 'terminee'], 'annulee', 'annulee'],
+        // Litige tranché en faveur de l'intervention : elle est réputée menée à bien.
+        'cloturer' => [['acceptee', 'en_cours', 'terminee'], 'confirmee', 'confirmee'],
+    ];
+
+    private const REFUS_EQUIPE = [
+        'attribuer' => 'Seule une demande sans réponse ou refusée peut être attribuée.',
+        'relancer' => 'Seule une demande qui attend la réponse du prestataire peut être relancée.',
+        'annuler' => 'Cette demande ne peut plus être annulée.',
+        'cloturer' => 'Seule une demande acceptée, en cours ou terminée peut être clôturée.',
+    ];
+
+    /**
+     * Applique une décision de l'équipe et l'inscrit au journal (auteur « equipe »).
+     *
+     * @param  array<string, mixed>  $champs  colonnes à enregistrer avec la décision (prestataire)
+     *
+     * @throws ValidationException décision impossible depuis le statut actuel
+     */
+    public function parEquipe(Demande $demande, string $action, User $par, ?string $message = null, array $champs = []): Demande
+    {
+        [$depuis, $vers, $etape] = self::ACTIONS_EQUIPE[$action];
+
+        return DB::transaction(function () use ($demande, $action, $depuis, $vers, $etape, $par, $message, $champs) {
+            $demande = Demande::whereKey($demande->id)->lockForUpdate()->firstOrFail();
+
+            if (! in_array($demande->statut, $depuis, true) || ($action === 'relancer' && ! $demande->prestataire_id)) {
+                throw ValidationException::withMessages(['statut' => self::REFUS_EQUIPE[$action]]);
+            }
+
+            $demande->update([...$champs, ...($vers ? ['statut' => $vers] : [])]);
+            $demande->evenements()->create(['user_id' => $par->id, 'auteur' => 'equipe', 'statut' => $etape, 'message' => $message]);
+
+            if ($action === 'attribuer') {
+                // L'onglet du client suit : nouveau prestataire, de nouveau en attente de sa réponse.
+                Accord::where('demande_id', $demande->id)->update(['prestataire_id' => $demande->prestataire_id, 'statut' => Accord::statutPour('envoyee'), 'termine_le' => null]);
+                Accord::pourDemande($demande);
+            } elseif ($vers) {
+                $this->suivreAccord($demande, $vers);
+            }
+
+            return $demande;
+        });
+    }
+
+    /**
      * Commande pressing : le pressing passe à l'étape suivante du suivi (collectée, reçue,
      * en traitement, prête, en livraison, livrée). La commande doit être acceptée ; la
      * dernière étape la marque terminée, le client n'a plus qu'à confirmer.

@@ -175,6 +175,11 @@ function CarteRecue(props: {
           {c?.etape_libelle ?? d.statut_libelle}
         </span>
       </div>
+      {d.relance && (
+        <p data-r="relance-equipe" style={{ margin: 0, padding: "8px 12px", borderRadius: 12, background: "var(--color-accent-100)", fontSize: "14px" }}>
+          <strong>L'équipe TerraClick vous relance :</strong> {d.relance.message}
+        </p>
+      )}
       <span style={{ fontSize: "13.5px", color: GRIS }}>
         {d.reference} · {d.client.nom}
         {d.client.telephone && (

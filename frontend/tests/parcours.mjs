@@ -1055,6 +1055,24 @@ const numeroInscrit = numeroNeuf();
   await p.getByRole('tab', { name: 'Annulées' }).click();
   await p.locator('[data-r="demande-admin"]').filter({ hasText: 'Annulée' }).first().click();
   ok('admin : le détail d’une demande et son suivi', await apparait(p.locator('[data-r="detail-demande-admin"]').getByText('Annulée').first()));
+  ok('demandes : l’historique complet des échanges et décisions', await apparait(p.locator('[data-r="historique-demande"]').getByText('Demande envoyée')));
+  await p.getByRole('button', { name: 'Toutes les demandes' }).click();
+
+  // Une demande assignée : la relancer, voir à qui la réattribuer
+  await p.getByRole('tab', { name: 'Assignées' }).click();
+  await p.locator('[data-r="demande-admin"]').filter({ hasText: 'Envoyée' }).first().click();
+  await apparait(p.locator('[data-r="action-relancer"]'));
+  ok('demandes : attribuer, relancer, litige, annuler',
+     (await p.locator('[data-r="action-attribuer"]').isVisible()) && (await p.locator('[data-r="action-litige"]').isVisible()) && (await p.locator('[data-r="action-annuler"]').isVisible()));
+  await p.locator('[data-r="action-attribuer"]').click();
+  ok('demandes : les prestataires du secteur, proposés pour la réattribution', await apparait(p.locator('[data-r="candidats-demande"]').getByRole('radio').first()));
+  await p.getByRole('dialog').getByText('Fermer', { exact: true }).click();
+  await p.locator('[data-r="action-relancer"]').click();
+  await p.getByLabel('Message').fill('Le client attend depuis ce matin.');
+  await p.getByRole('button', { name: 'Relancer', exact: true }).click();
+  ok('demandes : la relance s’inscrit à l’historique', await apparait(p.locator('[data-r="historique-demande"]').getByText('Le client attend depuis ce matin.').last()));
+  await p.getByRole('button', { name: 'Toutes les demandes' }).click();
+  await p.getByRole('tab', { name: 'Toutes' }).click();
 
   await rail.getByRole('button', { name: /Utilisateurs/ }).click();
   await p.getByLabel('Nom ou numéro de téléphone').fill('58 42 19');

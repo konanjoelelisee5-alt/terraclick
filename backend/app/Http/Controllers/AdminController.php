@@ -84,15 +84,26 @@ class AdminController extends Controller
     {
         $filtres = $request->validate([
             'statut' => ['nullable', Rule::in(Demande::STATUTS)],
+            'etat' => ['nullable', Rule::in(array_keys(AdminDemandeController::ETATS))],
             'secteur' => ['nullable', 'string', 'max:30'],
+            'quartier' => ['nullable', 'integer'],
+            'prestataire' => ['nullable', 'integer'],
+            'du' => ['nullable', 'date'],
+            'au' => ['nullable', 'date', 'after_or_equal:du'],
             'q' => ['nullable', 'string', 'max:80'],
             'page' => ['nullable', 'integer', 'min:1'],
-        ]);
+        ], ['au.after_or_equal' => 'La date de fin doit suivre la date de début.']);
 
         $page = Demande::query()
             ->with('quartier', 'prestataire.quartier', 'client')
+            ->withCount(['signalements as litiges_ouverts_count' => fn ($s) => $s->where('statut', 'ouvert')])
             ->when($filtres['statut'] ?? null, fn ($q, $s) => $q->where('statut', $s))
+            ->when($filtres['etat'] ?? null, fn ($q, $e) => AdminDemandeController::filtrerEtat($q, $e))
             ->when($filtres['secteur'] ?? null, fn ($q, $s) => $q->where('secteur', $s))
+            ->when($filtres['quartier'] ?? null, fn ($q, $id) => $q->where('quartier_id', $id))
+            ->when($filtres['prestataire'] ?? null, fn ($q, $id) => $q->where('prestataire_id', $id))
+            ->when($filtres['du'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
+            ->when($filtres['au'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '<=', $d))
             ->when($filtres['q'] ?? null, fn ($q, $texte) => $q->where(fn ($w) => $w
                 ->where('reference', 'like', "%{$texte}%")
                 ->orWhere('probleme', 'like', "%{$texte}%")
@@ -105,6 +116,7 @@ class AdminController extends Controller
             'data' => collect($page->items())->map(fn (Demande $d) => [
                 ...DemandeResource::make($d)->resolve($request),
                 'client' => ['nom' => $d->client?->nom, 'telephone' => $d->client ? Telephone::affichage($d->client->telephone) : null],
+                ...AdminDemandeController::suiviEquipe($d),
             ]),
             'meta' => ['page' => $page->currentPage(), 'derniere' => $page->lastPage(), 'total' => $page->total()],
         ]);
@@ -113,12 +125,7 @@ class AdminController extends Controller
     /** GET /api/admin/demandes/{demande} — le détail, le journal et les signalements. */
     public function demande(Request $request, Demande $demande): JsonResponse
     {
-        $demande->load('quartier', 'prestataire.quartier', 'client', 'evenements', 'signalements', 'accord');
-
-        return response()->json(['data' => [
-            ...DemandeResource::make($demande)->resolve($request),
-            'client' => ['nom' => $demande->client?->nom, 'telephone' => $demande->client ? Telephone::affichage($demande->client->telephone) : null],
-        ]]);
+        return response()->json(['data' => AdminDemandeController::detail($request, $demande)]);
     }
 
     /** GET /api/admin/prestataires?q=&etat=actifs|suspendus */

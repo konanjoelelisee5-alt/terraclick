@@ -111,7 +111,15 @@ l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
   - **Vue d'ensemble** : ce qui attend l'équipe (candidatures, signalements ouverts, demandes sans réponse depuis 2 h), les chiffres des 30 derniers jours, les demandes par service et la dernière activité ;
   - **Candidatures** : les dossiers « Devenir prestataire », à valider, à faire compléter (le candidat corrige et renvoie) ou à rejeter (refus définitif, il ne peut plus renvoyer de dossier) ;
   - **Signalements** : les problèmes signalés par les clients, avec les numéros du client et du prestataire, à marquer traités avec ce qui a été fait ;
-  - **Demandes et commandes** : toutes les demandes, filtrées par statut et par service, cherchées par référence, client ou prestataire, avec leur détail et leur suivi ;
+  - **Demandes et commandes**, tous secteurs (`AdminDemandeController`) :
+    - filtres : état (en attente, assignée, acceptée, en cours, terminée, annulée), service, quartier, prestataire, dates ; recherche par référence, client ou prestataire ; alertes « sans réponse depuis plus de 2 h », « refusée : à réattribuer », « litige ouvert » ;
+    - détail : description, photos, adresse, montant (pack ou estimation du prestataire), urgence, créneau, contacts du client et du prestataire, suivi ;
+    - **attribuer** ou **réattribuer** à un prestataire actif du secteur (les plus proches et les mieux notés d'abord), quand la demande attend une réponse ou a été refusée ; l'onglet du client suit et le client est prévenu ;
+    - **relancer** le prestataire : il voit le message sur la demande, dans ses demandes reçues ; le client n'est pas notifié ;
+    - **annuler**, avec un motif que le client lit ;
+    - **résoudre un litige** : la décision clôt les signalements ouverts ; la demande suit son cours, est annulée ou clôturée (intervention réputée faite) ; le prestataire peut être averti (sanction inscrite à son dossier) ; le client lit « Signalement traité » ;
+    - **historique complet** : demande envoyée, étapes du client et du prestataire, décisions de l'équipe (avec leur auteur), signalements et leur traitement, avertissements ;
+    - permissions `demandes.gerer` et `litiges.resoudre` (manager et administrateur) ;
   - **Prestataires**, tous secteurs confondus (`AdminPrestataireController`) :
     - liste filtrée par secteur, quartier, statut (actifs, suspendus, bloqués) et note minimale ;
     - **dossier** : identité, téléphone, compte relié, zone, expérience, candidature d'origine, secteurs, pièces, photos des réalisations, avis des clients, signalements et journal des sanctions ;

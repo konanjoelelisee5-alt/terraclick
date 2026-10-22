@@ -151,7 +151,23 @@ export type SignalementAdmin = {
   traite_le: string | null;
 };
 
-export type DemandeAdmin = DemandeApi & { client: { nom: string | null; telephone: string | null } };
+export type EtatEquipe = "en_attente" | "assignee" | "acceptee" | "en_cours" | "terminee" | "annulee";
+export type ActionEquipe = "attribuer" | "relancer" | "annuler";
+
+export type DemandeAdmin = DemandeApi & {
+  client: { nom: string | null; telephone: string | null };
+  /** Le suivi vu par l'équipe, et ce qui demande son attention (sans réponse, refus, litige). */
+  etat_equipe: { cle: EtatEquipe; libelle: string };
+  alertes: string[];
+  /** Dans le détail seulement. */
+  prestataire_contact?: { nom: string; telephone: string | null } | null;
+  actions?: ActionEquipe[];
+  cloturable?: boolean;
+  historique?: { date: string | null; qui: string; type: string; titre: string; texte: string | null }[];
+};
+
+/** Un prestataire à qui confier une demande. */
+export type CandidatDemande = { id: number; nom: string; metier: string; quartier: string | null; meme_quartier: boolean; note: number; nombre_avis: number; en_cours: number; compte: boolean };
 
 export type PrestataireAdmin = {
   id: number;
@@ -364,7 +380,7 @@ export type DemandeApi = {
   estimation: number | null;
   creneau: string | null;
   /** Journal de suivi (présent sur le détail d'une demande). */
-  evenements?: { statut: string; libelle: string; auteur: "client" | "technicien" | "systeme"; message: string | null; date: string }[];
+  evenements?: { statut: string; libelle: string; auteur: "client" | "technicien" | "systeme" | "equipe"; message: string | null; date: string }[];
   cree_le: string;
 };
 
@@ -409,7 +425,7 @@ export type NotificationApi = {
 };
 
 /** Demande reçue par le prestataire connecté (GET /api/pro/demandes). */
-export type DemandeProApi = DemandeApi & { client: { nom: string; telephone: string | null } };
+export type DemandeProApi = DemandeApi & { client: { nom: string; telephone: string | null }; relance?: { date: string | null; message: string | null } | null };
 
 /** Article du pack pressing et son prix indicatif par pièce. */
 export type ArticlePressing = { cle: string; nom: string; prix: number; prix_affichage: string; categorie: string; categorie_nom: string };
@@ -642,9 +658,16 @@ export const api = {
       requete<{ data: SignalementAdmin[] }>(`/admin/signalements?statut=${statut}`, { signal }).then((r) => r.data),
     traiterSignalement: (id: number, reponse: string) =>
       requete<{ data: SignalementAdmin }>(`/admin/signalements/${id}/traiter`, { methode: "POST", corps: { reponse } }).then((r) => r.data),
-    demandes: (filtres: { statut?: string; secteur?: string; q?: string; page?: number }, signal?: AbortSignal) =>
+    demandes: (filtres: { statut?: string; etat?: string; secteur?: string; quartier?: number; prestataire?: number; du?: string; au?: string; q?: string; page?: number }, signal?: AbortSignal) =>
       requete<{ data: DemandeAdmin[]; meta: { page: number; derniere: number; total: number } }>(`/admin/demandes${parametres(filtres)}`, { signal }),
     demande: (id: number, signal?: AbortSignal) => requete<{ data: DemandeAdmin }>(`/admin/demandes/${id}`, { signal }).then((r) => r.data),
+    candidatsDemande: (id: number, signal?: AbortSignal) => requete<{ data: CandidatDemande[] }>(`/admin/demandes/${id}/candidats`, { signal }).then((r) => r.data),
+    attribuerDemande: (id: number, prestataire_id: number, message?: string) =>
+      requete<{ data: DemandeAdmin }>(`/admin/demandes/${id}/attribuer`, { methode: "POST", corps: { prestataire_id, message } }).then((r) => r.data),
+    relancerDemande: (id: number, message?: string) => requete<{ data: DemandeAdmin }>(`/admin/demandes/${id}/relancer`, { methode: "POST", corps: { message } }).then((r) => r.data),
+    annulerDemandeEquipe: (id: number, motif: string) => requete<{ data: DemandeAdmin }>(`/admin/demandes/${id}/annuler`, { methode: "POST", corps: { motif } }).then((r) => r.data),
+    resoudreLitige: (id: number, decision: string, issue: "aucune" | "annuler" | "cloturer", avertir: boolean) =>
+      requete<{ data: DemandeAdmin }>(`/admin/demandes/${id}/litige`, { methode: "POST", corps: { decision, issue, avertir } }).then((r) => r.data),
     prestataires: (filtres: { q?: string; etat?: "actifs" | "suspendus" | "bloques" | "tous"; secteur?: string; quartier?: number; note_min?: number }, signal?: AbortSignal) =>
       requete<{ data: PrestataireAdmin[] }>(`/admin/prestataires${parametres(filtres)}`, { signal }).then((r) => r.data),
     modifierPrestataire: (id: number, patch: { actif?: boolean; en_vedette?: boolean }) =>
