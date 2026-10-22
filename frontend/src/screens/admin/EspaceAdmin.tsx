@@ -151,6 +151,23 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
   const entreeCourante = TOUTES.find((e) => e.ecran === courant);
   const groupeCourant = groupes.find((g) => g.entrees.some((e) => e.ecran === courant));
   const [plusOuvert, setPlusOuvert] = useState(false);
+  // Menu replié (icônes seules) : le choix est gardé sur l'appareil. Jamais dans le tiroir du téléphone.
+  const [repliChoisi, setRepliChoisi] = useState(() => {
+    try {
+      return localStorage.getItem("terraclick.menu-replie") === "oui";
+    } catch {
+      return false;
+    }
+  });
+  const replie = repliChoisi && !menuOuvert;
+  const basculerRepli = (oui: boolean) => {
+    setRepliChoisi(oui);
+    try {
+      localStorage.setItem("terraclick.menu-replie", oui ? "oui" : "non");
+    } catch {
+      /* stockage indisponible : le choix vaut pour cette visite */
+    }
+  };
   const n = (e: Entree) => (e.compteur && compteurs ? compteurs[e.compteur] : undefined);
 
   useEffect(() => {
@@ -178,24 +195,36 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
   }
 
   return (
-    <div data-r="pro-app" data-espace="admin" data-mode={tableau ? "tableau" : "application"} data-menu={menuOuvert ? "ouvert" : undefined}>
-      {/* ---- Rail sombre (ordinateur ; menu latéral sur téléphone en tableau de bord) ---- */}
+    <div data-r="pro-app" data-espace="admin" data-mode={tableau ? "tableau" : "application"} data-menu={menuOuvert ? "ouvert" : undefined} data-replie={replie ? "oui" : undefined}>
+      {/* ---- Menu latéral clair, posé comme une carte (ordinateur) ; tiroir sur téléphone ---- */}
       {menuOuvert && <div data-r="admin-voile" onClick={() => setMenuOuvert(false)} />}
       <aside data-r="pro-side" aria-label="Espace administrateur">
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "18px 18px 14px" }}>
-          <span style={{ width: 34, height: 34, flex: "none", borderRadius: 9, background: "var(--kola-500)", color: "#fff", display: "grid", placeItems: "center", fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "13px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: replie ? "18px 0 14px" : "18px 14px 14px 18px", justifyContent: replie ? "center" : undefined }}>
+          <span style={{ width: 32, height: 32, flex: "none", borderRadius: 9, border: "1.5px solid var(--color-text)", display: "grid", placeItems: "center", fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "12px" }}>
             tc
           </span>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "15px", color: "#fff" }}>{administrateur ? "Administration" : "Espace manager"}</div>
-            <div style={{ fontSize: "11.5px", color: "rgba(255,255,255,.55)" }}>TerraClick</div>
-          </div>
+          {!replie && (
+            <>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "15px" }}>{administrateur ? "Administration" : "Espace manager"}</div>
+                <div style={{ fontSize: "11.5px", color: GRIS }}>TerraClick</div>
+              </div>
+              <button type="button" data-r="replier-menu" className="sy-iconbtn sy-iconbtn--sm sy-iconbtn--outline" aria-label="Replier le menu" onClick={() => basculerRepli(true)}>
+                <Icon name="chevron-left" size={16} />
+              </button>
+            </>
+          )}
         </div>
+        {replie && (
+          <button type="button" className="sy-iconbtn sy-iconbtn--sm sy-iconbtn--outline" aria-label="Déplier le menu" onClick={() => basculerRepli(false)} style={{ alignSelf: "center", marginBottom: 6 }}>
+            <Icon name="chevron-right" size={16} />
+          </button>
+        )}
 
-        <nav style={{ flex: 1, overflowY: "auto", padding: "4px 10px 12px", display: "flex", flexDirection: "column", gap: 14 }}>
+        <nav style={{ flex: 1, overflowY: "auto", padding: "4px 12px 12px", display: "flex", flexDirection: "column", gap: 12 }}>
           {groupes.map((g) => (
             <div key={g.titre} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <span style={{ fontSize: "10.5px", fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase", color: "rgba(255,255,255,.4)", padding: "0 10px 4px" }}>{g.titre}</span>
+              {!replie && <span style={{ fontSize: "10.5px", fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--text-muted)", padding: "0 10px 4px" }}>{g.titre}</span>}
               {g.entrees.map((e) => {
                 const actif = courant === e.ecran;
                 return (
@@ -204,26 +233,34 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
                     type="button"
                     onClick={() => go(e.ecran)}
                     aria-current={actif ? "page" : undefined}
+                    aria-label={replie ? e.libelle : undefined}
+                    title={replie ? e.libelle : undefined}
                     style={{
+                      position: "relative",
                       display: "flex",
                       alignItems: "center",
-                      gap: 10,
-                      height: 38,
-                      padding: "0 10px",
-                      borderRadius: 9,
+                      justifyContent: replie ? "center" : undefined,
+                      gap: 12,
+                      height: 40,
+                      padding: replie ? 0 : "0 12px",
+                      borderRadius: 10,
                       cursor: "pointer",
                       font: "inherit",
                       fontSize: "13.5px",
-                      fontWeight: 600,
+                      fontWeight: actif ? 600 : 500,
                       textAlign: "left",
-                      border: actif ? "1px solid rgba(226,91,26,.5)" : "1px solid transparent",
-                      background: actif ? "rgba(226,91,26,.16)" : "transparent",
-                      color: actif ? "#fff" : "rgba(255,255,255,.72)",
+                      border: 0,
+                      background: actif ? "var(--surface-sunken)" : "transparent",
+                      color: actif ? "var(--color-text)" : "var(--argile-700)",
                     }}
                   >
-                    <Icon name={e.icone} size={17} />
-                    <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.libelle}</span>
-                    <Pastille n={n(e)} />
+                    <Icon name={e.icone} size={18} />
+                    {!replie && <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.libelle}</span>}
+                    {replie ? (
+                      n(e) ? <span style={{ position: "absolute", top: 6, right: 14, width: 8, height: 8, borderRadius: 999, background: "var(--kola-500)" }} /> : null
+                    ) : (
+                      <Pastille n={n(e)} />
+                    )}
                   </button>
                 );
               })}
@@ -231,23 +268,27 @@ export function EspaceAdmin({ titre, sousTitre, actions, children }: { titre: st
           ))}
         </nav>
 
-        <div style={{ borderTop: "1px solid rgba(255,255,255,.1)", padding: 12, display: "flex", flexDirection: "column", gap: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ width: 32, height: 32, flex: "none", borderRadius: "50%", background: "rgba(255,255,255,.12)", color: "#fff", display: "grid", placeItems: "center", fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "12px" }}>
-              {(etat.auth?.prenom || "A").slice(0, 2).toUpperCase()}
-            </span>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{etat.auth?.prenom}</div>
-              <div style={{ fontSize: "11px", color: "rgba(255,255,255,.55)" }}>{administrateur ? "Administrateur" : "Manager"}</div>
+        <div style={{ borderTop: "1px solid var(--border-subtle)", padding: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+          {!replie && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 4px 6px" }}>
+              <span style={{ width: 32, height: 32, flex: "none", borderRadius: "50%", background: "var(--surface-sunken)", display: "grid", placeItems: "center", fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "12px" }}>
+                {(etat.auth?.prenom || "A").slice(0, 2).toUpperCase()}
+              </span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: "13px", fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{etat.auth?.prenom}</div>
+                <div style={{ fontSize: "11px", color: GRIS }}>{administrateur ? "Administrateur" : "Manager"}</div>
+              </div>
             </div>
-          </div>
+          )}
           <button
             type="button"
             onClick={quitter}
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, height: 36, borderRadius: 9, cursor: "pointer", font: "inherit", fontSize: "13px", fontWeight: 600, border: "1px solid rgba(255,255,255,.18)", background: "transparent", color: "rgba(255,255,255,.8)" }}
+            aria-label={replie ? sortie : undefined}
+            title={replie ? sortie : undefined}
+            style={{ display: "flex", alignItems: "center", justifyContent: replie ? "center" : undefined, gap: 12, height: 40, padding: replie ? 0 : "0 12px", borderRadius: 10, cursor: "pointer", font: "inherit", fontSize: "13.5px", fontWeight: 500, border: 0, background: "transparent", color: "var(--argile-700)" }}
           >
-            <Icon name={tableau ? "log-out" : "x"} size={15} />
-            {sortie}
+            <Icon name={tableau ? "log-out" : "x"} size={18} />
+            {!replie && sortie}
           </button>
         </div>
       </aside>

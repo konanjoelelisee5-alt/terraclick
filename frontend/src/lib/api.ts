@@ -138,6 +138,21 @@ export type ApercuAdmin = {
   periode: { depuis: string; jusqu_au: string };
 };
 
+/** Tableau de bord de l'équipe : période, indicateurs comparés, courbe, parcours, secteurs, quartiers. */
+export type TableauAdmin = {
+  periode: { jours: 7 | 30 | 90; du: string; au: string };
+  villes: { id: number; nom: string }[];
+  a_traiter: ApercuAdmin["a_traiter"];
+  kpis: { cle: string; libelle: string; format: "nombre" | "francs" | "pourcent"; valeur: number; precedent: number; bon: "hausse" | "baisse" }[];
+  courbe: { date: string; demandes: number; annulees: number }[];
+  totaux_courbe: { demandes: number; annulees: number; demandes_avant: number; annulees_avant: number };
+  entonnoir: { libelle: string; nombre: number; part: number }[];
+  clients: { actifs: number; inscrits: number };
+  activite: { encaisse: number; panier_moyen: number; recherches: number; avis: number };
+  secteurs: { cle: string; nom: string; couleur: string | null; nombre: number }[];
+  quartiers: { nom: string; demandes: number; tendance: -1 | 0 | 1; encaisse: number }[];
+};
+
 export type SignalementAdmin = {
   id: number;
   motif: string;
@@ -718,6 +733,8 @@ export const api = {
   /* Espace administrateur */
   admin: {
     apercu: (signal?: AbortSignal) => requete<{ data: ApercuAdmin }>("/admin/apercu", { signal }).then((r) => r.data),
+    tableau: (criteres: { jours: number; ville?: number }, signal?: AbortSignal) =>
+      requete<{ data: TableauAdmin }>(`/admin/tableau${parametres(criteres)}`, { signal }).then((r) => r.data),
     signalements: (statut: SignalementAdmin["statut"], signal?: AbortSignal) =>
       requete<{ data: SignalementAdmin[] }>(`/admin/signalements?statut=${statut}`, { signal }).then((r) => r.data),
     traiterSignalement: (id: number, reponse: string) =>

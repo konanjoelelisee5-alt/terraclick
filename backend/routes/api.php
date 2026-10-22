@@ -9,6 +9,7 @@ use App\Http\Controllers\AdminFinanceController;
 use App\Http\Controllers\AdminPrestataireController;
 use App\Http\Controllers\AdminRoleController;
 use App\Http\Controllers\AdminSecteurController;
+use App\Http\Controllers\AdminTableauController;
 use App\Http\Controllers\AdminZoneController;
 use App\Http\Controllers\AdresseController;
 use App\Http\Controllers\AnnuaireController;
@@ -75,6 +76,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // et les policies vérifient chaque action objet par objet.
     Route::prefix('admin')->middleware('permission:admin.acceder')->group(function () {
         Route::get('apercu', [AdminController::class, 'apercu'])->middleware('permission:admin.apercu');
+        Route::get('tableau', AdminTableauController::class)->middleware('permission:admin.apercu');
         Route::get('activite', [AdminController::class, 'activite'])->middleware('permission:admin.activite');
         Route::get('signalements', [AdminController::class, 'signalements'])->middleware('permission:signalements.voir');
         Route::post('signalements/{signalement}/traiter', [AdminController::class, 'traiterSignalement'])->whereNumber('signalement');
