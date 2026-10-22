@@ -6,6 +6,7 @@ import { Dialogue } from "../../components/Dialogue";
 import { Icon } from "../../components/Icon";
 import { useToast } from "../../components/Toast";
 import { EspaceAdmin, Filtres, GRIS, TITRE_CARTE, Vide, dateCourte } from "./EspaceAdmin";
+import { Stats } from "./Gabarit";
 
 /* Finances : commission globale et par secteur, négociation directe, moyens de paiement proposés
    aux clients ; montants encaissés par les prestataires, commissions dues, paiements reçus,
@@ -84,14 +85,16 @@ export function AdminFinances() {
       {erreur && <p role="alert" style={{ margin: 0, color: "var(--state-danger)" }}>{erreur}</p>}
 
       {f && (
-        <div data-r="totaux-finances" style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 180px), 1fr))" }}>
-          {tuiles.map(([libelle, valeur, detail]) => (
-            <span key={libelle} className="sy-card" style={{ padding: 14 }}>
-              <span style={{ display: "block", fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "20px" }}>{valeur}</span>
-              <span style={{ display: "block", fontSize: "12.5px", color: GRIS }}>{libelle}</span>
-              {detail && <span style={{ display: "block", fontSize: "12px", color: "var(--state-danger)" }}>{detail}</span>}
-            </span>
-          ))}
+        <div data-r="totaux-finances">
+          <Stats
+            colonnes={5}
+            items={tuiles.map(([libelle, valeur, detail]) => ({
+              libelle,
+              valeur,
+              detail,
+              badge: detail && f.totaux.impayes ? { texte: "Impayés", ton: "danger" as const } : undefined,
+            }))}
+          />
         </div>
       )}
 

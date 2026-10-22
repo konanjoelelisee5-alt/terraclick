@@ -3,6 +3,7 @@ import { api, messageErreur, type RolesAdmin } from "../../lib/api";
 import { Icon } from "../../components/Icon";
 import { useToast } from "../../components/Toast";
 import { EspaceAdmin, GRIS, TITRE_CARTE } from "./EspaceAdmin";
+import { Stats, chiffre } from "./Gabarit";
 
 /* « Rôles et permissions », d'après la matrice de la maquette : les permissions rangées par
    interface (espace client, prestataire, administrateur), une colonne par rôle. Cocher ouvre
@@ -51,19 +52,15 @@ export function AdminRoles() {
 
       {donnees && (
         <>
-          <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
-            {donnees.roles.map((r) => (
-              <div key={r.id} className="sy-card" style={{ padding: 14 }}>
-                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <strong style={{ fontSize: "15px" }}>{r.nom}</strong>
-                  <span className="sy-badge sy-badge--neutral" style={{ marginLeft: "auto" }}>
-                    {r.utilisateurs} compte{r.utilisateurs > 1 ? "s" : ""}
-                  </span>
-                </span>
-                <span style={{ display: "block", fontSize: "13px", color: GRIS, marginTop: 4 }}>{r.description}</span>
-              </div>
-            ))}
-          </div>
+          <Stats
+            items={donnees.roles.map((r) => ({
+              libelle: r.nom,
+              valeur: `${chiffre(r.utilisateurs)} compte${r.utilisateurs > 1 ? "s" : ""}`,
+              icone: r.equipe ? "shield-check" : "users",
+              badge: { texte: r.equipe ? "Équipe" : "Public", ton: r.equipe ? ("brand" as const) : ("neutral" as const) },
+              detail: r.description,
+            }))}
+          />
 
           {/* La matrice défile sur téléphone : une colonne par rôle. */}
           <div className="sy-card" style={{ overflowX: "auto" }}>

@@ -5,7 +5,8 @@ import { useApp } from "../../state/app";
 import { Dialogue } from "../../components/Dialogue";
 import { Icon } from "../../components/Icon";
 import { useToast } from "../../components/Toast";
-import { EspaceAdmin, Filtres, GRIS, Vide, dateHeure } from "./EspaceAdmin";
+import { EspaceAdmin, Filtres, GRIS, dateHeure } from "./EspaceAdmin";
+import { Nouveau, Personne, Section, Stats, Statut, Tableau, chiffre } from "./Gabarit";
 
 /* Signalements des clients (retard, vêtement manquant, technicien pas venu…) : l'équipe joint
    le client et le prestataire, puis marque le signalement traité en notant ce qui a été fait. */
@@ -19,6 +20,17 @@ export function AdminSignalements() {
   const [reponse, setReponse] = useState("");
   const { etat } = useApp();
   const peutTraiter = peut(etat.auth, "signalements.traiter");
+  const [comptes, setComptes] = useState({ ouvert: 0, traite: 0 });
+
+  // Les deux comptes, pour les indicateurs, quel que soit l'onglet.
+  useEffect(() => {
+    const arret = new AbortController();
+    Promise.all([api.admin.signalements("ouvert", arret.signal), api.admin.signalements("traite", arret.signal)]).then(
+      ([o, t]) => setComptes({ ouvert: o.length, traite: t.length }),
+      () => {},
+    );
+    return () => arret.abort();
+  }, [liste]);
 
   useEffect(() => {
     const arret = new AbortController();
@@ -27,60 +39,68 @@ export function AdminSignalements() {
     return () => arret.abort();
   }, [statut]);
 
+  const tel = (n: string) => `tel:+225${n.replace(/\D/g, "")}`;
+
   return (
     <EspaceAdmin titre="Signalements" sousTitre="Ce que les clients ont signalé sur une demande ou une commande.">
-      <Filtres options={[{ cle: "ouvert" as const, nom: "À traiter" }, { cle: "traite" as const, nom: "Traités" }]} valeur={statut} onChange={setStatut} />
       {erreur && <p role="alert" style={{ margin: 0, color: "var(--state-danger)" }}>{erreur}</p>}
-      {liste?.length === 0 && <Vide texte={statut === "ouvert" ? "Aucun signalement à traiter." : "Aucun signalement traité."} />}
-      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 340px), 1fr))" }}>
-        {liste?.map((s) => (
-          <article key={s.id} data-r="signalement-admin" className="sy-card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Icon name="flag" size={17} color="var(--state-danger)" />
-              <strong style={{ fontSize: "15.5px", flex: 1 }}>{s.motif_libelle}</strong>
-              <span style={{ fontSize: "12.5px", color: GRIS }}>{dateHeure(s.date)}</span>
-            </div>
-            {s.message && <p style={{ margin: 0, fontSize: "14.5px" }}>« {s.message} »</p>}
-            <dl style={{ margin: 0, display: "grid", gridTemplateColumns: "auto 1fr", gap: "4px 12px", fontSize: "13.5px" }}>
-              {(
-                [
-                  ["Demande", s.demande ? `${s.demande.reference} · ${s.demande.secteur} · ${s.demande.statut_libelle}` : null],
-                  ["Client", [s.client.nom, s.client.telephone].filter(Boolean).join(" · ")],
-                  ["Prestataire", s.prestataire ? [s.prestataire.nom, s.prestataire.telephone].filter(Boolean).join(" · ") : null],
-                  ["Réponse", s.reponse],
-                ] as [string, string | null][]
-              )
-                .filter(([, v]) => v)
-                .map(([k, v]) => (
-                  <div key={k} style={{ display: "contents" }}>
-                    <dt style={{ color: GRIS }}>{k}</dt>
-                    <dd style={{ margin: 0, fontWeight: 600 }}>{v}</dd>
-                  </div>
-                ))}
-            </dl>
-            {s.statut === "ouvert" && (
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
-                {s.client.telephone && (
-                  <a href={`tel:+225${s.client.telephone.replace(/\D/g, "")}`} className="sy-btn sy-btn--outline sy-btn--sm" style={{ gap: 6 }}>
-                    <Icon name="phone" size={15} />
-                    Client
-                  </a>
-                )}
-                {s.prestataire?.telephone && (
-                  <a href={`tel:+225${s.prestataire.telephone.replace(/\D/g, "")}`} className="sy-btn sy-btn--outline sy-btn--sm" style={{ gap: 6 }}>
-                    <Icon name="phone" size={15} />
-                    Prestataire
-                  </a>
-                )}
-                {peutTraiter && <button data-r="traiter-signalement" onClick={() => setTraite(s)} className="sy-btn sy-btn--primary sy-btn--sm" style={{ marginLeft: "auto" }}>
-                  Marquer traité
-                </button>}
-              </div>
-            )}
-          </article>
-        ))}
-      </div>
-
+      <Stats
+        items={[
+          { libelle: "À traiter", valeur: chiffre(comptes.ouvert), icone: "flag", badge: comptes.ouvert ? { texte: "En attente", ton: "warning" } : undefined },
+          { libelle: "Traités", valeur: chiffre(comptes.traite), icone: "circle-check" },
+          { libelle: "Avec un message", valeur: chiffre((liste ?? []).filter((x) => x.message).length), icone: "message-square", detail: "Dans la liste affichée" },
+        ]}
+      />
+      <Section
+        titre={statut === "ouvert" ? "Signalements à traiter" : "Signalements traités"}
+        badge={<Nouveau n={statut === "ouvert" ? comptes.ouvert : 0} texte="à traiter" />}
+        actions={<Filtres options={[{ cle: "ouvert" as const, nom: "À traiter" }, { cle: "traite" as const, nom: "Traités" }]} valeur={statut} onChange={setStatut} />}
+      >
+        <Tableau
+          lignes={liste ?? []}
+          cle={(x) => x.id}
+          ligneR="signalement-admin"
+          vide={liste ? (statut === "ouvert" ? "Aucun signalement à traiter." : "Aucun signalement traité.") : undefined}
+          min={820}
+          colonnes={[
+            {
+              titre: "Motif",
+              rendu: (x) => (
+                <span style={{ display: "block", maxWidth: 280 }}>
+                  <strong style={{ fontWeight: 600 }}>{x.motif_libelle}</strong>
+                  {x.message && <span style={{ display: "block", fontSize: "12.5px", color: GRIS }}>« {x.message} »</span>}
+                  {x.reponse && <span style={{ display: "block", fontSize: "12.5px" }}>Réponse : {x.reponse}</span>}
+                </span>
+              ),
+            },
+            { titre: "Demande", rendu: (x) => (x.demande ? <span>{x.demande.reference}<span style={{ display: "block", fontSize: "12.5px", color: GRIS }}>{x.demande.secteur} · {x.demande.statut_libelle}</span></span> : "—") },
+            { titre: "Client", rendu: (x) => <Personne nom={x.client.nom ?? "Client"} detail={x.client.telephone} /> },
+            { titre: "Prestataire", rendu: (x) => (x.prestataire ? <Personne nom={x.prestataire.nom} detail={x.prestataire.telephone} /> : "—") },
+            { titre: "Date", rendu: (x) => <span style={{ whiteSpace: "nowrap", color: GRIS }}>{dateHeure(x.date)}</span> },
+            {
+              titre: "Actions",
+              droite: true,
+              rendu: (x) =>
+                x.statut === "ouvert" ? (
+                  <span style={{ display: "inline-flex", gap: 6 }}>
+                    {x.client.telephone && (
+                      <a href={tel(x.client.telephone)} className="sy-iconbtn sy-iconbtn--sm sy-iconbtn--outline" aria-label={`Appeler le client ${x.client.nom ?? ""}`}>
+                        <Icon name="phone" size={15} />
+                      </a>
+                    )}
+                    {peutTraiter && (
+                      <button data-r="traiter-signalement" onClick={() => setTraite(x)} className="sy-btn sy-btn--primary sy-btn--sm">
+                        Marquer traité
+                      </button>
+                    )}
+                  </span>
+                ) : (
+                  <Statut ton="success">Traité</Statut>
+                ),
+            },
+          ]}
+        />
+      </Section>
       {traite && (
         <Dialogue
           titre="Marquer le signalement traité"

@@ -5,6 +5,7 @@ import { useApp } from "../../state/app";
 import { Icon } from "../../components/Icon";
 import { useToast } from "../../components/Toast";
 import { EspaceAdmin, Filtres, GRIS, TITRE_CARTE, Vide } from "./EspaceAdmin";
+import { Stats, chiffre } from "./Gabarit";
 
 /* Zones et quartiers : l'équipe ajoute les quartiers, les active ou les désactive (désactivé, un
    quartier n'est plus proposé aux clients), choisit les services proposés dans chacun et ses
@@ -60,6 +61,19 @@ export function AdminZones() {
           : undefined
       }
     >
+      {donnees && (
+        <Stats
+          items={(() => {
+            const tous = donnees.villes.flatMap((v) => v.quartiers);
+            return [
+              { libelle: "Quartiers ouverts", valeur: chiffre(tous.filter((q) => q.actif).length), icone: "map-pin", detail: `${tous.filter((q) => !q.actif).length} désactivé(s)` },
+              { libelle: "Manques de couverture", valeur: chiffre(donnees.trous), icone: "alert-triangle", badge: donnees.trous ? { texte: "À combler", ton: "danger" as const } : undefined },
+              { libelle: "Quartiers mal couverts", valeur: chiffre(tous.filter((q) => q.manques.length).length), icone: "scan-search" },
+              { libelle: "Demandes en 30 jours", valeur: chiffre(tous.reduce((n, q) => n + q.demandes_30j, 0)), icone: "file-text" },
+            ];
+          })()}
+        />
+      )}
       {gerer && donnees && (
         <section className="sy-card" aria-label="Ajouter un quartier">
           <div className="sy-card__body" style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>

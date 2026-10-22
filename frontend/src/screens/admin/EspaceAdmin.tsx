@@ -84,12 +84,22 @@ export function Recherche({ valeur, onChange, placeholder }: { valeur: string; o
 /** Pastilles de filtre (statuts). */
 export function Filtres<T extends string>({ options, valeur, onChange }: { options: { cle: T; nom: string }[]; valeur: T; onChange: (v: T) => void }) {
   return (
-    <div role="tablist" style={{ display: "flex", gap: 8, overflowX: "auto", scrollbarWidth: "none" }}>
-      {options.map((o) => (
-        <button key={o.cle} role="tab" aria-selected={valeur === o.cle} className={`sy-tag${valeur === o.cle ? " sy-tag--selected" : ""}`} onClick={() => onChange(o.cle)} style={{ flex: "none" }}>
-          {o.nom}
-        </button>
-      ))}
+    // Contrôle segmenté : une pilule blanche, l'option choisie en relief.
+    <div role="tablist" style={{ display: "flex", gap: 2, overflowX: "auto", scrollbarWidth: "none", alignSelf: "flex-start", maxWidth: "100%", padding: 4, borderRadius: 999, background: "var(--surface-card)" }}>
+      {options.map((o) => {
+        const actif = valeur === o.cle;
+        return (
+          <button
+            key={o.cle}
+            role="tab"
+            aria-selected={actif}
+            onClick={() => onChange(o.cle)}
+            style={{ flex: "none", minHeight: 34, padding: "0 14px", borderRadius: 999, border: 0, cursor: "pointer", font: "inherit", fontSize: "13.5px", fontWeight: actif ? 700 : 500, background: actif ? "var(--color-text)" : "transparent", color: actif ? "var(--surface-card)" : "var(--argile-700)" }}
+          >
+            {o.nom}
+          </button>
+        );
+      })}
     </div>
   );
 }

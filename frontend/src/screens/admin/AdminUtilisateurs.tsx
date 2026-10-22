@@ -5,7 +5,8 @@ import { useApp } from "../../state/app";
 import { Dialogue } from "../../components/Dialogue";
 import { Icon } from "../../components/Icon";
 import { useToast } from "../../components/Toast";
-import { EspaceAdmin, GRIS, Recherche, Vide, dateCourte } from "./EspaceAdmin";
+import { EspaceAdmin, GRIS, Recherche, dateCourte } from "./EspaceAdmin";
+import { Personne, Section, Stats, Tableau, chiffre } from "./Gabarit";
 
 /* Utilisateurs : chercher par nom ou numéro, voir leur activité et leurs rôles ; qui en a la
    permission change les rôles (client, prestataire, manager, administrateur). L'API refuse
@@ -34,6 +35,7 @@ export function AdminUtilisateurs() {
   const [cible, setCible] = useState<UtilisateurAdmin | null>(null);
   const [choix, setChoix] = useState<string[]>([]);
   const peutChanger = peut(etat.auth, "utilisateurs.roles");
+  const compte = (role: string) => (liste ?? []).filter((u) => u.roles.some((r) => r.cle === role)).length;
 
   useEffect(() => {
     const arret = new AbortController();
@@ -51,46 +53,54 @@ export function AdminUtilisateurs() {
 
   return (
     <EspaceAdmin titre="Utilisateurs" sousTitre={liste ? `${liste.length} compte${liste.length > 1 ? "s" : ""}${liste.length === 200 ? " (les 200 plus récents)" : ""}.` : undefined}>
-      <Recherche valeur={q} onChange={setQ} placeholder="Nom ou numéro de téléphone" />
       {erreur && <p role="alert" style={{ margin: 0, color: "var(--state-danger)" }}>{erreur}</p>}
-      {liste?.length === 0 && <Vide texte="Aucun compte ne correspond." />}
-      {liste && liste.length > 0 && (
-        <div className="sy-card" style={{ overflow: "hidden" }}>
-          {liste.map((u, i) => (
-            <div key={u.id} data-r="utilisateur-admin" style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderTop: i ? "1px solid var(--border-subtle)" : 0, flexWrap: "wrap" }}>
-              <span style={{ width: 36, height: 36, flex: "none", borderRadius: "50%", background: "var(--kola-100)", color: "var(--kola-700)", display: "grid", placeItems: "center", fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "12px" }}>
-                {(u.nom ?? "?")
-                  .split(/\s+/)
-                  .map((m) => m[0])
-                  .slice(0, 2)
-                  .join("")
-                  .toUpperCase()}
-              </span>
-              <span style={{ flex: 1, minWidth: 160 }}>
-                <span style={{ display: "block", fontWeight: 700, fontSize: "14.5px" }}>{u.nom ?? "Sans nom"}</span>
-                <span style={{ display: "block", fontSize: "12.5px", color: GRIS }}>
-                  {[u.telephone, u.quartier, `${u.demandes} demande${u.demandes > 1 ? "s" : ""}`, `inscrit le ${dateCourte(u.inscrit_le)}`].filter(Boolean).join(" · ")}
-                  {u.prestataire ? ` · fiche « ${u.prestataire} »` : ""}
+      <Stats
+        items={[
+          { libelle: "Comptes", valeur: chiffre(liste?.length ?? 0), icone: "users", detail: liste?.length === 200 ? "Les 200 plus récents" : "Avec cette recherche" },
+          { libelle: "Clients", valeur: chiffre(compte("client")), icone: "user" },
+          { libelle: "Prestataires", valeur: chiffre(compte("prestataire")), icone: "briefcase" },
+          { libelle: "Équipe", valeur: chiffre((liste ?? []).filter(estEquipe).length), icone: "shield-check" },
+        ]}
+      />
+      <Section titre="Tous les comptes" actions={<span style={{ minWidth: 260 }}><Recherche valeur={q} onChange={setQ} placeholder="Nom ou numéro de téléphone" /></span>}>
+        <Tableau
+          lignes={liste ?? []}
+          cle={(u) => u.id}
+          ligneR="utilisateur-admin"
+          vide={liste ? "Aucun compte ne correspond." : undefined}
+          min={760}
+          colonnes={[
+            { titre: "Nom", rendu: (u) => <Personne nom={u.nom ?? "Sans nom"} detail={u.prestataire ? `Fiche « ${u.prestataire} »` : u.email} /> },
+            { titre: "Téléphone", rendu: (u) => <span style={{ fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>{u.telephone}</span> },
+            { titre: "Quartier", rendu: (u) => u.quartier ?? "—" },
+            { titre: "Demandes", rendu: (u) => <span style={{ fontFamily: "var(--font-mono)" }}>{u.demandes}</span> },
+            { titre: "Inscrit le", rendu: (u) => <span style={{ whiteSpace: "nowrap", color: GRIS }}>{dateCourte(u.inscrit_le)}</span> },
+            {
+              titre: "Rôles",
+              rendu: (u) => (
+                <span data-r="roles-utilisateur" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {u.roles.map((r) => (
+                    <span key={r.cle} className={`sy-badge sy-badge--${TON[r.cle] ?? "neutral"}`}>
+                      {r.nom}
+                    </span>
+                  ))}
                 </span>
-              </span>
-              <span data-r="roles-utilisateur" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {u.roles.map((r) => (
-                  <span key={r.cle} className={`sy-badge sy-badge--${TON[r.cle] ?? "neutral"}`}>
-                    {r.nom}
-                  </span>
-                ))}
-              </span>
-              {peutChanger && (
-                <button data-r="changer-roles" onClick={() => ouvrir(u)} className="sy-btn sy-btn--outline sy-btn--sm" style={{ gap: 6 }}>
-                  <Icon name="shield-check" size={15} />
-                  Rôles
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
+              ),
+            },
+            {
+              titre: "",
+              droite: true,
+              rendu: (u) =>
+                peutChanger ? (
+                  <button data-r="changer-roles" onClick={() => ouvrir(u)} className="sy-btn sy-btn--outline sy-btn--sm" style={{ gap: 6 }}>
+                    <Icon name="shield-check" size={15} />
+                    Rôles
+                  </button>
+                ) : null,
+            },
+          ]}
+        />
+      </Section>
       {cible && (
         <Dialogue
           titre={`Rôles de ${cible.nom ?? "ce compte"}`}

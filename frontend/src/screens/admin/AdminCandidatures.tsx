@@ -3,7 +3,8 @@ import { api, messageErreur, type CandidatureApi } from "../../lib/api";
 import { Dialogue } from "../../components/Dialogue";
 import { Icon } from "../../components/Icon";
 import { useToast } from "../../components/Toast";
-import { EspaceAdmin } from "./EspaceAdmin";
+import { EspaceAdmin, Filtres } from "./EspaceAdmin";
+import { Nouveau, Section, Stats, Statut, Tableau, chiffre } from "./Gabarit";
 import { peut } from "../../lib/acces";
 import { useApp } from "../../state/app";
 
@@ -54,6 +55,17 @@ export function AdminCandidatures() {
   const [fenetre, setFenetre] = useState<"valider" | "refuser" | "rejeter" | null>(null);
   const [motif, setMotif] = useState("");
   const [version, setVersion] = useState(0);
+  const [comptes, setComptes] = useState<Partial<Record<CandidatureApi["statut"], number>>>({});
+
+  // Un compte par statut, pour les indicateurs.
+  useEffect(() => {
+    const arret = new AbortController();
+    Promise.all(STATUTS.map((st) => api.candidatures(st.cle, arret.signal).then((l) => [st.cle, l.length] as const))).then(
+      (paires) => setComptes(Object.fromEntries(paires)),
+      () => {},
+    );
+    return () => arret.abort();
+  }, [version]);
 
   useEffect(() => {
     const arret = new AbortController();
@@ -76,68 +88,62 @@ export function AdminCandidatures() {
 
   return (
     <EspaceAdmin titre="Candidatures" sousTitre="Dossiers « Devenir prestataire » envoyés à l'équipe.">
-      <div data-r="admin-candidatures" style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 820 }}>
+      <div data-r="admin-candidatures" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
       {ouverte ? (
         <Dossier c={ouverte} onRetour={() => setOuverte(null)} onValider={() => setFenetre("valider")} onRefuser={() => setFenetre("refuser")} onRejeter={() => setFenetre("rejeter")} />
       ) : (
         <>
-          <div role="tablist" aria-label="Statut" style={{ display: "flex", borderBottom: "1px solid var(--color-divider)" }}>
-            {STATUTS.map((s) => (
-              <button
-                key={s.cle}
-                role="tab"
-                aria-selected={statut === s.cle}
-                onClick={() => setStatut(s.cle)}
-                style={{
-                  flex: 1,
-                  minHeight: 46,
-                  border: 0,
-                  borderBottom: `3px solid ${statut === s.cle ? "var(--color-accent)" : "transparent"}`,
-                  background: "none",
-                  font: "inherit",
-                  fontSize: "15px",
-                  fontWeight: statut === s.cle ? 700 : 500,
-                  color: statut === s.cle ? "var(--color-text)" : GRIS,
-                  cursor: "pointer",
-                }}
-              >
-                {s.nom}
-              </button>
-            ))}
-          </div>
+          <Stats
+            items={STATUTS.map((st) => ({
+              libelle: st.nom,
+              valeur: chiffre(comptes[st.cle] ?? 0),
+              icone: st.cle === "en_attente" ? "clock" : st.cle === "validee" ? "badge-check" : st.cle === "refusee" ? "pen-line" : "x",
+              badge: st.cle === "en_attente" && comptes.en_attente ? { texte: "À traiter", ton: "warning" as const } : undefined,
+            }))}
+          />
           {erreur && <p role="alert" style={{ margin: 0, color: "var(--state-danger)" }}>{erreur}</p>}
-          {liste?.length === 0 && (
-            <p role="status" style={{ margin: 0, padding: "28px 0", textAlign: "center", color: GRIS }}>
-              Aucune candidature ici.
-            </p>
-          )}
-          {liste && liste.length > 0 && (
-            <div style={{ ...CARTE, overflow: "hidden" }}>
-              {liste.map((c, i) => (
-                <button
-                  key={c.id}
-                  data-r="candidature"
-                  onClick={() => setOuverte(c)}
-                  style={{ width: "100%", minHeight: 64, display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", border: 0, borderTop: i ? "1px solid var(--color-divider)" : 0, background: "none", font: "inherit", color: "inherit", textAlign: "left", cursor: "pointer" }}
-                >
-                  <span style={{ width: 40, height: 40, flex: "none", borderRadius: 999, background: "var(--color-surface)", display: "grid", placeItems: "center" }}>
-                    <Icon name={c.type.cle === "pressing" ? "shirt" : c.type.cle === "entreprise" ? "building-2" : "wrench"} size={19} />
-                  </span>
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: "block", fontWeight: 600, fontSize: "15.5px" }}>{c.nom_activite}</span>
-                    <span style={{ display: "block", fontSize: "13px", color: GRIS }}>
-                      {c.type.nom} · {c.secteurs.map((s) => s.nom).join(", ")} · {new Date(c.cree_le).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+          <Section
+            titre="Dossiers « Devenir prestataire »"
+            badge={statut === "en_attente" ? <Nouveau n={comptes.en_attente ?? 0} texte="à vérifier" /> : undefined}
+            actions={<Filtres options={STATUTS} valeur={statut} onChange={setStatut} />}
+          >
+            <Tableau
+              lignes={liste ?? []}
+              cle={(c) => c.id}
+              ligneR="candidature"
+              onLigne={setOuverte}
+              vide={liste ? "Aucune candidature ici." : undefined}
+              min={760}
+              colonnes={[
+                {
+                  titre: "Activité",
+                  rendu: (c) => (
+                    <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ width: 34, height: 34, flex: "none", borderRadius: 999, background: "var(--argile-100)", display: "grid", placeItems: "center" }}>
+                        <Icon name={c.type.cle === "pressing" ? "shirt" : c.type.cle === "entreprise" ? "building-2" : "wrench"} size={16} />
+                      </span>
+                      <span>
+                        <strong style={{ display: "block", fontWeight: 600 }}>{c.nom_activite}</strong>
+                        <span style={{ display: "block", fontSize: "12.5px", color: GRIS }}>{c.responsable}</span>
+                      </span>
                     </span>
-                  </span>
-                  <Icon name="chevron-right" size={18} color={GRIS} />
-                </button>
-              ))}
-            </div>
-          )}
+                  ),
+                },
+                { titre: "Type", rendu: (c) => c.type.nom },
+                { titre: "Services", rendu: (c) => <span style={{ fontSize: "13px" }}>{c.secteurs.map((x) => x.nom).join(", ")}</span> },
+                { titre: "Quartier", rendu: (c) => c.quartier?.nom ?? "—" },
+                { titre: "Envoyée le", rendu: (c) => <span style={{ whiteSpace: "nowrap", color: GRIS }}>{new Date(c.cree_le).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span> },
+                {
+                  titre: "Statut",
+                  droite: true,
+                  rendu: (c) => <Statut ton={c.statut === "validee" ? "success" : c.statut === "en_attente" ? "warning" : c.statut === "rejetee" ? "danger" : "neutral"}>{c.statut_libelle}</Statut>,
+                },
+              ]}
+            />
+          </Section>
         </>
       )}
-
       {fenetre === "valider" && ouverte && (
         <Dialogue
           titre="Valider cette candidature ?"

@@ -6,6 +6,8 @@ import { Icon } from "../../components/Icon";
 import { useToast } from "../../components/Toast";
 import { francs } from "../client/store";
 import { EspacePro } from "./EspacePro";
+import { Filtres } from "../admin/EspaceAdmin";
+import { Nouveau, Stats, chiffre } from "../admin/Gabarit";
 
 /* Demandes et commandes reçues par le prestataire connecté (son compte est relié à sa fiche),
    branchées sur l'API. Le gérant d'un pressing y voit tout ce que le client a choisi —
@@ -61,36 +63,26 @@ export function DemandesRecues() {
 
   return (
     <EspacePro titre="Commandes et demandes reçues">
-      <div data-r="demandes-recues" style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 760 }}>
-        <div role="tablist" aria-label="Filtrer" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {FILTRES.map((f) => {
-            const n = (demandes ?? []).filter((d) => f.statuts.includes(d.statut)).length;
-            const actif = f.cle === filtre;
-            return (
-              <button
-                key={f.cle}
-                role="tab"
-                aria-selected={actif}
-                onClick={() => setFiltre(f.cle)}
-                style={{
-                  minHeight: 44,
-                  padding: "0 16px",
-                  borderRadius: 999,
-                  border: `1.5px solid ${actif ? "var(--color-text)" : "var(--color-divider)"}`,
-                  background: actif ? "var(--color-text)" : "var(--color-neutral-100)",
-                  color: actif ? "var(--color-neutral-100)" : "var(--color-text)",
-                  font: "inherit",
-                  fontSize: "14.5px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                {f.nom} ({n})
-              </button>
-            );
-          })}
+      <div data-r="demandes-recues" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <Stats
+          items={FILTRES.map((f) => ({
+            libelle: f.nom,
+            valeur: chiffre((demandes ?? []).filter((d) => f.statuts.includes(d.statut)).length),
+            icone: f.cle === "nouvelles" ? "inbox" : f.cle === "en_cours" ? "clock" : "circle-check",
+            badge: f.cle === "nouvelles" && (demandes ?? []).some((d) => d.statut === "envoyee") ? { texte: "À répondre", ton: "warning" as const } : undefined,
+          }))}
+        />
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <h2 style={{ margin: 0, fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "19px", letterSpacing: "-0.02em" }}>{FILTRES.find((f) => f.cle === filtre)!.nom}</h2>
+          <Nouveau n={(demandes ?? []).filter((d) => d.statut === "envoyee").length} texte="nouvelles" />
+          <span style={{ marginLeft: "auto" }}>
+            <Filtres
+              options={FILTRES.map((f) => ({ cle: f.cle, nom: `${f.nom} (${(demandes ?? []).filter((d) => f.statuts.includes(d.statut)).length})` }))}
+              valeur={filtre}
+              onChange={setFiltre}
+            />
+          </span>
         </div>
-
         {erreur && <p role="alert" style={{ margin: 0, color: "var(--state-danger)" }}>{erreur}</p>}
         {demandes && visibles.length === 0 && (
           <p role="status" style={{ margin: 0, padding: "24px 0", textAlign: "center", color: GRIS }}>

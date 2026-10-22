@@ -7,7 +7,8 @@ import { useApp } from "../../state/app";
 import { Dialogue } from "../../components/Dialogue";
 import { Icon } from "../../components/Icon";
 import { useToast } from "../../components/Toast";
-import { EspaceAdmin, Filtres, GRIS, Recherche, TITRE_CARTE, Vide, dateHeure } from "./EspaceAdmin";
+import { EspaceAdmin, Filtres, GRIS, Recherche, TITRE_CARTE, dateHeure } from "./EspaceAdmin";
+import { Personne, Section, Stats, Tableau, chiffre } from "./Gabarit";
 
 /* Toutes les demandes et commandes, tous secteurs : filtrées par état, service, quartier,
    prestataire et date, cherchées par référence, client ou prestataire. Le détail montre la
@@ -104,80 +105,93 @@ export function AdminDemandes() {
 
   return (
     <EspaceAdmin titre="Demandes et commandes" sousTitre={resultat ? `${resultat.meta.total} au total avec ces filtres.` : undefined}>
-      <div data-r="filtres-demandes" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <Recherche valeur={q} onChange={setQ} placeholder="Référence, client ou prestataire" />
-        <select className="sy-input" aria-label="Service" value={secteur} onChange={(e) => filtre(setSecteur)(e.target.value)} style={champ}>
-          <option value="">Tous les services</option>
-          {SECTEURS.map((s) => (
-            <option key={s.cle} value={s.cle}>
-              {s.nom}
-            </option>
-          ))}
-        </select>
-        <select className="sy-input" aria-label="Quartier" value={quartier} onChange={(e) => filtre(setQuartier)(e.target.value)} style={champ}>
-          <option value="">Tous les quartiers</option>
-          {(villes ?? []).flatMap((v) => v.quartiers).map((x) => (
-            <option key={x.id} value={x.id}>
-              {x.nom}
-            </option>
-          ))}
-        </select>
-        <select className="sy-input" aria-label="Prestataire" value={prestataire} onChange={(e) => filtre(setPrestataire)(e.target.value)} style={champ}>
-          <option value="">Tous les prestataires</option>
-          {prestataires.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.nom}
-            </option>
-          ))}
-        </select>
-        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "13px", color: GRIS, flex: "1 1 150px" }}>
-          Du
-          <input className="sy-input" type="date" aria-label="Du" value={du} onChange={(e) => filtre(setDu)(e.target.value)} style={{ minHeight: 42 }} />
-        </label>
-        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "13px", color: GRIS, flex: "1 1 150px" }}>
-          Au
-          <input className="sy-input" type="date" aria-label="Au" value={au} onChange={(e) => filtre(setAu)(e.target.value)} style={{ minHeight: 42 }} />
-        </label>
-      </div>
-      <Filtres options={ETATS} valeur={etat} onChange={filtre(setEtat)} />
       {erreur && <p role="alert" style={{ margin: 0, color: "var(--state-danger)" }}>{erreur}</p>}
-      {resultat?.data.length === 0 && <Vide texte="Aucune demande avec ces filtres." />}
-
-      {resultat && resultat.data.length > 0 && (
-        <div className="sy-card" style={{ overflow: "hidden" }}>
-          {resultat.data.map((d, i) => (
-            <button
-              key={d.id}
-              data-r="demande-admin"
-              onClick={() => ouvrir(d)}
-              style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", border: 0, borderTop: i ? "1px solid var(--border-subtle)" : 0, background: "none", font: "inherit", color: "inherit", textAlign: "left", cursor: "pointer" }}
-            >
-              <span style={{ width: 38, height: 38, flex: "none", borderRadius: 999, background: "var(--argile-100)", display: "grid", placeItems: "center" }}>
-                <Icon name={SECTEURS.find((s) => s.cle === d.secteur.cle)?.icone ?? "wrench"} size={18} />
-              </span>
-              <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: "block", fontWeight: 700, fontSize: "14.5px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.resume}</span>
-                <span style={{ display: "block", fontSize: "12.5px", color: GRIS, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {d.reference} · {d.client.nom ?? "Client"} → {d.prestataire?.nom ?? "—"} · {dateHeure(d.cree_le)}
-                </span>
-                {d.alertes.length > 0 && (
-                  <span style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
-                    {d.alertes.map((a) => (
-                      <span key={a} data-r="alerte-demande" className="sy-badge sy-badge--danger">
-                        {a}
-                      </span>
-                    ))}
-                  </span>
-                )}
-              </span>
-              <span className={`sy-badge sy-badge--${TON[d.etat_equipe.cle] ?? "neutral"}`} style={{ flex: "none" }}>
-                {d.commande?.etape_libelle ?? d.statut_libelle}
-              </span>
-            </button>
-          ))}
+      <Stats
+        items={[
+          { libelle: "Demandes", valeur: chiffre(resultat?.meta.total ?? 0), icone: "file-text", detail: "Avec ces filtres" },
+          { libelle: "Sur cette page", valeur: chiffre(resultat?.data.length ?? 0), icone: "list-checks" },
+          { libelle: "Demandent attention", valeur: chiffre((resultat?.data ?? []).filter((d) => d.alertes.length).length), icone: "alert-triangle", badge: (resultat?.data ?? []).some((d) => d.alertes.length) ? { texte: "À suivre", ton: "danger" } : undefined },
+          { libelle: "Pressing", valeur: chiffre((resultat?.data ?? []).filter((d) => d.pack).length), icone: "shirt", detail: "Commandes sur cette page" },
+        ]}
+      />
+      <Section titre="Toutes les demandes" actions={<Filtres options={ETATS} valeur={etat} onChange={filtre(setEtat)} />}>
+        <div data-r="filtres-demandes" style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
+          <Recherche valeur={q} onChange={setQ} placeholder="Référence, client ou prestataire" />
+          <select className="sy-input" aria-label="Service" value={secteur} onChange={(e) => filtre(setSecteur)(e.target.value)} style={champ}>
+            <option value="">Tous les services</option>
+            {SECTEURS.map((s) => (
+              <option key={s.cle} value={s.cle}>
+                {s.nom}
+              </option>
+            ))}
+          </select>
+          <select className="sy-input" aria-label="Quartier" value={quartier} onChange={(e) => filtre(setQuartier)(e.target.value)} style={champ}>
+            <option value="">Tous les quartiers</option>
+            {(villes ?? []).flatMap((v) => v.quartiers).map((x) => (
+              <option key={x.id} value={x.id}>
+                {x.nom}
+              </option>
+            ))}
+          </select>
+          <select className="sy-input" aria-label="Prestataire" value={prestataire} onChange={(e) => filtre(setPrestataire)(e.target.value)} style={champ}>
+            <option value="">Tous les prestataires</option>
+            {prestataires.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.nom}
+              </option>
+            ))}
+          </select>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "13px", color: GRIS, flex: "1 1 150px" }}>
+            Du
+            <input className="sy-input" type="date" aria-label="Du" value={du} onChange={(e) => filtre(setDu)(e.target.value)} style={{ minHeight: 42 }} />
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "13px", color: GRIS, flex: "1 1 150px" }}>
+            Au
+            <input className="sy-input" type="date" aria-label="Au" value={au} onChange={(e) => filtre(setAu)(e.target.value)} style={{ minHeight: 42 }} />
+          </label>
         </div>
-      )}
-
+        <Tableau
+          lignes={resultat?.data ?? []}
+          cle={(d) => d.id}
+          ligneR="demande-admin"
+          onLigne={ouvrir}
+          vide={resultat ? "Aucune demande avec ces filtres." : undefined}
+          min={900}
+          colonnes={[
+            {
+              titre: "Demande",
+              rendu: (d) => (
+                <span style={{ display: "flex", alignItems: "center", gap: 10, maxWidth: 340 }}>
+                  <span style={{ width: 34, height: 34, flex: "none", borderRadius: 999, background: "var(--argile-100)", display: "grid", placeItems: "center" }}>
+                    <Icon name={SECTEURS.find((s) => s.cle === d.secteur.cle)?.icone ?? "wrench"} size={16} />
+                  </span>
+                  <span style={{ minWidth: 0 }}>
+                    <strong style={{ display: "block", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.pack ? `Commande · ${d.pack.pieces} pièces` : d.probleme}</strong>
+                    <span style={{ display: "block", fontSize: "12.5px", color: GRIS }}>{d.reference} · {d.secteur.nom}</span>
+                  </span>
+                </span>
+              ),
+            },
+            { titre: "Client", rendu: (d) => <Personne nom={d.client.nom ?? "Client"} detail={d.quartier?.nom} /> },
+            { titre: "Prestataire", rendu: (d) => (d.prestataire ? <Personne nom={d.prestataire.nom} /> : <span style={{ color: GRIS }}>Aucun</span>) },
+            { titre: "Date", rendu: (d) => <span style={{ whiteSpace: "nowrap", color: GRIS }}>{dateHeure(d.cree_le)}</span> },
+            {
+              titre: "Statut",
+              droite: true,
+              rendu: (d) => (
+                <span style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+                  <span className={`sy-badge sy-badge--${TON[d.etat_equipe.cle] ?? "neutral"}`}>{d.commande?.etape_libelle ?? d.statut_libelle}</span>
+                  {d.alertes.map((a) => (
+                    <span key={a} data-r="alerte-demande" className="sy-badge sy-badge--danger">
+                      {a}
+                    </span>
+                  ))}
+                </span>
+              ),
+            },
+          ]}
+        />
+      </Section>
       {resultat && resultat.meta.derniere > 1 && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
           <button className="sy-btn sy-btn--outline sy-btn--sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>

@@ -6,6 +6,7 @@ import { Dialogue } from "../../components/Dialogue";
 import { Icon } from "../../components/Icon";
 import { useToast } from "../../components/Toast";
 import { EspaceAdmin, GRIS, TITRE_CARTE, Vide } from "./EspaceAdmin";
+import { Stats, chiffre as nombreStat } from "./Gabarit";
 
 /* Secteurs d'activité : l'administrateur crée un secteur (désactivé tant qu'il ne l'ouvre pas),
    le modifie (nom, métier, description, icône, couleur, catégories de l'annuaire, problèmes
@@ -73,6 +74,14 @@ export function AdminSecteurs() {
       }
     >
       {erreur && <p role="alert" style={{ margin: 0, color: "var(--state-danger)" }}>{erreur}</p>}
+      <Stats
+        items={[
+          { libelle: "Secteurs", valeur: nombreStat(secteurs.length), icone: "layout-grid", detail: `${actifs} ouvert${actifs > 1 ? "s" : ""} aux clients` },
+          { libelle: "Demandes", valeur: nombreStat(secteurs.reduce((n, s) => n + s.chiffres.demandes, 0)), icone: "file-text" },
+          { libelle: "Interventions réussies", valeur: nombreStat(secteurs.reduce((n, s) => n + s.chiffres.reussies, 0)), icone: "circle-check" },
+          { libelle: "Montant des réussies", valeur: `${nombreStat(secteurs.reduce((n, s) => n + s.chiffres.montant_reussies, 0))} F`, icone: "wallet" },
+        ]}
+      />
       {donnees && !secteurs.length && <Vide texte="Aucun secteur pour l'instant." />}
       {secteurs.map((s, i) => (
         <CarteSecteur

@@ -7,6 +7,7 @@ import { Dialogue } from "../../components/Dialogue";
 import { Icon } from "../../components/Icon";
 import { useToast } from "../../components/Toast";
 import { EspaceAdmin, Filtres, GRIS, Recherche, TITRE_CARTE, Vide, dateCourte, dateHeure } from "./EspaceAdmin";
+import { Personne, Section, Stats, Statut, Tableau, chiffre } from "./Gabarit";
 import { Piece } from "./AdminCandidatures";
 
 /* Prestataires, tous secteurs confondus : la liste filtrée (secteur, quartier, statut, note),
@@ -79,98 +80,137 @@ export function AdminPrestataires() {
 
   return (
     <EspaceAdmin titre="Prestataires" sousTitre="Tous les prestataires, quel que soit leur secteur.">
-      <div data-r="filtres-prestataires" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <Recherche valeur={q} onChange={setQ} placeholder="Nom ou métier" />
-        <select className="sy-input" aria-label="Secteur" value={secteur} onChange={(e) => setSecteur(e.target.value)} style={selecteur}>
-          <option value="">Tous les secteurs</option>
-          {secteurs?.map((s) => (
-            <option key={s.cle} value={s.cle}>
-              {s.nom}
-            </option>
-          ))}
-        </select>
-        <select className="sy-input" aria-label="Quartier" value={quartier} onChange={(e) => setQuartier(e.target.value)} style={selecteur}>
-          <option value="">Tous les quartiers</option>
-          {quartiers.map((x) => (
-            <option key={x.id} value={x.id}>
-              {x.nom}
-              {x.ville ? ` (${x.ville})` : ""}
-            </option>
-          ))}
-        </select>
-        <select className="sy-input" aria-label="Note minimale" value={noteMin} onChange={(e) => setNoteMin(e.target.value)} style={selecteur}>
-          <option value="">Toutes les notes</option>
-          {["4.5", "4", "3", "2"].map((n) => (
-            <option key={n} value={n}>
-              {Number(n).toLocaleString("fr-FR")} et plus
-            </option>
-          ))}
-        </select>
-      </div>
-      <Filtres
-        options={[
-          { cle: "actifs" as const, nom: "Actifs" },
-          { cle: "suspendus" as const, nom: "Suspendus" },
-          { cle: "bloques" as const, nom: "Bloqués" },
-          { cle: "tous" as const, nom: "Tous" },
-        ]}
-        valeur={etatFiltre}
-        onChange={setEtatFiltre}
-      />
       {erreur && <p role="alert" style={{ margin: 0, color: "var(--state-danger)" }}>{erreur}</p>}
-      {liste?.length === 0 && <Vide texte="Aucun prestataire ne correspond." />}
-      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 320px), 1fr))" }}>
-        {liste?.map((p) => (
-          <article key={p.id} data-r="prestataire-admin" className="sy-card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: "block", fontWeight: 700, fontSize: "15.5px" }}>{p.nom}</span>
-                <span style={{ display: "block", fontSize: "13px", color: GRIS }}>
-                  {p.metier}
-                  {p.quartier ? ` · ${p.quartier}` : ""}
+      <Stats
+        items={[
+          { libelle: "Prestataires", valeur: chiffre(liste?.length ?? 0), icone: "briefcase", detail: "Avec ces filtres" },
+          { libelle: "Vérifiés", valeur: chiffre((liste ?? []).filter((p) => p.verifie).length), icone: "badge-check" },
+          { libelle: "À la une", valeur: chiffre((liste ?? []).filter((p) => p.en_vedette).length), icone: "star" },
+          {
+            libelle: "Note moyenne",
+            valeur: (() => {
+              const notes = (liste ?? []).filter((p) => p.nombre_avis);
+              return notes.length ? (notes.reduce((n, p) => n + p.note, 0) / notes.length).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) : "—";
+            })(),
+            icone: "star",
+            detail: "Des prestataires notés",
+          },
+        ]}
+      />
+      <Section
+        titre="Tous les prestataires"
+        actions={
+          <Filtres
+            options={[
+              { cle: "actifs" as const, nom: "Actifs" },
+              { cle: "suspendus" as const, nom: "Suspendus" },
+              { cle: "bloques" as const, nom: "Bloqués" },
+              { cle: "tous" as const, nom: "Tous" },
+            ]}
+            valeur={etatFiltre}
+            onChange={setEtatFiltre}
+          />
+        }
+      >
+        <div data-r="filtres-prestataires" style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
+          <Recherche valeur={q} onChange={setQ} placeholder="Nom ou métier" />
+          <select className="sy-input" aria-label="Secteur" value={secteur} onChange={(e) => setSecteur(e.target.value)} style={selecteur}>
+            <option value="">Tous les secteurs</option>
+            {secteurs?.map((s) => (
+              <option key={s.cle} value={s.cle}>
+                {s.nom}
+              </option>
+            ))}
+          </select>
+          <select className="sy-input" aria-label="Quartier" value={quartier} onChange={(e) => setQuartier(e.target.value)} style={selecteur}>
+            <option value="">Tous les quartiers</option>
+            {quartiers.map((x) => (
+              <option key={x.id} value={x.id}>
+                {x.nom}
+                {x.ville ? ` (${x.ville})` : ""}
+              </option>
+            ))}
+          </select>
+          <select className="sy-input" aria-label="Note minimale" value={noteMin} onChange={(e) => setNoteMin(e.target.value)} style={selecteur}>
+            <option value="">Toutes les notes</option>
+            {["4.5", "4", "3", "2"].map((n) => (
+              <option key={n} value={n}>
+                {Number(n).toLocaleString("fr-FR")} et plus
+              </option>
+            ))}
+          </select>
+        </div>
+        <Tableau
+          lignes={liste ?? []}
+          cle={(p) => p.id}
+          ligneR="prestataire-admin"
+          vide={liste ? "Aucun prestataire ne correspond." : undefined}
+          min={980}
+          colonnes={[
+            { titre: "Prestataire", rendu: (p) => <Personne nom={p.nom} detail={[p.metier, p.quartier].filter(Boolean).join(" · ")} /> },
+            { titre: "Secteurs", rendu: (p) => <span style={{ fontSize: "13px" }}>{p.secteurs.join(", ") || "—"}</span> },
+            {
+              titre: "Note",
+              rendu: (p) => (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
+                  <Icon name="star" size={13} />
+                  {p.note.toLocaleString("fr-FR")} <span style={{ color: GRIS, fontSize: "12.5px" }}>({p.nombre_avis})</span>
                 </span>
-              </span>
-              {p.statut !== "actif" && <span className={`sy-badge sy-badge--${TON_STATUT[p.statut]}`}>{p.statut_libelle}</span>}
-              {p.en_vedette && <span className="sy-badge sy-badge--brand">À la une</span>}
-              {p.verifie && <span className="sy-badge sy-badge--success">Vérifié</span>}
-            </div>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", fontSize: "13px", color: GRIS }}>
-              <span>
-                <Icon name="star" size={13} /> {p.note.toLocaleString("fr-FR")} ({p.nombre_avis} avis)
-              </span>
-              <span>{p.demandes} demande{p.demandes > 1 ? "s" : ""}</span>
-              <span>{p.compte ? `Compte : ${p.compte.nom ?? p.compte.telephone}` : "Aucun compte relié"}</span>
-              {p.secteurs.length > 0 && <span>{p.secteurs.join(", ")}</span>}
-            </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
-              <button data-r="ouvrir-dossier" onClick={() => setOuvert(p.id)} className="sy-btn sy-btn--primary sy-btn--sm" style={{ gap: 6 }}>
-                <Icon name="file-text" size={15} />
-                Dossier
-              </button>
-              {p.actif && (
-                <button onClick={() => go("fiche", { fiche: p.id })} className="sy-btn sy-btn--outline sy-btn--sm">
-                  Voir la fiche
-                </button>
-              )}
-              {p.actif && peutMettreEnAvant && (
-                <button data-r="vedette" onClick={() => modifier(p, { en_vedette: !p.en_vedette }, p.en_vedette ? "Retiré de la une" : "Mis en avant")} className="sy-btn sy-btn--outline sy-btn--sm">
-                  {p.en_vedette ? "Retirer de la une" : "Mettre en avant"}
-                </button>
-              )}
-              {!peutSuspendre || p.statut === "bloque" ? null : p.actif ? (
-                <button data-r="suspendre" onClick={() => setSuspendre(p)} className="sy-btn sy-btn--outline sy-btn--sm" style={{ color: "var(--state-danger)", borderColor: "var(--state-danger)", marginLeft: "auto" }}>
-                  Suspendre
-                </button>
-              ) : (
-                <button data-r="reactiver" onClick={() => modifier(p, { actif: true }, "Prestataire réactivé")} className="sy-btn sy-btn--primary sy-btn--sm" style={{ marginLeft: "auto" }}>
-                  Réactiver
-                </button>
-              )}
-            </div>
-          </article>
-        ))}
-      </div>
-
+              ),
+            },
+            { titre: "Demandes", rendu: (p) => <span style={{ fontFamily: "var(--font-mono)" }}>{p.demandes}</span> },
+            { titre: "Compte", rendu: (p) => <span style={{ fontSize: "13px", color: GRIS }}>{p.compte ? `Compte : ${p.compte.nom ?? p.compte.telephone}` : "Aucun compte relié"}</span> },
+            {
+              titre: "Statut",
+              rendu: (p) => (
+                <span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {p.statut === "actif" ? <Statut ton="success">Actif</Statut> : <Statut ton={p.statut === "bloque" ? "danger" : "warning"}>{p.statut_libelle}</Statut>}
+                  {p.en_vedette && <span className="sy-badge sy-badge--brand">À la une</span>}
+                  {p.verifie && <span className="sy-badge sy-badge--info">Vérifié</span>}
+                </span>
+              ),
+            },
+            {
+              titre: "Actions",
+              droite: true,
+              rendu: (p) => (
+                <span style={{ display: "inline-flex", gap: 6, justifyContent: "flex-end", alignItems: "center" }}>
+                  <button data-r="ouvrir-dossier" onClick={() => setOuvert(p.id)} className="sy-btn sy-btn--outline sy-btn--sm" style={{ gap: 6 }}>
+                    <Icon name="file-text" size={15} />
+                    Dossier
+                  </button>
+                  {p.actif && (
+                    <button onClick={() => go("fiche", { fiche: p.id })} className="sy-iconbtn sy-iconbtn--sm sy-iconbtn--outline" aria-label={`Voir la fiche de ${p.nom}`} title="Voir la fiche">
+                      <Icon name="eye" size={15} />
+                    </button>
+                  )}
+                  {p.actif && peutMettreEnAvant && (
+                    <button
+                      data-r="vedette"
+                      onClick={() => modifier(p, { en_vedette: !p.en_vedette }, p.en_vedette ? "Retiré de la une" : "Mis en avant")}
+                      className="sy-iconbtn sy-iconbtn--sm sy-iconbtn--outline"
+                      aria-label={p.en_vedette ? "Retirer de la une" : "Mettre en avant"}
+                      title={p.en_vedette ? "Retirer de la une" : "Mettre en avant"}
+                      style={p.en_vedette ? { color: "var(--kola-600)", borderColor: "var(--kola-500)" } : undefined}
+                    >
+                      <Icon name="trending-up" size={15} />
+                    </button>
+                  )}
+                  {!peutSuspendre || p.statut === "bloque" ? null : p.actif ? (
+                    <button data-r="suspendre" onClick={() => setSuspendre(p)} className="sy-iconbtn sy-iconbtn--sm sy-iconbtn--outline" aria-label="Suspendre" title="Suspendre" style={{ color: "var(--state-danger)" }}>
+                      <Icon name="lock" size={15} />
+                    </button>
+                  ) : (
+                    <button data-r="reactiver" onClick={() => modifier(p, { actif: true }, "Prestataire réactivé")} className="sy-btn sy-btn--primary sy-btn--sm">
+                      Réactiver
+                    </button>
+                  )}
+                </span>
+              ),
+            },
+          ]}
+        />
+      </Section>
       {suspendre && (
         <Dialogue
           titre={`Suspendre ${suspendre.nom} ?`}

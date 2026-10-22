@@ -5,6 +5,7 @@ import { useToast } from "../../components/Toast";
 import { peut } from "../../lib/acces";
 import { useApp } from "../../state/app";
 import { EspaceAdmin, GRIS, TITRE_CARTE } from "./EspaceAdmin";
+import { Stats, chiffre } from "./Gabarit";
 
 /* Catalogue et prix : les prestations de chaque service et leur prix indicatif (celui affiché
    dans les résultats quand un technicien n'a pas donné le sien). Les prix du pack pressing et
@@ -19,6 +20,14 @@ export function AdminCatalogue() {
   return (
     <EspaceAdmin titre="Catalogue et prix" sousTitre="Prix indicatifs des prestations, en francs CFA. Chaque technicien peut afficher le sien.">
       {erreur && <p role="alert" style={{ margin: 0, color: "var(--state-danger)" }}>Le catalogue n'a pas pu être chargé.</p>}
+      <Stats
+        items={[
+          { libelle: "Prestations", valeur: chiffre(liste.length), icone: "receipt" },
+          { libelle: "Avec un prix", valeur: chiffre(liste.filter((p) => p.prix_affichage).length), icone: "circle-check" },
+          { libelle: "Sans prix", valeur: chiffre(liste.filter((p) => !p.prix_affichage).length), icone: "circle-dashed", badge: liste.some((p) => !p.prix_affichage) ? { texte: "À compléter", ton: "warning" } : undefined },
+          { libelle: "Secteurs", valeur: chiffre(secteurs.length), icone: "layout-grid" },
+        ]}
+      />
       {secteurs.map(([cle, nom]) => (
         <section key={cle} className="sy-card" aria-label={nom}>
           <div className="sy-card__body" style={{ display: "flex", flexDirection: "column", gap: 4 }}>

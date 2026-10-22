@@ -219,6 +219,84 @@ svg,
   }
 }
 
+/* ---- Gabarit des espaces de gestion (équipe et prestataires) ----
+   Fond doux, cartes blanches arrondies sans bordure, indicateurs en tête de page, tableaux aérés. */
+[data-espace] .sy-card,
+.gabarit-carte {
+  background: var(--surface-card);
+  border: 0;
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+.gabarit-carte {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+  min-width: 0;
+}
+
+.gabarit-stats {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(var(--colonnes, 4), minmax(0, 1fr));
+}
+
+.gabarit-valeur {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.gabarit-tableau {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.gabarit-tableau th {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--argile-700);
+  padding: 4px 12px 12px 2px;
+  white-space: nowrap;
+}
+
+.gabarit-tableau td {
+  padding: 13px 12px 13px 2px;
+  border-top: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.gabarit-cliquable {
+  cursor: pointer;
+}
+
+.gabarit-cliquable:hover td {
+  background: var(--surface-sunken);
+}
+
+/* Champs et sélecteurs : des pilules, comme les filtres des tableaux de bord. */
+[data-espace] .sy-input-wrap .sy-input,
+[data-espace] select.sy-input {
+  border-radius: 999px;
+}
+
+@media (max-width: 1079px) {
+  .gabarit-stats {
+    grid-template-columns: repeat(min(var(--colonnes, 4), 2), minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .gabarit-valeur {
+    font-size: 21px;
+  }
+}
+
 /* Tableau de bord du prestataire : trois indicateurs, la semaine et les clients, puis le suivi. */
 .pro-kpis {
   display: grid;
