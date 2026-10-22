@@ -17,15 +17,16 @@ php artisan config:cache
 php artisan route:cache
 php artisan migrate --force
 
-# Référentiels et données de démonstration (prestataires, compte de démo) pour la phase de test.
-# DatabaseSeeder ne charge pas la démonstration en production : on l'appelle ici explicitement.
-# Les seeders sont rejouables : relancer ne duplique rien. Passer SEED_ON_DEPLOY à false au lancement réel.
-if [ "$SEED_ON_DEPLOY" = "true" ]; then
-  php artisan db:seed --force
-  php artisan db:seed --class=PrestataireSeeder --force
-  php artisan db:seed --class=DemoSeeder --force
-fi
-
 php artisan storage:link || true
+
+# Référentiels (catalogue, prestations, rôles et permissions) et, pour la phase de test, données de
+# démonstration (SEED_ON_DEPLOY=true ; à passer à false au lancement réel). Chargés en arrière-plan,
+# et seulement s'ils ont changé depuis le dernier chargement : l'API répond dès le démarrage, au
+# lieu d'attendre plusieurs minutes que tout soit rejoué vers la base distante.
+DEMO=""
+if [ "$SEED_ON_DEPLOY" = "true" ]; then
+  DEMO="--demo"
+fi
+( php artisan terraclick:amorcer $DEMO || echo "terraclick:amorcer a échoué" ) &
 
 exec apache2-foreground
