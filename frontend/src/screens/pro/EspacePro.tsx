@@ -4,6 +4,7 @@ import type { Ecran } from "../../state/types";
 import { CONSIGNES, PRO, type Ton } from "../../data/pro";
 import { Icon } from "../../components/Icon";
 import { useEtatPro } from "./store";
+import { CONFIG } from "../../lib/config";
 
 /* Application prestataire, distincte du site public : pas d'en-tête d'annuaire,
    pas de pied de page. Sur ordinateur, une interface de gestion (barre latérale
@@ -17,7 +18,8 @@ const GROUPES: Groupe[] = [
   {
     titre: "Activité",
     entrees: [
-      { ecran: "proDashboard", libelle: "Tableau de bord", court: "Accueil", icone: "layout-dashboard" },
+      // Le vrai tableau de bord (données réelles) ; l'ancien, fictif, reste en mode démonstration.
+      { ecran: CONFIG.devenirPrestataire === "formulaire" ? "proTableau" : "proDashboard", libelle: "Tableau de bord", court: "Accueil", icone: "layout-dashboard" },
       { ecran: "proConsignes", libelle: "Consignes", court: "Consignes", icone: "clipboard-check" },
       { ecran: "demandesRecues", libelle: "Commandes et demandes reçues", court: "Reçues", icone: "inbox" },
       { ecran: "proDemandes", libelle: "Demandes clients", court: "Demandes", icone: "inbox" },
@@ -45,7 +47,7 @@ const GROUPES: Groupe[] = [
 const TOUTES = GROUPES.flatMap((g) => g.entrees);
 
 /** Onglets de la barre basse sur téléphone ; le reste passe par « Plus ». */
-const ONGLETS_BAS: Ecran[] = ["proDashboard", "demandesRecues", "proDemandes", "proProfil"];
+const ONGLETS_BAS: Ecran[] = [CONFIG.devenirPrestataire === "formulaire" ? "proTableau" : "proDashboard", "demandesRecues", "proDemandes", "proProfil"];
 
 /** Écrans de détail rattachés à une entrée de navigation. */
 const RATTACHEMENT: Partial<Record<Ecran, Ecran>> = { proDemande: "proDemandes" };
@@ -137,10 +139,12 @@ export function EspacePro({ titre, sousTitre, children }: { titre: string; sousT
   }, [etat.screen]);
 
   const quitter = () => go("home");
+  // Espace réel (dossier « Devenir prestataire ») : le compte connecté, pas la démonstration.
+  const reel = CONFIG.devenirPrestataire === "formulaire";
 
   return (
-    <div data-r="pro-app">
-      {/* ---- Barre latérale (ordinateur) ---- */}
+    <div data-r="pro-app" data-espace="pro">
+      {/* ---- Menu latéral clair, posé comme une carte (ordinateur) ---- */}
       <aside data-r="pro-side" aria-label="Espace prestataire">
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "18px 18px 14px" }}>
           <span
@@ -149,8 +153,7 @@ export function EspacePro({ titre, sousTitre, children }: { titre: string; sousT
               height: 34,
               flex: "none",
               borderRadius: 9,
-              background: "var(--kola-500)",
-              color: "#fff",
+              border: "1.5px solid var(--color-text)",
               display: "grid",
               placeItems: "center",
               fontFamily: "var(--font-heading)",
@@ -161,14 +164,14 @@ export function EspacePro({ titre, sousTitre, children }: { titre: string; sousT
             tc
           </span>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "15px", color: "#fff" }}>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "15px" }}>
               TerraClick Pro
             </div>
-            <div style={{ fontSize: "11.5px", color: "rgba(255,255,255,.55)" }}>Gestion de l'activité</div>
+            <div style={{ fontSize: "11.5px", color: "var(--argile-700)" }}>Gestion de l'activité</div>
           </div>
         </div>
 
-        <nav style={{ flex: 1, overflowY: "auto", padding: "4px 10px 12px", display: "flex", flexDirection: "column", gap: 14 }}>
+        <nav style={{ flex: 1, overflowY: "auto", padding: "4px 12px 12px", display: "flex", flexDirection: "column", gap: 12 }}>
           {GROUPES.map((g) => (
             <div key={g.titre} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <span
@@ -177,7 +180,7 @@ export function EspacePro({ titre, sousTitre, children }: { titre: string; sousT
                   fontWeight: 700,
                   letterSpacing: ".12em",
                   textTransform: "uppercase",
-                  color: "rgba(255,255,255,.4)",
+                  color: "var(--text-muted)",
                   padding: "0 10px 4px",
                 }}
               >
@@ -194,21 +197,21 @@ export function EspacePro({ titre, sousTitre, children }: { titre: string; sousT
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 10,
-                      height: 38,
-                      padding: "0 10px",
-                      borderRadius: 9,
+                      gap: 12,
+                      height: 40,
+                      padding: "0 12px",
+                      borderRadius: 10,
                       cursor: "pointer",
                       font: "inherit",
                       fontSize: "13.5px",
-                      fontWeight: 600,
+                      fontWeight: actif ? 600 : 500,
                       textAlign: "left",
-                      border: actif ? "1px solid rgba(226,91,26,.5)" : "1px solid transparent",
-                      background: actif ? "rgba(226,91,26,.16)" : "transparent",
-                      color: actif ? "#fff" : "rgba(255,255,255,.72)",
+                      border: 0,
+                      background: actif ? "var(--surface-sunken)" : "transparent",
+                      color: actif ? "var(--color-text)" : "var(--argile-700)",
                     }}
                   >
-                    <Icon name={n.icone} size={17} />
+                    <Icon name={n.icone} size={18} />
                     <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{n.libelle}</span>
                     <Pastille n={compteurs[n.ecran]} />
                   </button>
@@ -218,7 +221,7 @@ export function EspacePro({ titre, sousTitre, children }: { titre: string; sousT
           ))}
         </nav>
 
-        <div style={{ borderTop: "1px solid rgba(255,255,255,.1)", padding: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ borderTop: "1px solid var(--border-subtle)", padding: 12, display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span
               style={{
@@ -226,8 +229,7 @@ export function EspacePro({ titre, sousTitre, children }: { titre: string; sousT
                 height: 32,
                 flex: "none",
                 borderRadius: "50%",
-                background: "rgba(255,255,255,.12)",
-                color: "#fff",
+                background: "var(--surface-sunken)",
                 display: "grid",
                 placeItems: "center",
                 fontFamily: "var(--font-heading)",
@@ -235,13 +237,11 @@ export function EspacePro({ titre, sousTitre, children }: { titre: string; sousT
                 fontSize: "12px",
               }}
             >
-              {PRO.initiales}
+              {reel ? (etat.auth?.prenom || "P").slice(0, 2).toUpperCase() : PRO.initiales}
             </span>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: "#fff" }}>{PRO.nom}</div>
-              <div style={{ fontSize: "11px", color: "rgba(255,255,255,.55)" }}>
-                {PRO.metier} · plan {PRO.plan}
-              </div>
+              <div style={{ fontSize: "13px", fontWeight: 700 }}>{reel ? etat.auth?.prenom : PRO.nom}</div>
+              <div style={{ fontSize: "11px", color: "var(--argile-700)" }}>{reel ? "Prestataire TerraClick" : `${PRO.metier} · plan ${PRO.plan}`}</div>
             </div>
           </div>
           <button
@@ -258,9 +258,9 @@ export function EspacePro({ titre, sousTitre, children }: { titre: string; sousT
               font: "inherit",
               fontSize: "13px",
               fontWeight: 600,
-              border: "1px solid rgba(255,255,255,.18)",
+              border: "1px solid var(--border-subtle)",
               background: "transparent",
-              color: "rgba(255,255,255,.8)",
+              color: "var(--argile-700)",
             }}
           >
             <Icon name="x" size={15} />

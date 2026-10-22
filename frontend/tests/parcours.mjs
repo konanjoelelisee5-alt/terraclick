@@ -1189,6 +1189,23 @@ const numeroInscrit = numeroNeuf();
   await m.ctx.close();
 }
 
+// L bis · Tableau de bord du prestataire, selon son secteur (données réelles)
+{
+  const { ctx, p } = await neuve(390, 844);
+  await p.locator('[data-r="fil-avatar"]').click();
+  await connecterPage(p, '07 07 07 07 07');
+  await apparait(p.locator('[data-r="profil-mobile"]'));
+  await p.goto('http://localhost:4173/'); await apparait(p.locator('[data-r="accueil-fil"]'));
+  await p.locator('[data-r="menu-plus-ouvrir"]').click();
+  await p.getByRole('menuitem', { name: 'Paramètres' }).click();
+  await p.locator('[data-r="lien-tableau-pro"]').click();
+  ok('prestataire : son tableau de bord (à répondre, missions, note)',
+     (await apparait(p.locator('[data-r="indicateur-pro"]').filter({ hasText: 'Demandes à répondre' }))) && (await p.locator('[data-r="indicateur-pro"]').filter({ hasText: 'Note des clients' }).isVisible()));
+  ok('prestataire : la semaine, ses clients récents et le suivi de ses demandes',
+     (await p.getByRole('region', { name: 'Demandes reçues dans la semaine' }).isVisible()) && (await apparait(p.locator('[data-r="ligne-suivi-pro"]').first())));
+  await ctx.close();
+}
+
 // L'ancien espace prestataire de démonstration n'est plus l'entrée (CONFIG.devenirPrestataire = « formulaire ») :
 // ses tests (L et M) ne tournent que s'il est rebranché.
 const ESPACE_PRO_DEMO = false;

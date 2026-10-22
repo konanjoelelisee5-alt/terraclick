@@ -496,6 +496,17 @@ export type NotificationApi = {
 };
 
 /** Demande reçue par le prestataire connecté (GET /api/pro/demandes). */
+/** Tableau de bord du prestataire, selon son secteur. */
+export type TableauPro = {
+  prenom: string;
+  fiche: { id: number; nom: string; metier: string; pressing: boolean; secteurs: { cle: string; nom: string; icone: string }[]; statut: string };
+  kpis: { cle: string; libelle: string; valeur: number; unite: string; icone: string; detail?: string }[];
+  semaine: { decalage: 0 | 1; jours: { date: string; nombre: number | null }[]; max: number; moyenne: number };
+  clients: { nom: string; quartier: string | null; statut_libelle: string; telephone: string | null }[];
+  suivi: { id: number; reference: string; intitule: string; quartier: string | null; avancement: number; recue_le: string | null; creneau: string | null; statut: string; statut_libelle: string; montant: number | null }[];
+  commission_due: number;
+};
+
 export type DemandeProApi = DemandeApi & { client: { nom: string; telephone: string | null }; relance?: { date: string | null; message: string | null } | null; motifs_prestataire?: { cle: string; nom: string }[] };
 
 /** Article du pack pressing et son prix indicatif par pièce. */
@@ -807,6 +818,7 @@ export const api = {
       requete<{ data: SousService }>(`/admin/sous-services/${id}`, { methode: "PATCH", corps: saisie }).then((r) => r.data),
   },
   /* Espace prestataire : demandes et commandes reçues */
+  tableauPro: (semaine: 0 | 1, signal?: AbortSignal) => requete<{ data: TableauPro }>(`/pro/tableau${parametres({ semaine })}`, { signal }).then((r) => r.data),
   demandesRecues: (signal?: AbortSignal) => requete<Page<DemandeProApi>>("/pro/demandes", { signal }).then((r) => r.data),
   signalerCommePro: (id: number, signalement: { motif: string; message: string }) =>
     requete<{ data: DemandeProApi }>(`/pro/demandes/${id}/signaler`, { methode: "POST", corps: signalement }).then((r) => r.data),

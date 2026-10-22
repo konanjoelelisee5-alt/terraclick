@@ -31,6 +31,7 @@ import { Favoris } from "./screens/Favoris";
 import { ComposerPack } from "./screens/besoin/ComposerPack";
 import { CommandePressing } from "./screens/besoin/CommandePressing";
 import { DemandesRecues } from "./screens/pro/DemandesRecues";
+import { ProTableau } from "./screens/pro/ProTableau";
 import { DevenirPrestataire } from "./screens/prestataire/DevenirPrestataire";
 import { AdminCandidatures } from "./screens/admin/AdminCandidatures";
 import { AdminApercu } from "./screens/admin/AdminApercu";
@@ -134,6 +135,7 @@ const ECRANS: Record<Ecran, () => JSX.Element> = {
   proAvis: ProAvis,
   proNotifications: ProNotifications,
   demandesRecues: DemandesRecues,
+  proTableau: ProTableau,
   devenirPrestataire: DevenirPrestataire,
   adminCandidatures: AdminCandidatures,
   adminApercu: AdminApercu,

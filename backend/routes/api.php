@@ -21,6 +21,7 @@ use App\Http\Controllers\DemandeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PrestataireController;
 use App\Http\Controllers\ProDemandeController;
+use App\Http\Controllers\ProTableauController;
 use App\Http\Controllers\RechercheController;
 use Illuminate\Support\Facades\Route;
 
@@ -143,6 +144,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Espace technicien : demandes reçues par la fiche reliée au compte.
+    Route::get('pro/tableau', ProTableauController::class)->middleware('permission:pro.demandes');
     Route::prefix('pro/demandes')->middleware('permission:pro.demandes')->group(function () {
         Route::get('/', [ProDemandeController::class, 'index']);
         Route::get('{demande}', [ProDemandeController::class, 'show'])->whereNumber('demande');

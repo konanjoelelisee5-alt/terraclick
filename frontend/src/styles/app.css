@@ -162,7 +162,8 @@ svg,
   grid-template-columns: 92px minmax(0, 1fr);
 }
 
-[data-espace="admin"] [data-r="pro-side"] {
+[data-espace="admin"] [data-r="pro-side"],
+[data-espace="pro"] [data-r="pro-side"] {
   top: 12px;
   height: calc(100vh - 24px);
   margin: 12px 0 12px 12px;
@@ -171,7 +172,8 @@ svg,
   box-shadow: 0 1px 2px rgba(26, 22, 19, 0.04);
 }
 
-[data-espace="admin"] [data-r="pro-top"] {
+[data-espace="admin"] [data-r="pro-top"],
+[data-espace="pro"] [data-r="pro-top"] {
   background: transparent;
   border-bottom: 0;
   padding-top: 18px;
@@ -213,6 +215,26 @@ svg,
 
   .tableau-ligne--courbe,
   .tableau-ligne--bas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Tableau de bord du prestataire : trois indicateurs, la semaine et les clients, puis le suivi. */
+.pro-kpis {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pro-ligne {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+}
+
+@media (max-width: 1079px) {
+  .pro-kpis,
+  .pro-ligne {
     grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -574,7 +574,10 @@ export function Parametres() {
       ? [{ icone: "shield-check", titre: etat.auth.roles?.includes("admin") ? "Espace administrateur" : "Espace manager", detail: "Candidatures, signalements, demandes, prestataires", action: () => go("adminApercu"), r: "lien-admin" }]
       : []),
     ...(peut(etat.auth, "pro.demandes")
-      ? [{ icone: "inbox", titre: "Commandes reçues", detail: "Pressings et techniciens : les demandes de vos clients", action: () => go("demandesRecues"), r: "lien-demandes-recues" }]
+      ? [
+          { icone: "layout-dashboard", titre: "Mon tableau de bord", detail: "Votre activité de prestataire : demandes, missions, clients", action: () => go("proTableau"), r: "lien-tableau-pro" },
+          { icone: "inbox", titre: "Commandes reçues", detail: "Pressings et techniciens : les demandes de vos clients", action: () => go("demandesRecues"), r: "lien-demandes-recues" },
+        ]
       : []),
     { icone: "history", titre: "Historique des recherches", detail: "Revoir ou supprimer vos recherches", action: () => go("historique") },
     {

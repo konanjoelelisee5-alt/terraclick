@@ -52,6 +52,7 @@ export type Ecran =
   | "clientProfil"
   /* Espace prestataire */
   | "proDashboard"
+  | "proTableau"
   | "proConsignes"
   | "proDemandes"
   | "proDemande"
