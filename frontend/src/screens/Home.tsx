@@ -5,7 +5,6 @@ import { CONFIG } from "../lib/config";
 import { useApi } from "../lib/useApi";
 import { useApp } from "../state/app";
 import { Icon } from "../components/Icon";
-import { ImageSlot } from "../components/ImageSlot";
 import { MegaMenu } from "../components/MegaMenu";
 import { Rating } from "../components/Rating";
 import { CARTE, tabIcon } from "../components/ui";
@@ -42,10 +41,13 @@ export function Home() {
 
   return (
     <main>
-      {/* Proposition d'installer l'application, sur ordinateur (Chrome, Edge). */}
-      <div data-r="container">
-        <BandeauInstallation style={{ marginTop: 16 }} />
-      </div>
+      {/* Proposition d'installer l'application, sur ordinateur (Chrome, Edge). Masquée
+          (CONFIG.installationAccueil) : elle reste dans Paramètres. */}
+      {CONFIG.installationAccueil && (
+        <div data-r="container">
+          <BandeauInstallation style={{ marginTop: 16 }} />
+        </div>
+      )}
       {/* ---- Accroche : mot-symbole centré, recherche, bascule des trois modes ---- */}
       <section style={{ position: "relative", background: "var(--color-accent-100)" }}>
         <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>
@@ -141,7 +143,7 @@ export function Home() {
                 }}
               >
                 <Icon name="layout-grid" size={17} strokeWidth={2.75} />
-                <span>Départements</span>
+                <span>Services</span>
                 <Icon name="chevron-down" size={15} strokeWidth={2.75} />
               </button>
 
@@ -261,39 +263,42 @@ export function Home() {
           )}
 
           {/* Raccourcis métiers. Sur téléphone, ils deviennent des tuiles à icône sur une
-              ligne qui défile, et remplacent la grille « Recherches populaires ». */}
-          <div data-r="secteurs-rapides" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginTop: 16 }}>
-            <span data-r="secteurs-rapides-titre" style={{ fontSize: "12.5px", color: "var(--color-neutral-700)" }}>
-              Recherché en ce moment
-            </span>
-            <div data-r="secteurs-rapides-liste" style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 8 }}>
-              {SECTEURS.map((s) => (
-                <button
-                  key={s.categorie}
-                  onClick={() => demarrerBesoin({ secteur: s.cle })}
-                  className="sy-tag"
-                  style={{ height: 32, fontSize: "13px", gap: 6 }}
-                >
-                  <span data-r="secteur-visuel" style={{ display: "none" }}>
-                    <VisuelSecteur secteur={s} hauteur={84} tailleIcone={26} />
-                  </span>
-                  {s.metier}
-                </button>
-              ))}
+              ligne qui défile, et remplacent la grille « Nos services ». Masqués
+              (CONFIG.pucesRecherches) : ils répètent les cartes juste en dessous. */}
+          {CONFIG.pucesRecherches && (
+            <div data-r="secteurs-rapides" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginTop: 16 }}>
+              <span data-r="secteurs-rapides-titre" style={{ fontSize: "12.5px", color: "var(--color-neutral-700)" }}>
+                Recherché en ce moment
+              </span>
+              <div data-r="secteurs-rapides-liste" style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 8 }}>
+                {SECTEURS.map((s) => (
+                  <button
+                    key={s.categorie}
+                    onClick={() => demarrerBesoin({ secteur: s.cle })}
+                    className="sy-tag"
+                    style={{ height: 32, fontSize: "13px", gap: 6 }}
+                  >
+                    <span data-r="secteur-visuel" style={{ display: "none" }}>
+                      <VisuelSecteur secteur={s} hauteur={84} tailleIcone={26} />
+                    </span>
+                    {s.metier}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
       {mode === "carte" && <ModeCarte />}
       {mode === "box" && <ModeBox />}
 
-      {/* ---- Recherches populaires ---- */}
+      {/* ---- Nos services (aucun chiffre de recherche n'est affiché : il n'y en a pas derrière) ---- */}
       {mode === "recherche" && (
         <section data-r="container" data-sec="" data-bloc="populaires" style={{ paddingTop: 52 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 20 }}>
-            <h2 style={{ fontSize: "29px", margin: 0 }}>Recherches populaires</h2>
-            <span style={{ color: "var(--color-neutral-700)", fontSize: "14px" }}>à {ville} cette semaine</span>
+            <h2 style={{ fontSize: "29px", margin: 0 }}>Nos services</h2>
+            <span style={{ color: "var(--color-neutral-700)", fontSize: "14px" }}>à {ville}</span>
           </div>
           {/* Colonnes automatiques : les six secteurs tiennent sur une ligne en grand écran. */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 16 }}>
@@ -336,8 +341,23 @@ export function Home() {
           <div data-grid="421" data-bloc="carrousel" style={{ gap: 16 }}>
             {vedettes?.map((v) => (
               <div key={v.id} style={{ ...CARTE, padding: 16, display: "flex", gap: 14, alignItems: "flex-start" }}>
-                <div style={{ width: 78, height: 78, flex: "none", borderRadius: "999px", overflow: "hidden" }}>
-                  <ImageSlot placeholder="Photo" shape="circle" />
+                {/* La photo du prestataire prendra cette place ; ses initiales en attendant. */}
+                <div
+                  style={{
+                    width: 78,
+                    height: 78,
+                    flex: "none",
+                    borderRadius: "999px",
+                    background: "var(--color-accent-100)",
+                    color: "var(--color-accent-700)",
+                    display: "grid",
+                    placeItems: "center",
+                    fontFamily: "var(--font-heading)",
+                    fontWeight: 800,
+                    fontSize: "24px",
+                  }}
+                >
+                  {v.initiales}
                 </div>
                 <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
                   {/* Nom sur sa propre ligne, note dessous : rien ne se coupe, même en carrousel. */}

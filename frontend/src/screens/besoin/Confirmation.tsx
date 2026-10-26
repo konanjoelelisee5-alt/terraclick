@@ -1,5 +1,16 @@
 import { Fragment, useState } from "react";
-import { APRES_ENVOI, FRAIS_DEPLACEMENT, PAIEMENT_AUTRE, PAIEMENTS, POLITIQUE_ANNULATION, secteurParCle } from "../../data/catalogue";
+import {
+  APRES_ENVOI,
+  APRES_ENVOI_PRESSING,
+  FRAIS_DEPLACEMENT,
+  PAIEMENT_AUTRE,
+  PAIEMENTS,
+  PAIEMENTS_PRESSING,
+  POLITIQUE_ANNULATION,
+  POLITIQUE_ANNULATION_DEPOT,
+  POLITIQUE_ANNULATION_PRESSING,
+  secteurParCle,
+} from "../../data/catalogue";
 import { api, ErreurApi, messageErreur } from "../../lib/api";
 import { slugifier } from "../../lib/annuaire";
 import { useApi } from "../../lib/useApi";
@@ -8,6 +19,7 @@ import { Icon } from "../../components/Icon";
 import { CARTE } from "../../components/ui";
 import { Facture } from "../../components/Facture";
 import { lancerEnvol } from "../../components/EnvolDemande";
+import { choisirOnglet } from "../menu/EcransMenu";
 import { CONFIG } from "../../lib/config";
 import { creneauLisible, lignesPack } from "../../lib/pressing";
 import { francs, modifierClient, versDemandeClient } from "../client/store";
@@ -41,7 +53,9 @@ export function Confirmation() {
   // Frais de déplacement fixés par l'équipe pour ce quartier.
   const frais = quartierChoisi?.frais_deplacement ?? null;
 
-  if (!b.secteur || !b.quartier || !b.prestataire || (pressing && (!b.depot || !b.heure || !b.date))) {
+  // Dépôt au pressing : pas d'adresse, l'API prend le quartier du pressing.
+  const depot = pressing && b.depot === "pressing";
+  if (!b.secteur || (!b.quartier && !depot) || !b.prestataire || (pressing && (!b.depot || !b.heure || !b.date))) {
     return (
       <CadreParcours retour={() => go("home")}>
         <h1 style={TITRE_ETAPE}>Votre demande est incomplète</h1>
@@ -64,7 +78,7 @@ export function Confirmation() {
         ["Service", `${options?.services.find((s) => s.cle === b.service)?.nom ?? b.service}${b.express ? " · Express" : ""}`],
         ["Dépôt", options?.depots.find((d) => d.cle === b.depot)?.nom ?? ""],
         [b.depot === "pressing" ? "Dépôt prévu" : "Collecte", creneauLisible(b.date, b.heure) ?? ""],
-        ["Adresse", [b.adresse, quartier, b.repere].filter(Boolean).join(" · ")],
+        ["Adresse", depot ? "" : [b.adresse, quartier, b.repere].filter(Boolean).join(" · ")],
         ["Instructions", b.precision.trim()],
         ["Frais de déplacement", frais ? `${frais.toLocaleString("fr-FR")} F` : ""],
       ] as [string, string][]).filter(([, v]) => v)
@@ -77,7 +91,7 @@ export function Confirmation() {
     f.append("secteur", b.secteur ?? "");
     f.append("probleme", b.probleme ?? "");
     if (b.precision.trim()) f.append("precision", b.precision.trim());
-    f.append("quartier_id", String(b.quartier));
+    if (b.quartier) f.append("quartier_id", String(b.quartier));
     if (b.repere.trim()) f.append("repere", b.repere.trim());
     f.append("quand", b.quand ?? "");
     if (b.quand === "date") f.append("date_souhaitee", b.date);
@@ -106,13 +120,19 @@ export function Confirmation() {
         go("demandeEnvoyee", { demandeEnvoyee: data });
         return;
       }
-      // Le parcours s'arrête à l'envoi : la fenêtre s'envole vers « Mes onglets », où la
+      // Le client arrive sur le suivi de ce qu'il vient d'envoyer, la confirmation en tête.
+      if (CONFIG.envoiDemande === "suivi" && data.accord_id) {
+        choisirOnglet(data.accord_id, true);
+        go("accord", { besoin: { ...b, photos: [], pack: [] } });
+        return;
+      }
+      // Le parcours s'arrête à l'envoi : la fenêtre s'envole vers « Mes commandes », où la
       // demande se suit. L'accueil s'affiche dessous ; sans barre d'onglets, les onglets s'ouvrent.
       lancerEnvol(
         {
           titre: pressing ? "Commande envoyée" : "Demande envoyée",
           reference: data.reference,
-          texte: "Suivez-la désormais dans vos onglets.",
+          texte: "Suivez-la désormais dans « Mes commandes ».",
         },
         { sansCible: () => go("onglets") },
       );
@@ -247,7 +267,7 @@ export function Confirmation() {
                 actif={b.paiement === p.valeur}
                 onClick={() => modifierBesoin({ paiement: p.valeur })}
                 titre={p.libelle}
-                detail={p.detail}
+                detail={(pressing && PAIEMENTS_PRESSING[p.valeur]) || p.detail}
                 icone={p.valeur === "especes" ? "banknote" : p.valeur === "autre" ? "credit-card" : p.valeur === "virement" ? "landmark" : "wallet"}
               />
             ))}
@@ -261,7 +281,9 @@ export function Confirmation() {
           <Icon name="info" size={20} color="var(--color-accent-700)" />
           <div>
             <span style={TITRE_BLOC}>Annulation</span>
-            <span style={{ fontSize: "14px", color: "var(--color-neutral-700)" }}>{POLITIQUE_ANNULATION}</span>
+            <span style={{ fontSize: "14px", color: "var(--color-neutral-700)" }}>
+              {depot ? POLITIQUE_ANNULATION_DEPOT : pressing ? POLITIQUE_ANNULATION_PRESSING : POLITIQUE_ANNULATION}
+            </span>
           </div>
         </div>
 
@@ -270,7 +292,7 @@ export function Confirmation() {
           <div>
             <span style={TITRE_BLOC}>Et ensuite ?</span>
             <span style={{ fontSize: "14px" }}>
-              {pressing ? "Le pressing confirme votre commande. Vous la suivez ensuite dans vos onglets, étape par étape, et la cloche vous prévient." : APRES_ENVOI}
+              {pressing ? APRES_ENVOI_PRESSING : APRES_ENVOI}
             </span>
           </div>
         </div>

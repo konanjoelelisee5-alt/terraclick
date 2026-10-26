@@ -1,18 +1,23 @@
 import { useApp } from "../state/app";
+import { peut } from "../lib/acces";
 import { CONFIG } from "../lib/config";
 import { Wordmark } from "./Header";
 
 const COLONNES = [
-  { titre: "Pour les particuliers", liens: ["Comment ça marche", "Départements", "Demander un devis", "Aide & support"] },
+  { titre: "Pour les particuliers", liens: ["Comment ça marche", "Services", "Demander un devis", "Aide & support"] },
   { titre: "Pour les prestataires", liens: ["Devenir partenaire", "Vérification CNI", "Tarifs", "Espace pro"] },
-  { titre: "Villes", liens: ["Yamoussoukro", "Abidjan", "Bouaké", "Daloa"] },
+  // Seulement les villes où le service est ouvert (CONFIG.villesPiedDePage).
+  { titre: "Villes", liens: [...CONFIG.villesPiedDePage] },
 ];
 
 /** Liens menant à l'espace prestataire. */
 const LIENS_PRO = ["Devenir partenaire", "Espace pro"];
 
 export function Footer() {
-  const { go, exigerCompte } = useApp();
+  const { etat, go, exigerCompte } = useApp();
+  // Un prestataire va droit à son espace ; les autres, au dossier « Devenir prestataire ».
+  const ouvrirPro = () =>
+    peut(etat.auth, "pro.demandes") ? go("proTableau") : exigerCompte(() => go(CONFIG.devenirPrestataire === "formulaire" ? "devenirPrestataire" : "proDashboard"));
 
   return (
     <footer
@@ -48,7 +53,7 @@ export function Footer() {
                   key={lien}
                   type="button"
                   className="text-muted"
-                  onClick={() => exigerCompte(() => go(CONFIG.devenirPrestataire === "formulaire" ? "devenirPrestataire" : "proDashboard"))}
+                  onClick={ouvrirPro}
                   style={{ background: "none", border: 0, padding: 0, cursor: "pointer", font: "inherit", textAlign: "left" }}
                 >
                   {lien}

@@ -7,6 +7,7 @@ import { useApi } from "../lib/useApi";
 import { useApp } from "../state/app";
 import { Icon } from "../components/Icon";
 import { CorrectionRecherche } from "../components/CorrectionRecherche";
+import { BADGE_NOUVEAU } from "../components/ui";
 import { PastilleChoix, TRIS, type Tri } from "./Results";
 
 /* Résultats sur téléphone, mis en page comme une page de résultats de moteur de recherche
@@ -312,10 +313,14 @@ export function ResultatsMobile() {
                 <p style={{ margin: "6px 0 0", fontSize: "15px", lineHeight: 1.5, color: GRIS, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{p.desc}</p>
               )}
               <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginTop: 8, fontSize: "14px", color: GRIS }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                  <strong style={{ color: "var(--color-text)" }}>{p.note}</strong>
-                  <Icon name="star" size={14} fill="var(--rating)" color="var(--rating)" />({p.avis})
-                </span>
+                {p.avis > 0 ? (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <strong style={{ color: "var(--color-text)" }}>{p.note}</strong>
+                    <Icon name="star" size={14} fill="var(--rating)" color="var(--rating)" />({p.avis})
+                  </span>
+                ) : (
+                  <span style={BADGE_NOUVEAU}>Nouveau sur TerraClick</span>
+                )}
                 {p.delai && (
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                     <Icon name="clock" size={14} />

@@ -1,4 +1,8 @@
+import { useEffect, useState } from "react";
+import { peut } from "../lib/acces";
 import { CONFIG } from "../lib/config";
+import { libelleEspacePro, useEspacePro } from "../lib/espacePro";
+import { useNotifications } from "../lib/pressing";
 import { useApp } from "../state/app";
 import { useEstMobile } from "../lib/useEstMobile";
 import { Avatar } from "./Avatar";
@@ -39,10 +43,32 @@ const LIEN: React.CSSProperties = {
   color: "inherit",
 };
 
+/** Entrée du menu sous le nom (ordinateur). */
+const LIGNE_MENU: React.CSSProperties = {
+  ...LIEN,
+  width: "100%",
+  display: "block",
+  padding: "11px 12px",
+  borderRadius: 10,
+  fontSize: "14.5px",
+  textAlign: "left",
+};
+
 export function Header() {
   const { etat, set, go, exigerCompte, deconnecter, demarrerBesoin } = useApp();
   const estMobile = useEstMobile();
   const connecte = !!etat.auth;
+  const { nonLues } = useNotifications(connecte);
+  const prestataire = peut(etat.auth, "pro.demandes");
+  const espacePro = useEspacePro(etat.auth);
+  const [menuCompte, setMenuCompte] = useState(false);
+
+  useEffect(() => {
+    if (!menuCompte) return;
+    const echap = (e: KeyboardEvent) => e.key === "Escape" && setMenuCompte(false);
+    document.addEventListener("keydown", echap);
+    return () => document.removeEventListener("keydown", echap);
+  }, [menuCompte]);
   const initiales = etat.auth
     ? etat.auth.prenom
         .split(" ")
@@ -93,7 +119,7 @@ export function Header() {
             }}
             style={LIEN}
           >
-            Départements
+            Services
           </button>
           <button onClick={() => demarrerBesoin()} style={LIEN}>
             Demander une intervention
@@ -155,51 +181,112 @@ export function Header() {
                 }}
               >
                 <Icon name="bell" size={20} />
-                <span
-                  style={{
-                    position: "absolute",
-                    top: 6,
-                    right: 7,
-                    minWidth: 17,
-                    height: 17,
-                    padding: "0 4px",
-                    borderRadius: "999px",
-                    background: "var(--color-accent)",
-                    color: "#fff",
-                    fontSize: "10.5px",
-                    fontWeight: 700,
-                    display: "grid",
-                    placeItems: "center",
-                  }}
+                {/* Le vrai nombre de notifications non lues, rien quand tout est lu. */}
+                {nonLues > 0 && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: 6,
+                      right: 7,
+                      minWidth: 17,
+                      height: 17,
+                      padding: "0 4px",
+                      borderRadius: "999px",
+                      background: "var(--color-accent)",
+                      color: "#fff",
+                      fontSize: "10.5px",
+                      fontWeight: 700,
+                      display: "grid",
+                      placeItems: "center",
+                    }}
+                  >
+                    {nonLues > 9 ? "9+" : nonLues}
+                  </span>
+                )}
+              </button>
+              {/* Un prestataire ouvre son espace ; un client, son espace client. */}
+              {prestataire ? (
+                <button data-r="entete-espace-pro" onClick={() => go("proTableau")} className="sy-btn sy-btn--primary sy-btn--md">
+                  {libelleEspacePro(espacePro)}
+                </button>
+              ) : (
+                <button onClick={() => exigerCompte(() => go("clientDashboard"))} className="sy-btn sy-btn--outline sy-btn--md">
+                  Mon espace
+                </button>
+              )}
+              {/* Le nom ouvre un menu : la déconnexion y est explicite, jamais au premier clic. */}
+              <div style={{ position: "relative" }}>
+                <button
+                  data-r="menu-compte-ouvrir"
+                  onClick={() => setMenuCompte((v) => !v)}
+                  aria-haspopup="menu"
+                  aria-expanded={menuCompte}
+                  style={{ ...LIEN, display: "flex", alignItems: "center", gap: 10, padding: "4px 6px" }}
                 >
-                  3
-                </span>
-              </button>
-              <button onClick={() => exigerCompte(() => go("clientDashboard"))} className="sy-btn sy-btn--outline sy-btn--md">
-                Mon espace
-              </button>
-              <button
-                onClick={deconnecter}
-                style={{ ...LIEN, display: "flex", alignItems: "center", gap: 10, padding: "4px 6px" }}
-              >
-                <span
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: "999px",
-                    background: "var(--kola-50)",
-                    color: "var(--kola-600)",
-                    display: "grid",
-                    placeItems: "center",
-                    fontFamily: "var(--font-heading)",
-                    fontWeight: 700,
-                    fontSize: "14px",
-                  }}
-                >
-                  {initiales}
-                </span>
-                <span style={{ fontSize: "14.5px", whiteSpace: "nowrap" }}>{etat.auth?.prenom}</span>
-              </button>
+                  <span
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "999px",
+                      background: "var(--kola-50)",
+                      color: "var(--kola-600)",
+                      display: "grid",
+                      placeItems: "center",
+                      fontFamily: "var(--font-heading)",
+                      fontWeight: 700,
+                      fontSize: "14px",
+                    }}
+                  >
+                    {initiales}
+                  </span>
+                  <span style={{ fontSize: "14.5px", whiteSpace: "nowrap" }}>{etat.auth?.prenom}</span>
+                  <Icon name="chevron-down" size={16} />
+                </button>
+                {menuCompte && (
+                  <>
+                    <div onClick={() => setMenuCompte(false)} style={{ position: "fixed", inset: 0, zIndex: 30 }} />
+                    <div
+                      data-r="menu-compte"
+                      role="menu"
+                      aria-label="Mon compte"
+                      style={{
+                        position: "absolute",
+                        top: "calc(100% + 8px)",
+                        right: 0,
+                        zIndex: 31,
+                        width: 240,
+                        padding: 6,
+                        borderRadius: 16,
+                        background: "var(--surface-card)",
+                        border: "1px solid var(--border-subtle)",
+                        boxShadow: "0 12px 30px rgba(26,22,19,.12)",
+                      }}
+                    >
+                      {[
+                        ...(prestataire ? [{ libelle: libelleEspacePro(espacePro), action: () => go("proTableau") }] : []),
+                        { libelle: "Mon compte", action: () => go("clientDashboard") },
+                        { libelle: "Paramètres", action: () => go("parametres") },
+                      ].map((e) => (
+                        <button key={e.libelle} role="menuitem" onClick={() => (setMenuCompte(false), e.action())} style={LIGNE_MENU}>
+                          {e.libelle}
+                        </button>
+                      ))}
+                      <div style={{ height: 1, margin: "4px 6px", background: "var(--color-divider)" }} />
+                      <button
+                        role="menuitem"
+                        data-r="se-deconnecter"
+                        onClick={() => {
+                          setMenuCompte(false);
+                          deconnecter();
+                        }}
+                        style={{ ...LIGNE_MENU, color: "var(--state-danger)" }}
+                      >
+                        Se déconnecter
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </>
           )}
           {!connecte && (

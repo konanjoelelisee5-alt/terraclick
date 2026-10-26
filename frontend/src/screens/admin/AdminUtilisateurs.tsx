@@ -14,7 +14,7 @@ import { Personne, Section, Stats, Tableau, chiffre } from "./Gabarit";
    compte public passe dans l'équipe (ou l'inverse). */
 
 const ROLES = [
-  { cle: "client", nom: "Client", detail: "Envoie des demandes, les suit dans ses onglets." },
+  { cle: "client", nom: "Client", detail: "Envoie des demandes, les suit dans « Mes commandes »." },
   { cle: "prestataire", nom: "Prestataire", detail: "Ouvre l'espace prestataire et ses demandes reçues." },
   { cle: "manager", nom: "Manager", detail: "Candidatures, signalements, demandes, prestataires." },
   { cle: "admin", nom: "Administrateur", detail: "Accès complet, rôles et prix compris." },

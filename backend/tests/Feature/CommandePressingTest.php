@@ -98,6 +98,30 @@ class CommandePressingTest extends TestCase
             ->assertJsonValidationErrors(['service', 'depot', 'heure']);
     }
 
+    public function test_au_depot_le_client_ne_donne_pas_d_adresse(): void
+    {
+        $pressing = Prestataire::where('nom', 'Pressing Éclat')->firstOrFail();
+        $commande = $this->commande(['depot' => 'pressing']);
+        unset($commande['quartier_id'], $commande['repere'], $commande['adresse_libelle']);
+
+        $id = $this->actingAs($this->client)->postJson('/api/demandes', $commande)->assertCreated()
+            ->assertJsonPath('data.commande.depot.cle', 'pressing')
+            ->json('data.id');
+
+        // La demande prend le quartier du pressing.
+        $this->assertSame($pressing->quartier_id, Demande::findOrFail($id)->quartier_id);
+    }
+
+    public function test_la_collecte_demande_toujours_l_adresse(): void
+    {
+        $commande = $this->commande();
+        unset($commande['quartier_id']);
+
+        $this->actingAs($this->client)->postJson('/api/demandes', $commande)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['quartier_id']);
+    }
+
     public function test_le_gerant_fait_avancer_la_commande_et_le_client_est_notifie(): void
     {
         $id = $this->actingAs($this->client)->postJson('/api/demandes', $this->commande())->json('data.id');

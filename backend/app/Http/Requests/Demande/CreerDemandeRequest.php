@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Demande;
 
 use App\Models\Demande;
+use App\Models\Prestataire;
 use App\Models\Quartier;
 use App\Models\Reglage;
 use App\Services\AnalyseurBesoin;
@@ -16,6 +17,21 @@ class CreerDemandeRequest extends FormRequest
 
     /** Problème d'une demande au pressing composée article par article. */
     public const PACK = 'Pack pressing';
+
+    /**
+     * Dépôt au pressing : le client apporte lui-même son linge et ne donne pas d'adresse.
+     * La demande prend alors le quartier du pressing choisi.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->input('depot') !== 'pressing' || $this->filled('quartier_id') || ! $this->filled('prestataire_id')) {
+            return;
+        }
+        $quartier = Prestataire::whereKey($this->integer('prestataire_id'))->value('quartier_id');
+        if ($quartier) {
+            $this->merge(['quartier_id' => $quartier]);
+        }
+    }
 
     public function rules(): array
     {

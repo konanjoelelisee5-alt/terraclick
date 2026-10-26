@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { CONFIG } from "../lib/config";
 import type { Canal } from "../lib/useCodeConnexion";
 import { useApp } from "../state/app";
 import { Icon } from "./Icon";
@@ -167,7 +168,7 @@ export function CadreAuth({
         <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>{children}</div>
 
         {/* L'application s'ouvre ici : le bouton pour l'installer doit s'y trouver aussi. */}
-        <BandeauInstallation sobre toujours style={{ marginTop: 28, borderRadius: 24, boxShadow: "none" }} />
+        {CONFIG.installationAccueil && <BandeauInstallation sobre toujours style={{ marginTop: 28, borderRadius: 24, boxShadow: "none" }} />}
       </div>
     </main>
   );

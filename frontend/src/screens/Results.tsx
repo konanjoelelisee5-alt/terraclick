@@ -8,7 +8,7 @@ import { useApi } from "../lib/useApi";
 import { Icon } from "../components/Icon";
 import { CorrectionRecherche } from "../components/CorrectionRecherche";
 import { MapCanvas } from "../components/MapCanvas";
-import { CARTE, pill, tab } from "../components/ui";
+import { BADGE_NOUVEAU, CARTE, pill, tab } from "../components/ui";
 import { resumeBesoin } from "./besoin/commun";
 import { useEstMobile } from "../lib/useEstMobile";
 import { ResultatsMobile } from "./ResultatsMobile";
@@ -524,10 +524,14 @@ function ResultatsCartes() {
                 </div>
                 <span style={{ fontSize: "13.5px", color: "var(--color-accent-700)", marginTop: -3 }}>{p.metier}</span>
                 <span style={PRIX}>{p.prestation ? `${p.prestation} · ${p.prix}` : p.prix}</span>
-                <span style={META}>
-                  <Icon name="star" size={14} fill="var(--rating)" color="var(--rating)" />
-                  <strong style={{ color: "var(--color-text)" }}>{p.note}</strong> ({p.avis} avis)
-                </span>
+                {p.avis > 0 ? (
+                  <span style={META}>
+                    <Icon name="star" size={14} fill="var(--rating)" color="var(--rating)" />
+                    <strong style={{ color: "var(--color-text)" }}>{p.note}</strong> ({p.avis} avis)
+                  </span>
+                ) : (
+                  <span style={{ ...BADGE_NOUVEAU, alignSelf: "flex-start" }}>Nouveau sur TerraClick</span>
+                )}
                 {p.quartier && (
                   <span style={META}>
                     <Icon name="map-pin" size={14} />

@@ -52,10 +52,40 @@ export const CONFIG = {
    */
   resultatsMobile: "moteur" as "moteur" | "cartes",
   /**
-   * À l'ouverture, sans session mémorisée sur l'appareil : la page de connexion d'abord
-   * (la flèche retour mène à l'accueil en visiteur). Avec une session, l'accueil directement.
+   * À l'ouverture, sans session mémorisée sur l'appareil : `true` montre la page de connexion
+   * d'abord (la flèche retour mène à l'accueil en visiteur). `false` (valeur actuelle) ouvre
+   * l'accueil : la connexion n'est demandée qu'au moment d'agir (voir le README).
    */
-  connexionAuDemarrage: true as boolean,
+  connexionAuDemarrage: false as boolean,
+  /**
+   * Fil d'actualité de l'accueil mobile (« X rejoint TerraClick », avis, réalisations).
+   * Masqué (voir le README) : deux entrées le remplacent, « Décrire mon besoin » et
+   * « Commander au pressing ». `true` le rebranche.
+   */
+  filActualite: false as boolean,
+  /**
+   * Bandeau « L'appli sur votre ordinateur / Télécharger l'application » sur l'accueil
+   * (téléphone et ordinateur) et la page de connexion. Masqué (voir le README) : l'installation
+   * reste proposée dans Paramètres. `true` le rebranche.
+   */
+  installationAccueil: false as boolean,
+  /**
+   * Menu ⋮ façon navigateur : rangée Retour / Suivant / Favoris / Télécharger / Actualiser,
+   * « Supprimer les données de navigation », « Téléchargements », « Onglets récents » et les
+   * entrées « Bientôt ». Masqué (voir le README) : le menu garde Mes commandes, Historique des
+   * recherches, Favoris et Paramètres. `true` le rebranche.
+   */
+  menuNavigateur: false as boolean,
+  /**
+   * Puces « Recherché en ce moment » sous la recherche de l'accueil sur ordinateur : doublon
+   * des cartes de services juste en dessous. Masquées (voir le README) ; `true` les rebranche.
+   */
+  pucesRecherches: false as boolean,
+  /**
+   * Villes listées dans le pied de page : seulement celles où le service est ouvert.
+   * Abidjan, Bouaké et Daloa y étaient affichées avant l'ouverture (voir le README).
+   */
+  villesPiedDePage: ["Yamoussoukro"] as readonly string[],
   /**
    * Comptes avec mot de passe : inscription (nom, téléphone, e-mail, mot de passe, numéro
    * vérifié par code), connexion par numéro et mot de passe, « Mot de passe oublié » par code.
@@ -84,17 +114,19 @@ export const CONFIG = {
   ficheMobile: "profil" as "profil" | "page",
   /**
    * Bouton rond au centre de la barre du bas (téléphone), entre Favoris et Messages : il ouvre
-   * « Mes onglets » (relations conclues). La ligne de la barre plonge en arrondi sous lui.
+   * « Mes commandes » (commandes, demandes et relations conclues), libellé « Commandes ». La ligne de la barre plonge en arrondi sous lui.
    * `false` revient à la barre simple.
    */
   ongletCentral: true as boolean,
   /**
    * Après « Confirmer ma demande » / « Valider la commande » :
+   * - « suivi » (valeur actuelle) : le client arrive sur le suivi de ce qu'il vient d'envoyer,
+   *   avec la confirmation en tête (« Commande envoyée ») ;
    * - « envol » : le parcours s'arrête là. Une fenêtre « Demande envoyée » se plie en avion en
-   *   papier qui vole jusqu'au bouton « Mes onglets », où la demande se suit désormais ;
+   *   papier qui vole jusqu'au bouton « Mes commandes », où la demande se suit désormais ;
    * - « ecran » : l'ancien écran « Demande envoyée » (facture, « Suivre ma demande », « Accueil »).
    */
-  envoiDemande: "envol" as "envol" | "ecran",
+  envoiDemande: "suivi" as "suivi" | "envol" | "ecran",
   /**
    * « Devenir prestataire » :
    * - « formulaire » : le dossier envoyé à l'équipe TerraClick pour vérification

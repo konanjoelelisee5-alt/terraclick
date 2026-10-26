@@ -103,10 +103,13 @@ function LigneRecherche({ r, detail }: { r: RechercheApi; detail: string }) {
 
 /** Onglet ouvert dans l'écran de détail (et son reçu). */
 let accordOuvert: number | null = null;
+/** L'onglet s'ouvre juste après l'envoi : le suivi affiche la confirmation en tête. */
+let accordEnvoye = false;
 
 /** Prépare l'écran « accord » sur cet onglet (commande envoyée, notification). */
-export function choisirOnglet(id: number) {
+export function choisirOnglet(id: number, envoye = false) {
   accordOuvert = id;
+  accordEnvoye = envoye;
 }
 
 const secteurDeCategorie = (categorie: string | null, cle?: string | null) =>
@@ -115,9 +118,10 @@ const secteurDeCategorie = (categorie: string | null, cle?: string | null) =>
 const dateLongue = (iso: string) => new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
 /**
- * « Mes onglets » : les relations qui ont abouti. Le client a confirmé avoir conclu avec le
- * technicien (après un appel, un WhatsApp, un message ou une demande) ; chaque onglet garde les
- * étapes qui y ont mené et son reçu. Les recherches sans suite restent dans l'Historique.
+ * « Mes commandes » (écran « onglets ») : les commandes et demandes en cours, et les relations
+ * qui ont abouti. Le client a confirmé avoir conclu avec le technicien (après un appel, un
+ * WhatsApp, un message ou une demande) ; chaque onglet garde les étapes qui y ont mené et son
+ * reçu. Les recherches sans suite restent dans l'Historique.
  */
 export function Onglets() {
   const { etat, go } = useApp();
@@ -132,21 +136,21 @@ export function Onglets() {
   }, [etat.auth]);
 
   return (
-    <Page r="onglets" titre="Mes onglets" sousTitre="Vos dépannages en cours, à suivre jusqu'au bout. Une fois confirmés, ils passent dans l'historique.">
+    <Page r="onglets" titre="Mes commandes" sousTitre="Vos commandes et demandes en cours. Une fois terminées, elles passent dans l'historique.">
       {!etat.auth && (
         <>
-          <Vide icone="square-plus" titre="Connectez-vous pour voir vos onglets" texte="Chaque accord conclu avec un technicien y est gardé, avec son reçu." />
+          <Vide icone="square-plus" titre="Connectez-vous pour voir vos commandes" texte="Chaque commande et chaque accord conclu avec un technicien y sont gardés, avec leur reçu." />
           <button onClick={() => go("connexion", { telDraft: "", apresConnexion: "onglets" })} className="sy-btn sy-btn--primary sy-btn--md" style={{ alignSelf: "center" }}>
             Se connecter
           </button>
         </>
       )}
-      {erreur && <p role="alert" style={{ margin: 0, color: "var(--state-danger)" }}>Vos onglets n'ont pas pu être chargés.</p>}
+      {erreur && <p role="alert" style={{ margin: 0, color: "var(--state-danger)" }}>Vos commandes n'ont pas pu être chargées.</p>}
       {accords && accords.length === 0 && (
         <Vide
           icone="square-plus"
-          titre="Aucun onglet pour l'instant"
-          texte="Quand vous concluez avec un technicien (appel, WhatsApp, message ou demande), confirmez-le : l'accord apparaîtra ici."
+          titre="Aucune commande en cours"
+          texte="Vos commandes au pressing et vos demandes aux techniciens apparaîtront ici. Un accord conclu par appel, WhatsApp ou message aussi, une fois confirmé."
         />
       )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))", gap: 12 }}>
@@ -172,7 +176,8 @@ export function Onglets() {
               <span style={{ flex: 1, minWidth: 0, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 3 }}>
                 <span style={{ fontWeight: 700, fontSize: "15.5px" }}>{a.objet}</span>
                 <span style={{ fontSize: "13.5px", color: GRIS }}>
-                  {a.prestataire.nom} · {a.canal_libelle}
+                  {/* Une demande faite dans l'application n'a pas besoin de le rappeler. */}
+                  {a.canal === "demande" ? a.prestataire.nom : `${a.prestataire.nom} · ${a.canal_libelle}`}
                 </span>
                 <span style={{ fontSize: "13.5px" }}>
                   {a.montant_affichage ?? "Montant non indiqué"} · {jour(a.cree_le).toLowerCase()}
@@ -195,6 +200,12 @@ export function OngletAccord() {
   const toast = useToast();
   const [a, setA] = useState<AccordApi | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
+  // Lu une fois : revenir plus tard sur ce suivi n'affiche plus « Commande envoyée ».
+  const [envoye] = useState(() => {
+    const v = accordEnvoye;
+    accordEnvoye = false;
+    return v;
+  });
 
   useEffect(() => {
     if (!accordOuvert) return;
@@ -205,24 +216,24 @@ export function OngletAccord() {
 
   if (!a) {
     return (
-      <Page r="onglet-accord" titre="Onglet">
+      <Page r="onglet-accord" titre="Commande">
         <p role={erreur ? "alert" : "status"} style={{ margin: 0, color: erreur ? "var(--state-danger)" : GRIS }}>
-          {erreur ?? (accordOuvert ? "Chargement…" : "Choisissez un onglet.")}
+          {erreur ?? (accordOuvert ? "Chargement…" : "Choisissez une commande.")}
         </p>
         <button onClick={() => go("onglets")} className="sy-btn sy-btn--outline sy-btn--md" style={{ alignSelf: "flex-start" }}>
-          Mes onglets
+          Mes commandes
         </button>
       </Page>
     );
   }
 
   // Demande faite dans l'application (tout service, pressing compris) : son suivi et ses actions.
-  if (a.demande) return <OngletCommande a={a} onMaj={setA} />;
+  if (a.demande) return <OngletCommande a={a} onMaj={setA} envoye={envoye} />;
 
   const terminer = async () => {
     try {
       setA(await api.terminerAccord(a.id));
-      toast("Dépannage accompli", "Il quitte vos onglets et se range dans votre historique.");
+      toast("Dépannage accompli", "Il quitte « Mes commandes » et se range dans votre historique.");
     } catch (e) {
       toast("Action impossible", messageErreur(e), "danger");
     }
@@ -428,7 +439,7 @@ export function Historique() {
             <Vide
               icone="history"
               titre={cherche ? "Aucun résultat" : "Aucun dépannage accompli"}
-              texte={cherche ? "Aucun dépannage ne correspond à votre recherche." : "Quand un dépannage est terminé et que vous l'avez confirmé, il quitte vos onglets et se range ici."}
+              texte={cherche ? "Aucun dépannage ne correspond à votre recherche." : "Quand un dépannage est terminé et que vous l'avez confirmé, il quitte « Mes commandes » et se range ici."}
             />
           )}
           {joursDepannages.map((g) => (
@@ -491,7 +502,7 @@ export function Historique() {
       {confirmer && (
         <Dialogue
           titre="Supprimer les données de navigation ?"
-          description="Votre historique de recherche et vos onglets seront effacés de vos appareils."
+          description="Votre historique de recherche sera effacé de vos appareils."
           icone="trash-2"
           fond="var(--state-danger-soft)"
           encre="var(--state-danger)"
@@ -568,7 +579,7 @@ export function Parametres() {
       detail: etat.auth ? "Nom, numéro, e-mail, quartier" : "Se connecter ou créer un compte",
       action: () => (etat.auth ? go("clientDashboard") : go("connexion", { telDraft: "", apresConnexion: "parametres" })),
     },
-    { icone: "bell", titre: "Notifications", detail: "Demandes, réponses des techniciens", action: () => exigerCompte(() => go("clientNotifications")) },
+    { icone: "bell", titre: "Notifications", detail: "Réponses des prestataires, étapes de vos commandes", action: () => exigerCompte(() => go("clientNotifications")) },
     // Tableau de bord : l'espace de l'équipe s'ouvre seulement en se connectant avec ses identifiants.
     ...(etat.auth?.admin && CONFIG.espaceEquipe === "application"
       ? [{ icone: "shield-check", titre: etat.auth.roles?.includes("admin") ? "Espace administrateur" : "Espace manager", detail: "Candidatures, signalements, demandes, prestataires", action: () => go("adminApercu"), r: "lien-admin" }]
@@ -580,13 +591,18 @@ export function Parametres() {
         ]
       : []),
     { icone: "history", titre: "Historique des recherches", detail: "Revoir ou supprimer vos recherches", action: () => go("historique") },
-    {
-      icone: "wrench",
-      titre: "Devenir prestataire",
-      detail: "Vous êtes technicien ? Recevez les demandes de votre quartier.",
-      action: () => exigerCompte(() => go(CONFIG.devenirPrestataire === "formulaire" ? "devenirPrestataire" : "proDashboard")),
-      r: "devenir-partenaire",
-    },
+    // Déjà prestataire : son tableau de bord est juste au-dessus, l'invitation n'a plus de sens.
+    ...(peut(etat.auth, "pro.demandes")
+      ? []
+      : [
+          {
+            icone: "wrench",
+            titre: "Devenir prestataire",
+            detail: "Vous êtes technicien ? Recevez les demandes de votre quartier.",
+            action: () => exigerCompte(() => go(CONFIG.devenirPrestataire === "formulaire" ? "devenirPrestataire" : "proDashboard")),
+            r: "devenir-partenaire",
+          },
+        ]),
   ];
 
   return (

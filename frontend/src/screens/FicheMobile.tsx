@@ -9,8 +9,9 @@ import { Rating } from "../components/Rating";
 
 /* Fiche du technicien sur téléphone (CONFIG.ficheMobile = « profil ») : un profil centré —
    bouton pour quitter en haut à droite, photo ronde, nom et informations —, puis un bloc
-   présentation et tarifs portant en bas à droite les deux actions en icônes (Contacter, et
-   Demander — ou, pour un pressing, Composer mon pack). Les autres blocs suivent ; les avis clients ferment la page. */
+   présentation et tarifs portant en bas à droite les deux actions en icônes (Contacter et
+   Demander). Pour un pressing, deux vrais boutons à la place : « Composer mon pack » et
+   « Contacter ». Les autres blocs suivent ; les avis clients ferment la page. */
 
 const GRIS = "#5C5248";
 
@@ -34,7 +35,9 @@ export function FicheMobile({ p, onDemander, onComposerPack }: { p: FicheApi; on
   const [contact, setContact] = useState(false);
 
   const zone = p.zone_intervention ?? [p.quartier?.nom, p.quartier?.ville].filter(Boolean).join(", ");
-  const tarifs = p.tarifs.length ? p.tarifs : p.prix.affichage ? [{ libelle: "Intervention", affichage: p.prix.affichage }] : [];
+  // Un pressing facture à la pièce, sans déplacement ni diagnostic.
+  const pressing = !!onComposerPack;
+  const tarifs = p.tarifs.length ? p.tarifs : p.prix.affichage ? [{ libelle: pressing ? "Prix par pièce" : "Intervention", affichage: p.prix.affichage }] : [];
   // Quitter : revenir là d'où l'on vient (résultats, accueil, onglet…).
   const quitter = () => (window.history.length > 1 ? window.history.back() : go("home"));
 
@@ -97,23 +100,33 @@ export function FicheMobile({ p, onDemander, onComposerPack }: { p: FicheApi; on
                 <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>{t.affichage ?? "Sur devis"}</span>
               </div>
             ))}
-            <p style={{ margin: "8px 0 0", fontSize: "12.5px", color: GRIS }}>Prix indicatifs. Le technicien confirme après diagnostic.</p>
+            <p style={{ margin: "8px 0 0", fontSize: "12.5px", color: GRIS }}>
+              {pressing ? "Prix indicatifs. Le pressing confirme le total à la réception du linge." : "Prix indicatifs. Le technicien confirme après diagnostic."}
+            </p>
           </>
         )}
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 18, marginTop: 14 }}>
-          <Action libelle="Contacter" aria="Contacter directement" variante="contour" onClick={() => setContact(true)}>
-            <Icon name="message-circle" size={24} strokeWidth={2} />
-          </Action>
-          {onComposerPack ? (
-            <Action libelle="Mon pack" aria="Composer mon pack" variante="plein" onClick={onComposerPack}>
-              <Icon name="shopping-basket" size={24} strokeWidth={2} />
+        {onComposerPack ? (
+          // Pressing : l'action principale est un vrai bouton, lisible d'un coup d'œil.
+          // Sur un écran étroit, les deux boutons passent l'un sous l'autre plutôt que de déborder.
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 14 }}>
+            <button onClick={onComposerPack} className="sy-btn sy-btn--primary sy-btn--md" style={{ flex: "1 1 auto", minHeight: 52, justifyContent: "center", gap: 8, padding: "0 16px" }}>
+              <Icon name="shopping-basket" size={20} strokeWidth={2} />
+              Composer mon pack
+            </button>
+            <button onClick={() => setContact(true)} aria-label="Contacter directement" className="sy-btn sy-btn--outline sy-btn--md" style={{ flex: "1 1 auto", minHeight: 52, justifyContent: "center", padding: "0 16px" }}>
+              Contacter
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 18, marginTop: 14 }}>
+            <Action libelle="Contacter" aria="Contacter directement" variante="contour" onClick={() => setContact(true)}>
+              <Icon name="message-circle" size={24} strokeWidth={2} />
             </Action>
-          ) : (
             <Action libelle="Demander" aria="Demander ce technicien" variante="plein" onClick={onDemander}>
               <Icon name="calendar-check" size={24} strokeWidth={2} />
             </Action>
-          )}
-        </div>
+          </div>
+        )}
       </section>
 
       {p.prestations.length > 0 && (

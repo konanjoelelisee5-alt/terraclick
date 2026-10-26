@@ -197,6 +197,16 @@ export const FRAIS_DEPLACEMENT =
 export const POLITIQUE_ANNULATION =
   "Annulation gratuite tant que le technicien n'est pas en route. Prévenez-le au plus tôt s'il s'est déjà déplacé.";
 
+/* Commande au pressing : les mêmes informations, dans les mots du pressing. */
+export const POLITIQUE_ANNULATION_PRESSING = "Annulation gratuite tant que l'agent du pressing n'est pas parti chercher votre linge.";
+export const POLITIQUE_ANNULATION_DEPOT = "Annulation gratuite tant que vous n'avez pas déposé votre linge.";
+export const APRES_ENVOI_PRESSING = "Le pressing confirme votre commande. Vous la suivez ensuite dans « Mes commandes », étape par étape, et la cloche vous prévient.";
+/** Détail des moyens de paiement pour une commande au pressing (ceux de l'API parlent du prestataire). */
+export const PAIEMENTS_PRESSING: Partial<Record<string, string>> = {
+  especes: "Réglées au pressing, à la remise de votre linge.",
+  mobile_money: "Wave, Orange Money ou MTN, directement au pressing.",
+};
+
 export const APRES_ENVOI = "Votre demande sera envoyée. Vous recevrez une réponse dans environ 10 minutes.";
 export const DELAIS = ["Aujourd'hui", "Demain", "Cette semaine"];
 

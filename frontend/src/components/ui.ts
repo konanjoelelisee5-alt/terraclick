@@ -195,6 +195,17 @@ export function badgeEtape(etat: EtatEtape): CSSProperties {
   };
 }
 
+/** « Nouveau sur TerraClick » : à la place de « 0,0 ★ (0) » pour un prestataire sans avis. */
+export const BADGE_NOUVEAU: CSSProperties = {
+  display: "inline-block",
+  padding: "3px 10px",
+  borderRadius: 999,
+  background: "var(--color-accent-100)",
+  color: "var(--color-accent-700)",
+  fontSize: "12.5px",
+  fontWeight: 600,
+};
+
 /** Carte de contenu du prototype : fond, filet et rayon légèrement majoré. */
 export const CARTE: CSSProperties = {
   border: "1px solid var(--color-divider)",

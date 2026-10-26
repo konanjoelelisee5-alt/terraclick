@@ -8,9 +8,10 @@ import { Icon } from "../../components/Icon";
 import { francs } from "../client/store";
 import { AIDE, CadreParcours, Choix, TITRE_ETAPE } from "./commun";
 
-/* « Ma commande » (pressing), après le pack : où (adresse enregistrée ou nouvelle :
-   domicile, bureau, autre lieu), quel service (lavage, repassage, nettoyage à sec, express),
-   comment (collecte à domicile ou dépôt au pressing) et quand (date et heure). Le total
+/* « Ma commande » (pressing), après le pack : quel service (lavage, repassage, nettoyage à
+   sec, express), comment (collecte à domicile ou dépôt au pressing), où pour une collecte
+   (adresse enregistrée ou nouvelle : domicile, bureau, autre lieu) et quand (date et heure).
+   Au dépôt, aucune adresse n'est demandée : la demande prend le quartier du pressing. Le total
    estimé suit chaque choix. La suite : la confirmation, avec la facture et le paiement. */
 
 const GRIS = "#5C5248";
@@ -82,17 +83,21 @@ export function CommandePressing() {
   const total = lignes.reduce((n, l) => n + l.total, 0);
   const aujourdhui = new Date().toISOString().slice(0, 10);
 
+  const collecte = b.depot === "collecte";
   const manque =
-    (!b.quartier && "Indiquez l'adresse : le quartier suffit.") ||
-    (formulaire && type === "autre" && nomLieu.trim().length < 2 && "Donnez un nom à ce lieu.") ||
     (!b.depot && "Choisissez la collecte ou le dépôt au pressing.") ||
+    (collecte && !b.quartier && "Indiquez l'adresse de collecte : le quartier suffit.") ||
+    (collecte && formulaire && type === "autre" && nomLieu.trim().length < 2 && "Donnez un nom à ce lieu.") ||
     (!b.date && "Choisissez la date du créneau.") ||
     (!b.heure && "Choisissez l'heure du créneau.");
 
   const continuer = async () => {
     setErreur(null);
     const nom = type === "autre" ? nomLieu.trim() : TYPES.find((t) => t.cle === type)!.nom;
-    if (formulaire) {
+    if (!collecte) {
+      // Dépôt au pressing : pas d'adresse ; l'API prend le quartier du pressing.
+      modifierBesoin({ quartier: null, repere: "", adresse: "" });
+    } else if (formulaire) {
       modifierBesoin({ adresse: nom });
       if (etat.auth && enregistrer && b.quartier) {
         setEnvoi(true);
@@ -140,87 +145,9 @@ export function CommandePressing() {
         </button>
       </p>
 
-      {/* ---- Où ---- */}
-      <section data-r="adresse-commande" aria-label="Adresse">
-        <h2 style={{ ...TITRE_SECTION, marginTop: 8 }}>Adresse</h2>
-        {adresses && adresses.length > 0 && (
-          <div role="radiogroup" aria-label="Adresses enregistrées" style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 10 }}>
-            {adresses.map((a) => (
-              <Choix
-                key={a.id}
-                actif={choisie === a.id}
-                onClick={() => choisirAdresse(a)}
-                titre={a.nom}
-                detail={[a.quartier.nom, a.repere].filter(Boolean).join(" · ")}
-                icone={TYPES.find((t) => t.cle === a.type)?.icone}
-              />
-            ))}
-            <Choix actif={choisie === "nouvelle"} onClick={() => setChoisie("nouvelle")} titre="Ajouter une adresse" detail="Domicile, bureau ou autre lieu" icone="square-plus" />
-          </div>
-        )}
-
-        {formulaire && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div role="radiogroup" aria-label="Type de lieu" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {TYPES.map((t) => (
-                <button key={t.cle} type="button" role="radio" aria-checked={type === t.cle} onClick={() => setType(t.cle)} style={pastille(type === t.cle)}>
-                  <Icon name={t.icone} size={17} />
-                  {t.nom}
-                </button>
-              ))}
-            </div>
-            {type === "autre" && (
-              <div className="sy-field">
-                <label className="sy-field__label" htmlFor="commande-nom-lieu">
-                  Nom du lieu
-                </label>
-                <input id="commande-nom-lieu" className="sy-input" maxLength={40} value={nomLieu} onChange={(e) => setNomLieu(e.target.value)} placeholder="Ex. chez maman" />
-              </div>
-            )}
-            <div className="sy-field">
-              <label className="sy-field__label" htmlFor="commande-quartier">
-                Quartier à {ville}
-              </label>
-              <select
-                id="commande-quartier"
-                className="sy-input"
-                value={b.quartier ?? ""}
-                onChange={(e) => modifierBesoin({ quartier: e.target.value ? Number(e.target.value) : null })}
-              >
-                <option value="">Choisissez le quartier</option>
-                {quartiers.map((q) => (
-                  <option key={q.id} value={q.id}>
-                    {q.nom}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="sy-field">
-              <label className="sy-field__label" htmlFor="commande-repere">
-                Adresse ou point de repère (facultatif)
-              </label>
-              <input
-                id="commande-repere"
-                className="sy-input"
-                maxLength={160}
-                value={b.repere}
-                onChange={(e) => modifierBesoin({ repere: e.target.value })}
-                placeholder="Ex. portail bleu, derrière la pharmacie"
-              />
-            </div>
-            {etat.auth && (
-              <label style={{ display: "flex", alignItems: "center", gap: 10, minHeight: 44, fontSize: "15px", cursor: "pointer" }}>
-                <input type="checkbox" checked={enregistrer} onChange={(e) => setEnregistrer(e.target.checked)} style={{ width: 20, height: 20, accentColor: "var(--color-accent)" }} />
-                Enregistrer cette adresse pour mes prochaines commandes
-              </label>
-            )}
-          </div>
-        )}
-      </section>
-
       {/* ---- Service ---- */}
       <section data-r="service-commande" aria-label="Service">
-        <h2 style={TITRE_SECTION}>Service</h2>
+        <h2 style={{ ...TITRE_SECTION, marginTop: 8 }}>Service</h2>
         <div role="radiogroup" aria-label="Service" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {options?.services.map((s) => (
             <Choix
@@ -288,9 +215,89 @@ export function CommandePressing() {
         </div>
       </section>
 
+      {/* ---- Où : seulement pour la collecte ; au dépôt, le client va lui-même au pressing ---- */}
+      {b.depot === "collecte" && (
+        <section data-r="adresse-commande" aria-label="Adresse">
+          <h2 style={TITRE_SECTION}>Adresse de collecte</h2>
+          {adresses && adresses.length > 0 && (
+            <div role="radiogroup" aria-label="Adresses enregistrées" style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 10 }}>
+              {adresses.map((a) => (
+                <Choix
+                  key={a.id}
+                  actif={choisie === a.id}
+                  onClick={() => choisirAdresse(a)}
+                  titre={a.nom}
+                  detail={[a.quartier.nom, a.repere].filter(Boolean).join(" · ")}
+                  icone={TYPES.find((t) => t.cle === a.type)?.icone}
+                />
+              ))}
+              <Choix actif={choisie === "nouvelle"} onClick={() => setChoisie("nouvelle")} titre="Ajouter une adresse" detail="Domicile, bureau ou autre lieu" icone="square-plus" />
+            </div>
+          )}
+
+          {formulaire && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div role="radiogroup" aria-label="Type de lieu" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {TYPES.map((t) => (
+                  <button key={t.cle} type="button" role="radio" aria-checked={type === t.cle} onClick={() => setType(t.cle)} style={pastille(type === t.cle)}>
+                    <Icon name={t.icone} size={17} />
+                    {t.nom}
+                  </button>
+                ))}
+              </div>
+              {type === "autre" && (
+                <div className="sy-field">
+                  <label className="sy-field__label" htmlFor="commande-nom-lieu">
+                    Nom du lieu
+                  </label>
+                  <input id="commande-nom-lieu" className="sy-input" maxLength={40} value={nomLieu} onChange={(e) => setNomLieu(e.target.value)} placeholder="Ex. chez maman" />
+                </div>
+              )}
+              <div className="sy-field">
+                <label className="sy-field__label" htmlFor="commande-quartier">
+                  Quartier à {ville}
+                </label>
+                <select
+                  id="commande-quartier"
+                  className="sy-input"
+                  value={b.quartier ?? ""}
+                  onChange={(e) => modifierBesoin({ quartier: e.target.value ? Number(e.target.value) : null })}
+                >
+                  <option value="">Choisissez le quartier</option>
+                  {quartiers.map((q) => (
+                    <option key={q.id} value={q.id}>
+                      {q.nom}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="sy-field">
+                <label className="sy-field__label" htmlFor="commande-repere">
+                  Adresse ou point de repère (facultatif)
+                </label>
+                <input
+                  id="commande-repere"
+                  className="sy-input"
+                  maxLength={160}
+                  value={b.repere}
+                  onChange={(e) => modifierBesoin({ repere: e.target.value })}
+                  placeholder="Ex. portail bleu, derrière la pharmacie"
+                />
+              </div>
+              {etat.auth && (
+                <label style={{ display: "flex", alignItems: "center", gap: 10, minHeight: 44, fontSize: "15px", cursor: "pointer" }}>
+                  <input type="checkbox" checked={enregistrer} onChange={(e) => setEnregistrer(e.target.checked)} style={{ width: 20, height: 20, accentColor: "var(--color-accent)" }} />
+                  Enregistrer cette adresse pour mes prochaines commandes
+                </label>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
       {/* ---- Créneau ---- */}
       <section data-r="creneau-commande" aria-label="Créneau">
-        <h2 style={TITRE_SECTION}>{b.depot === "pressing" ? "Créneau de dépôt" : "Créneau de collecte"}</h2>
+        <h2 style={TITRE_SECTION}>{b.depot === "pressing" ? "Quand passez-vous au pressing ?" : b.depot === "collecte" ? "Créneau de collecte" : "Créneau"}</h2>
         <div className="sy-field">
           <label className="sy-field__label" htmlFor="commande-date">
             Date

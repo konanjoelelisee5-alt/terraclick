@@ -158,7 +158,7 @@ export function TabBar() {
             <button
               data-r="onglet-central"
               onClick={() => go("onglets")}
-              aria-label="Mes onglets"
+              aria-label="Mes commandes"
               aria-current={ongletsActif ? "page" : undefined}
               style={{
                 position: "absolute",
@@ -179,6 +179,23 @@ export function TabBar() {
             >
               <Icon name="layers" size={25} strokeWidth={2.1} />
             </button>
+            {/* Libellé sous le bouton, comme les autres onglets : il dit ce que le bouton ouvre. */}
+            <span
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: 8,
+                textAlign: "center",
+                fontSize: "11px",
+                fontWeight: ongletsActif ? 700 : 500,
+                letterSpacing: "0.01em",
+                color: ongletsActif ? "var(--color-accent-700)" : "var(--color-neutral-700)",
+              }}
+            >
+              Commandes
+            </span>
           </div>
 
           <div style={{ ...BARRE, paddingLeft: 0 }}>{onglets.slice(milieu).map(bouton)}</div>

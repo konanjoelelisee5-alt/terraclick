@@ -177,13 +177,16 @@ l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
 
 **Fin du parcours à l'envoi** (`CONFIG.envoiDemande`) :
 
-- `"envol"` (valeur actuelle) : après « Confirmer ma demande » ou « Valider la commande », le parcours s'arrête. La fenêtre « Demande envoyée » (ou « Commande envoyée ») s'affiche avec sa référence. Elle se plie ensuite en avion en papier, qui vole jusqu'au bouton central « Mes onglets ». Le bouton rebondit, avec une onde et un « +1 » (`components/EnvolDemande.tsx`).
+- `"suivi"` (valeur actuelle) : après « Confirmer ma demande » ou « Valider la commande », le client arrive sur le suivi de ce qu'il vient d'envoyer (`screens/menu/OngletCommande.tsx`), avec en tête « Commande envoyée » (ou « Demande envoyée ») et ce qui va suivre. Le bandeau ne s'affiche qu'à l'arrivée : revenir plus tard sur ce suivi ne le montre plus.
+- `"envol"` (masqué mais conservé) : le parcours s'arrête. La fenêtre « Demande envoyée » (ou « Commande envoyée ») s'affiche avec sa référence. Elle se plie ensuite en avion en papier, qui vole jusqu'au bouton central « Mes onglets ». Le bouton rebondit, avec une onde et un « +1 » (`components/EnvolDemande.tsx`).
   - L'accueil reste dessous.
   - Sur ordinateur, sans barre d'onglets, l'avion file vers le haut et les onglets s'ouvrent.
   - Si l'appareil demande moins d'animations, la fenêtre s'efface simplement.
 - `"ecran"` : l'ancien écran « Demande envoyée », avec la facture, « Suivre ma demande » et « Accueil » (`DemandeEnvoyee.tsx`, masqué mais conservé).
 
-**Onglets → Historique** : un dépannage terminé **et confirmé par le client** quitte « Mes onglets » pour l'**Historique**.
+**« Mes commandes »** : c'est le nom affiché de l'écran appelé « onglets » dans le code (écran `onglets`, table `accords`). Le mot « onglets », vocabulaire de navigateur, n'apparaît plus à l'écran : le bouton central de la barre du bas porte le libellé « Commandes », le menu ⋮ et les messages disent « Mes commandes ».
+
+**« Mes commandes » → Historique** : un dépannage terminé **et confirmé par le client** quitte « Mes commandes » pour l'**Historique**.
 
 - C'est le cas d'une demande confirmée (« Problème résolu », « J'ai reçu mon linge »), ou d'un accord pris hors application que le client a marqué terminé.
 - `GET /api/accords?etat=onglets|historique`, avec `Accord::scopeAccomplis`.
@@ -200,12 +203,13 @@ l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
 
 - *Dans l'interface pressing, avant de valider* (ce que reçoit le gérant) :
   - pack avec articles, quantités et **instructions** ;
-  - page **« Ma commande »** (`screens/besoin/CommandePressing.tsx`) :
-    - adresse enregistrée ou nouvelle : domicile, bureau ou autre lieu (`GET/POST/DELETE /api/moi/adresses`) ;
+  - page **« Ma commande »** (`screens/besoin/CommandePressing.tsx`), dans cet ordre :
     - service : lavage et repassage, repassage seul, nettoyage à sec, plus l'option **express** ;
     - mode de dépôt : collecte à domicile ou dépôt au pressing ;
-    - créneau : date et heure ;
+    - adresse de collecte, **seulement pour une collecte** : enregistrée ou nouvelle, domicile, bureau ou autre lieu (`GET/POST/DELETE /api/moi/adresses`). Au dépôt au pressing, aucune adresse n'est demandée : l'API donne à la demande le quartier du pressing choisi (`CreerDemandeRequest::prepareForValidation`) ;
+    - créneau : date et heure (« Quand passez-vous au pressing ? » au dépôt) ;
     - total estimé en direct.
+  - Les textes de la fiche, de la confirmation et du paiement parlent de pressing, pas de dépannage : « Prix par pièce », paiement « à la remise de votre linge », annulation « tant que l'agent du pressing n'est pas parti chercher votre linge » (ou « tant que vous n'avez pas déposé votre linge »). Sur la fiche d'un pressing, « Composer mon pack » et « Contacter » sont deux vrais boutons.
   - confirmation : récapitulatif, **prix estimé**, **facture** à voir et télécharger, paiement (espèces, Mobile Money ou autre moyen), **« Valider la commande »**.
   - Après l'envoi : facture avec sa référence et « Suivre ma commande ».
 - *Dans les onglets* : la commande validée y entre aussitôt (`Accord` créé avec la demande). On y trouve :
@@ -216,12 +220,12 @@ l'API (`GET /api/pressing/articles`) les sert et recalcule toujours le total
   - « J'ai reçu mon linge » ;
   - la **note** du pressing, après la livraison ;
   - **« Signaler un problème »** : retard, vêtement manquant, erreur, article endommagé, autre (`POST /api/demandes/{id}/signalements`) ;
-  - **« Recommander »** en un toucher : la confirmation s'ouvre pré-remplie, pour demain à la même heure ;
+  - **« Recommander »** en un toucher, une fois la commande finie (livrée, annulée ou refusée) : la confirmation s'ouvre pré-remplie, pour demain à la même heure ;
   - l'annulation, tant que la commande n'est pas en cours.
 - *Dans la cloche* : `GET /api/notifications`, avec « Commande confirmée », « Agent en route », « Linge prêt », « Livraison en cours », « Commande livrée » et les réponses des techniciens.
   - Elles sont marquées lues sur l'appareil.
   - Toucher une notification ouvre l'onglet.
-- *Côté gérant* : Paramètres → **« Commandes reçues »** (`screens/pro/DemandesRecues.tsx`, aussi dans l'espace prestataire). Le gérant y voit tout le détail, accepte ou refuse, puis fait avancer l'étape (`POST /api/pro/demandes/{id}/etape`). Le client est notifié à chaque étape.
+- *Côté gérant* : son espace s'ouvre en un geste. Sur téléphone, la carte **« Mon espace pressing »** en tête du Profil (avec le nombre de commandes à traiter) ; sur ordinateur, le bouton **« Mon espace pressing »** de l'en-tête et le lien « Espace pro » du pied de page (`lib/espacePro.ts`). Son profil le dit « Prestataire », et Paramètres ne lui propose plus « Devenir prestataire ». Les commandes sont aussi dans Paramètres → **« Commandes reçues »** (`screens/pro/DemandesRecues.tsx`, aussi dans l'espace prestataire). Le gérant y voit tout le détail, accepte ou refuse, puis fait avancer l'étape (`POST /api/pro/demandes/{id}/etape`). Le client est notifié à chaque étape.
   - Compte gérant de démonstration, relié à Pressing Éclat : **07 08 08 08 08**, mot de passe **terraclick2026**.
 - **À valider avec les pressings**, dans `config/pressing.php` :
   - coefficients des services : repassage 50 %, nettoyage à sec 150 % ;
@@ -244,6 +248,12 @@ recense ce qui est masqué et dit comment le rouvrir.
 | Frontend | `frontend/src/lib/config.ts` : `carteResultats` | `false` masque la bascule Liste / Carte des résultats, qui restent en liste ; `true` la rebranche. |
 | Frontend | `frontend/src/lib/config.ts` : `motDePasse` | `true` : comptes avec mot de passe. `false` rebranche la connexion par code seul, sans mot de passe (voir « Compte avec mot de passe »). |
 | Frontend | `frontend/src/lib/config.ts` : `actionsAccueilMobile` | `false` masque les boutons « Urgence » et « Programmer » sous l'en-tête de l'accueil mobile (voir plus bas), `true` les rebranche. |
+| Frontend | `frontend/src/lib/config.ts` : `connexionAuDemarrage` | `false` (valeur actuelle) ouvre l'application sur l'accueil, même sans session : la connexion n'est demandée qu'au moment d'agir. `true` rebranche la page de connexion à l'ouverture. |
+| Frontend | `frontend/src/lib/config.ts` : `filActualite` | `false` masque le fil d'actualité de l'accueil mobile (« X rejoint TerraClick », avis, réalisations) ; deux entrées le remplacent, « Décrire mon besoin » et « Commander au pressing ». `true` le rebranche. |
+| Frontend | `frontend/src/lib/config.ts` : `installationAccueil` | `false` masque le bandeau « Télécharger l'application » de l'accueil (téléphone et ordinateur) et de la page de connexion ; l'installation reste proposée dans Paramètres. `true` le rebranche. |
+| Frontend | `frontend/src/lib/config.ts` : `menuNavigateur` | `false` masque, dans le menu ⋮, la rangée Retour / Suivant / Favoris / Télécharger / Actualiser, « Supprimer les données de navigation », « Téléchargements », « Onglets récents » et les entrées « Bientôt » (voir « Menu ⋮ »). `true` les rebranche. |
+| Frontend | `frontend/src/lib/config.ts` : `pucesRecherches` | `false` masque les puces « Recherché en ce moment » sous la recherche de l'accueil sur ordinateur (doublon des cartes « Nos services »). `true` les rebranche. |
+| Frontend | `frontend/src/lib/config.ts` : `villesPiedDePage` | Villes listées dans le pied de page : seulement celles où le service est ouvert (Yamoussoukro). Abidjan, Bouaké et Daloa s'y rajoutent à leur ouverture. |
 | Frontend | `frontend/src/data/catalogue.ts` : `SECTEURS` | Liste du premier affichage seulement : elle est remplacée au démarrage par les secteurs actifs de l'API (`GET /api/secteurs`), dans l'ordre choisi par l'administrateur, et gardée sur l'appareil. |
 | Tests | `frontend/tests/parcours.mjs` : `MODULE_CONSTRUCTION` | Réactive les règles C à F (assistant, contrat, PV, bloc BTP). |
 | Tests | `frontend/tests/parcours.mjs` : `MODES_ACCUEIL` | Réactive la première moitié de la règle N (Box intelligente et « Autour de moi » réservées aux inscrits). |
@@ -350,19 +360,22 @@ au-dessus de la liste, et elle était réservée aux clients inscrits.
 **Accueil mobile précédent** (`accueilMobile: "fil"`) : l'accueil sur téléphone suit
 désormais la disposition d'une page d'accueil de navigateur (`screens/home/AccueilFil.tsx`) :
 ville, cloche et photo en haut ; nom TerraClick au centre ; grande barre de recherche (logo,
-micro, appareil photo) ; raccourcis des secteurs, les plus cherchés récemment sur l'appareil
-d'abord ; entrée « Devenir partenaire » ; puis le fil d'actualité de la plateforme
-(`GET /api/actualites` : nouveaux techniciens, avis, réalisations, chargé au défilement).
+micro, appareil photo) ; les six raccourcis des secteurs en grille de trois, tous visibles, les
+plus cherchés récemment sur l'appareil d'abord ; puis deux entrées, « Décrire mon besoin » et
+« Commander au pressing ». Le fil d'actualité de la plateforme (`GET /api/actualites` :
+nouveaux techniciens, avis, réalisations, chargé au défilement) est masqué (`filActualite: false`),
+comme le bandeau d'installation (`installationAccueil: false`).
 L'accueil précédent (en-tête orange « Salut, … », filtres de ville, prestataires à la une,
 besoin guidé) reste dans `screens/home/AccueilMobile.tsx` : `"epuree"` ou `"riche"` le rebranche.
 
 **Menu ⋮ de l'accueil mobile** (`components/MenuPlus.tsx`, écrans dans
-`screens/menu/EcransMenu.tsx`) : rangée Retour, Suivant, Favoris, Télécharger l'application,
-Actualiser ; puis Onglets de recherche (un onglet par service cherché), Historique,
-Supprimer les données de navigation, Téléchargements (reçus), Favoris, Onglets récents (les
-recherches du compte sur ses autres appareils) et Paramètres (ville, compte, notifications,
-historique, **Devenir prestataire**, installation). « Personnaliser la page » et « Aide et
-commentaires » sont affichés, marqués « Bientôt ». Chaque recherche est enregistrée
+`screens/menu/EcransMenu.tsx`) : Mes commandes, Historique des recherches, Favoris et
+Paramètres (ville, compte, notifications, historique, **Devenir prestataire** — sauf pour un
+prestataire —, installation). Le menu façon navigateur est masqué (`menuNavigateur: false`) :
+rangée Retour, Suivant, Favoris, Télécharger l'application, Actualiser ; « Supprimer les
+données de navigation » (toujours dans l'Historique), « Téléchargements » (reçus), « Onglets
+récents » (les recherches du compte sur ses autres appareils), et « Personnaliser la page » et
+« Aide et commentaires » marqués « Bientôt ». Chaque recherche est enregistrée
 (`POST /api/recherches`, table `recherches`) ; « Supprimer les données de navigation » la
 masque pour l'utilisateur (`efface_le`) mais l'administration la garde.
 
@@ -375,8 +388,25 @@ d'avant (retour en haut à gauche, barre d'actions fixe en bas). Le **profil cli
 (`profilComplet: false`) : carte d'identité, tuiles, « Paramètres du compte » et déconnexion.
 
 **Bouton central de la barre du bas** (`ongletCentral: true`, `components/TabBar.tsx`) : sur
-téléphone, un bouton rond orange, surélevé entre Favoris et Messages, ouvre « Mes onglets » ;
-la ligne de la barre plonge en arrondi sous lui. `false` revient à la barre simple.
+téléphone, un bouton rond orange, surélevé entre Favoris et Messages, libellé « Commandes »,
+ouvre « Mes commandes » ; la ligne de la barre plonge en arrondi sous lui. `false` revient à la
+barre simple.
+
+**Ordinateur : en-tête, accueil et pied de page** :
+
+- en-tête (`components/Header.tsx`) : « Services » (et non « Départements ») ; la cloche
+  affiche le vrai nombre de notifications non lues, rien quand tout est lu ; un prestataire
+  voit « Mon espace pressing » (ou « Mon espace pro »), qui ouvre son espace ; cliquer sur son
+  nom ouvre un menu (son espace, Mon compte, Paramètres, Se déconnecter) au lieu de déconnecter
+  d'un coup ;
+- accueil (`screens/Home.tsx`) : « Nos services à Yamoussoukro » (et non « Recherches
+  populaires… cette semaine », sans donnée derrière) ; les puces « Recherché en ce moment »
+  sont masquées (`pucesRecherches: false`) ; les prestataires à la une montrent leurs
+  initiales en attendant leur photo ;
+- résultats (téléphone et ordinateur) : un prestataire sans avis affiche « Nouveau sur
+  TerraClick » au lieu de « 0,0 ★ (0) » ;
+- pied de page (`components/Footer.tsx`) : « Services », les villes ouvertes seulement
+  (`villesPiedDePage`) ; « Espace pro » ouvre l'espace d'un prestataire connecté.
 
 **Mes onglets : relations abouties** (table `accords`, `GET/POST /api/accords`) : un onglet n'est
 pas une recherche, c'est un accord conclu avec un technicien. Quand le client le contacte

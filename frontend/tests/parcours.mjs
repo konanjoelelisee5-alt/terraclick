@@ -190,7 +190,7 @@ if (MODULE_CONSTRUCTION) {
   await p.goBack();
   await p.waitForTimeout(400);
   ok('le bouton Précédent du navigateur revient à l’accueil',
-     await p.getByText('Recherches populaires').isVisible());
+     await p.getByText('Nos services').isVisible());
   await ctx.close();
 }
 
@@ -322,22 +322,17 @@ if (!MODULE_CONSTRUCTION) {
   await p.getByRole('button', { name: 'Confirmer ma demande' }).click();
   ok('confirmer demande un compte', await apparait(p.getByText(MUR)));
   await connecter(p);
-  const envol = p.locator('[data-r="envol-demande"]');
-  ok('demande envoyée par l’API : la fenêtre « Demande envoyée », avec sa référence',
-     await apparait(envol.getByRole('heading', { name: 'Demande envoyée' }), 8000) && (await envol.getByText(/Référence DEM-\d{4}-\d{5}/).isVisible()));
+  // CONFIG.envoiDemande = « suivi » : le client arrive sur le suivi de sa demande, la confirmation en tête.
+  ok('demande envoyée par l’API : on arrive sur son suivi, « Demande envoyée » en tête',
+     await apparait(p.locator('[data-r="commande-envoyee"]').getByText('Demande envoyée'), 8000));
   ok('le parcours s’arrête là : ni « Suivre ma demande » ni « Accueil »', (await p.getByRole('button', { name: 'Suivre ma demande' }).count()) === 0);
-  // Sur ordinateur, sans barre d'onglets : l'avion s'envole et les onglets s'ouvrent.
-  ok('l’avion en papier s’envole, puis les onglets s’ouvrent',
-     (await envol.waitFor({ state: 'detached', timeout: 12000 }).then(() => true, () => false)) && (await apparait(p.locator('[data-r="onglets"]'))));
-  // Comme une commande pressing, la demande d'intervention se suit dans son onglet.
-  await p.locator('[data-r="onglet"]').first().click();
   const suivi = p.locator('[data-r="suivi-commande"]');
-  ok('onglet : la demande d’intervention s’y suit, en attente du technicien',
+  ok('suivi : la demande d’intervention s’y suit, en attente du technicien',
      (await apparait(suivi)) && (await p.locator('[data-r="statut-commande"]').textContent()) === 'En attente du technicien' &&
        (await p.locator('[data-r="etape-suivi"]').count()) === 5 && (await p.locator('[data-r="etape-suivi"][data-fait]').count()) === 1);
-  ok('onglet : annuler, signaler, recommander, et le reçu',
+  ok('suivi : annuler, signaler et le reçu ; « Recommander » attend la fin',
      (await suivi.getByRole('button', { name: /Annuler la demande/ }).isVisible()) && (await suivi.getByRole('button', { name: /Signaler un problème/ }).isVisible()) &&
-       (await suivi.getByRole('button', { name: /Recommander/ }).isVisible()) && (await p.locator('[data-r="facture"]').getByText('Reçu', { exact: true }).isVisible()));
+       (await suivi.getByRole('button', { name: /Recommander/ }).count()) === 0 && (await p.locator('[data-r="facture"]').getByText('Reçu', { exact: true }).isVisible()));
   await suivi.getByRole('button', { name: /Signaler un problème/ }).click();
   ok('onglet : motifs d’une intervention pour signaler', await apparait(p.getByRole('radio', { name: 'Le technicien n’est pas venu'.replace('’', "'") })));
   await ctx.close();
@@ -498,17 +493,18 @@ const numeroInscrit = numeroNeuf();
   await ctx.close();
 }
 
-// K0 · Sans session, l'application s'ouvre sur la connexion (plein écran) ; la flèche retour mène à l'accueil
+// K0 · Sans session, l'application s'ouvre sur l'accueil (CONFIG.connexionAuDemarrage = false) ;
+//      la connexion, plein écran, s'ouvre depuis Profil et sa flèche retour mène à l'accueil
 {
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
   const p = await ctx.newPage();
   await p.goto('http://localhost:4173/', { waitUntil: 'domcontentloaded' });
-  ok('ouverture sans session : formulaire de connexion', await apparait(p.getByRole('tab', { name: 'Connexion', selected: true })));
-  ok('ouverture : « Télécharger l’application » présent dès la page de connexion', await apparait(p.locator('[data-r="page-auth"]').getByRole('button', { name: /Télécharger l.application/ })));
-  // Même après « Ne plus proposer » sur l'accueil, la connexion garde le bouton.
-  await p.evaluate(() => localStorage.setItem('tc.installation-masquee', '1'));
-  await p.reload({ waitUntil: 'domcontentloaded' });
-  ok('installation : toujours proposée à la connexion, même après un ✕ sur l’accueil', await apparait(p.locator('[data-r="page-auth"]').getByRole('button', { name: /Télécharger l.application/ })));
+  ok('ouverture sans session : l’accueil, pas la connexion',
+     (await apparait(p.locator('[data-r="accueil-fil"]'))) && (await p.locator('[data-r="page-auth"]').count()) === 0);
+  ok('accueil : pas de bandeau d’installation (CONFIG.installationAccueil)', (await p.locator('[data-r="bandeau-installation"]').count()) === 0);
+  await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Profil/ }).click();
+  ok('Profil ouvre la connexion, sans bandeau d’installation',
+     (await apparait(p.getByRole('tab', { name: 'Connexion', selected: true }))) && (await p.locator('[data-r="page-auth"] [data-r="bandeau-installation"]').count()) === 0);
   ok('formulaire plein écran : ni en-tête ni barre du bas',
      (await p.locator('header').count()) === 0 && (await p.locator('[data-r="tabbar"]').count()) === 0);
   await p.getByRole('tab', { name: 'Inscription' }).click();
@@ -587,18 +583,24 @@ const numeroInscrit = numeroNeuf();
   await p.locator('[data-r="instructions-pack"]').fill('Pas d’amidon sur les chemises.');
   await continuer.click();
 
-  // « Ma commande » : adresse, service, express, dépôt, créneau
+  // « Ma commande » : service, express, dépôt, adresse (collecte seulement), créneau
   ok('commande : page « Ma commande » après le pack', await apparait(p.getByRole('heading', { name: 'Ma commande' })));
+  await p.getByRole('radio', { name: /Nettoyage à sec/ }).click();
+  await p.locator('[data-r="express"]').click();
+  ok('commande : continuer bloqué sans dépôt ni créneau', await continuer.isDisabled());
+  await p.getByRole('radio', { name: /Dépôt au pressing/ }).click();
+  ok('commande : au dépôt au pressing, aucune adresse demandée', (await p.locator('[data-r="adresse-commande"]').count()) === 0);
+  await p.getByRole('radio', { name: /Collecte à domicile/ }).click();
+  ok('commande : en collecte, l’adresse vient après le mode de dépôt',
+     (await apparait(p.locator('[data-r="adresse-commande"]'))) &&
+       (await p.evaluate(() => document.querySelector('[data-r="depot-commande"]').compareDocumentPosition(document.querySelector('[data-r="adresse-commande"]')) & Node.DOCUMENT_POSITION_FOLLOWING) > 0));
   if (await p.getByRole('radio', { name: /Ajouter une adresse/ }).isVisible().catch(() => false)) await p.getByRole('radio', { name: /Ajouter une adresse/ }).click();
-  await p.getByRole('radio', { name: 'Bureau' }).click();
+  // Le type du nouveau lieu (une adresse enregistrée peut aussi s'appeler « Bureau »).
+  await p.getByRole('radiogroup', { name: 'Type de lieu' }).getByRole('radio', { name: 'Bureau' }).click();
   await p.getByLabel('Quartier à Yamoussoukro').selectOption({ label: 'Habitat' });
   await p.getByLabel('Adresse ou point de repère (facultatif)').fill('Immeuble bleu, 2e étage');
   // Pas d'enregistrement à chaque passage du test : dix adresses au plus.
   await p.getByLabel(/Enregistrer cette adresse/).uncheck();
-  ok('commande : continuer bloqué sans dépôt ni créneau', await continuer.isDisabled());
-  await p.getByRole('radio', { name: /Nettoyage à sec/ }).click();
-  await p.locator('[data-r="express"]').click();
-  await p.getByRole('radio', { name: /Collecte à domicile/ }).click();
   await p.getByLabel('Date', { exact: true }).fill(new Date(Date.now() + 864e5).toISOString().slice(0, 10));
   await p.getByRole('radio', { name: '10 h', exact: true }).click();
   // Chemise 500 F × 150 % × 150 % = 1 125 F (× 3) ; costume 3 000 F → 6 750 F
@@ -613,10 +615,8 @@ const numeroInscrit = numeroNeuf();
   ok('commande : facture visible avant de valider', (await apparait(p.locator('[data-r="facture"]'))) && (await p.locator('[data-r="ligne-facture"]').count()) === 2);
   await p.getByRole('radio', { name: /Autre moyen/ }).click();
   await p.getByRole('button', { name: /Valider la commande/ }).click();
-  const envol = p.locator('[data-r="envol-demande"]');
-  ok('commande : fenêtre « Commande envoyée », sans autre étape', (await apparait(envol.getByRole('heading', { name: 'Commande envoyée' }))) && (await p.locator('[data-r="suivre-commande"]').count()) === 0);
-  ok('commande : la fenêtre s’envole vers « Mes onglets » et l’accueil reste dessous',
-     (await envol.waitFor({ state: 'detached', timeout: 12000 }).then(() => true, () => false)) && (await p.locator('[data-r="accueil-fil"]').isVisible()));
+  ok('commande : on arrive sur son suivi, « Commande envoyée » en tête, sans autre étape',
+     (await apparait(p.locator('[data-r="commande-envoyee"]').getByText('Commande envoyée'), 8000)) && (await p.locator('[data-r="suivre-commande"]').count()) === 0);
   const envoyee = await p.evaluate(async () => {
     const r = await fetch('/api/demandes?par_page=1', { headers: { Accept: 'application/json', Authorization: 'Bearer ' + localStorage.getItem('sy.jeton') } });
     return (await r.json()).data[0];
@@ -625,18 +625,19 @@ const numeroInscrit = numeroNeuf();
      envoyee?.pack?.pieces === 4 && envoyee?.pack?.total === 10125 && envoyee?.commande?.service?.cle === 'nettoyage_sec' && envoyee?.paiement === 'autre');
   const reference = envoyee.reference;
 
-  // Onglets : la commande s'y suit dès la validation
+  // « Mes commandes » : la commande s'y suit dès la validation
   await p.locator('[data-r="onglet-central"]').click();
   await p.locator('[data-r="onglet"]').first().click();
-  ok('onglet : la commande s’y suit, en attente du pressing',
-     (await apparait(p.locator('[data-r="onglet-commande"]'))) && (await p.locator('[data-r="statut-commande"]').textContent()) === 'En attente du pressing');
+  ok('mes commandes : la commande s’y suit, en attente du pressing, sans le bandeau d’envoi',
+     (await apparait(p.locator('[data-r="onglet-commande"]'))) && (await p.locator('[data-r="statut-commande"]').textContent()) === 'En attente du pressing' &&
+       (await p.locator('[data-r="commande-envoyee"]').count()) === 0);
   {
     const suivi = p.locator('[data-r="suivi-commande"]');
-    const boites = await Promise.all([/Annuler la commande/, /Signaler un problème/, /Recommander/].map((n) => suivi.getByRole('button', { name: n }).boundingBox()));
+    const boites = await Promise.all([/Annuler la commande/, /Signaler un problème/].map((n) => suivi.getByRole('button', { name: n }).boundingBox()));
     const bloc = await suivi.boundingBox();
-    ok('onglet : annuler, signaler, recommander empilés à droite, dans le bloc de suivi',
+    ok('suivi : annuler et signaler empilés à droite ; « Recommander » attend la livraison',
        boites.every(Boolean) && boites.every((x) => Math.abs(x.x - boites[0].x) < 2 && x.x > bloc.x + bloc.width / 2) &&
-       boites[0].y < boites[1].y && boites[1].y < boites[2].y);
+       boites[0].y < boites[1].y && (await suivi.getByRole('button', { name: /Recommander/ }).count()) === 0);
   }
 
   // Le gérant du pressing reçoit la commande, l'accepte et la fait avancer
@@ -734,7 +735,13 @@ const numeroInscrit = numeroNeuf();
      await p.evaluate(() => ![...document.querySelectorAll('[data-r="accueil-fil"] button')].some((b) => /^(Urgence|Programmer)$/.test(b.textContent.trim()))));
   const raccourcis = () => p.locator('[data-r="raccourcis"] button').allTextContents();
   ok('raccourcis : les six secteurs, dont le pressing', (await raccourcis()).length === 6 && (await raccourcis()).includes('Pressing'));
-  ok('fil d’actualité : de vraies activités de la plateforme', await apparait(p.locator('[data-r="actualite"]').first()));
+  // CONFIG.filActualite = false : deux entrées à la place du fil.
+  ok('accueil : « Décrire mon besoin » et « Commander au pressing » à la place du fil d’actualité',
+     (await apparait(p.locator('[data-r="entree-besoin"]').getByRole('button', { name: 'Décrire mon besoin' }))) &&
+       (await p.locator('[data-r="entree-pressing"]').getByRole('button', { name: 'Commander au pressing' }).isVisible()) &&
+       (await p.locator('[data-r="actualite"]').count()) === 0);
+  ok('raccourcis : les six visibles d’un coup, sans défilement',
+     await p.evaluate(() => [...document.querySelectorAll('[data-r="raccourcis"] button')].every((b) => { const r = b.getBoundingClientRect(); return r.left >= 0 && r.right <= window.innerWidth; })));
   const onglets = await p.locator('[data-r="tabbar"] button:not([data-r="onglet-central"])').allTextContents();
   ok('barre du bas : Accueil, Favoris, Messages, Profil', onglets.join('|') === 'Accueil|Favoris|Messages|Profil');
   const centre = p.locator('[data-r="onglet-central"]');
@@ -745,8 +752,9 @@ const numeroInscrit = numeroNeuf();
        const barre = document.querySelector('[data-r="tabbar"]').getBoundingClientRect();
        return c.left > fav.right - 4 && c.right < msg.left + 4 && c.top < barre.top;
      }));
+  ok('bouton central : libellé « Commandes »', (await p.locator('[data-r="tabbar"]').getByText('Commandes', { exact: true }).isVisible()));
   await centre.click();
-  ok('bouton central : ouvre « Mes onglets »', await apparait(p.getByRole('heading', { name: 'Mes onglets' })));
+  ok('bouton central : ouvre « Mes commandes »', await apparait(p.getByRole('heading', { name: 'Mes commandes' })));
   await p.goBack();
   ok('accueil mobile : pas de défilement horizontal', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
 
@@ -756,8 +764,8 @@ const numeroInscrit = numeroNeuf();
   await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Accueil/ }).click();
   await apparait(accueil);
   ok('raccourcis : le secteur cherché récemment passe en tête', (await raccourcis())[0] === 'Menuiserie');
-  await p.locator('[data-r="actualite"]').first().click();
-  ok('une actualité ouvre la fiche du technicien', await apparait(p.getByRole('button', { name: /Demander ce technicien|Composer mon pack|Chat/ }).first()));
+  await p.locator('[data-r="entree-pressing"]').getByRole('button', { name: 'Commander au pressing' }).click();
+  ok('« Commander au pressing » ouvre les pressings', await apparait(p.locator('[data-r="resultat"]').filter({ hasText: 'Pressing Éclat' }).first()));
   await ctx.close();
 }
 
@@ -774,11 +782,12 @@ const numeroInscrit = numeroNeuf();
      (await apparait(p.locator('[data-r="accueil-fil"]'))) && (await p.locator('[data-r="devenir-partenaire"]').count()) === 0);
   await ouvrirMenu();
   const entrees = await menu.getByRole('menuitem').allTextContents();
-  ok('menu ⋮ : rangée d’icônes et entrées du modèle',
-     ['Mes onglets', 'Historique', 'Supprimer les données de navigation', 'Téléchargements', 'Favoris', 'Onglets récents', 'Paramètres']
-       .every((n) => entrees.some((e) => e.startsWith(n))) &&
-       (await menu.getByRole('menuitem', { name: 'Actualiser' }).count()) === 1);
-  ok('menu ⋮ : « Personnaliser la page » et « Aide » marqués Bientôt', (await menu.getByText('Bientôt').count()) === 2);
+  // CONFIG.menuNavigateur = false : plus de menu façon navigateur.
+  ok('menu ⋮ : Mes commandes, Historique des recherches, Favoris, Paramètres',
+     entrees.map((e) => e.trim()).join('|') === 'Mes commandes|Historique des recherches|Favoris|Paramètres');
+  ok('menu ⋮ : ni rangée d’icônes, ni « Bientôt », ni données de navigation',
+     (await menu.getByRole('menuitem', { name: 'Actualiser' }).count()) === 0 && (await menu.getByText('Bientôt').count()) === 0 &&
+       (await menu.getByText(/Supprimer les données|Téléchargements|Onglets récents/).count()) === 0);
   await p.keyboard.press('Escape');
   ok('menu ⋮ : Échap le referme', !(await menu.isVisible().catch(() => false)));
 
@@ -789,10 +798,12 @@ const numeroInscrit = numeroNeuf();
   await menu.getByRole('menuitem', { name: 'Historique' }).click();
   ok('historique : la recherche y figure', await apparait(p.locator('[data-r="ligne-historique"]').getByText('Serrurerie').first()));
   await ouvrirMenu();
-  await menu.getByRole('menuitem', { name: 'Mes onglets' }).click();
-  ok('onglets : réservés aux accords conclus (une recherche seule n’y figure pas)', await apparait(p.getByText('Connectez-vous pour voir vos onglets')));
+  await menu.getByRole('menuitem', { name: 'Mes commandes' }).click();
+  ok('mes commandes : une recherche seule n’y figure pas', await apparait(p.getByText('Connectez-vous pour voir vos commandes')));
+  // L'effacement se fait depuis l'historique lui-même.
   await ouvrirMenu();
-  await menu.getByRole('menuitem', { name: 'Supprimer les données de navigation' }).click();
+  await menu.getByRole('menuitem', { name: 'Historique' }).click();
+  await p.getByRole('button', { name: 'Supprimer les données de navigation' }).click();
   await p.getByRole('button', { name: 'Supprimer', exact: true }).click();
   await ouvrirMenu();
   await menu.getByRole('menuitem', { name: 'Historique' }).click();
@@ -978,8 +989,13 @@ const numeroInscrit = numeroNeuf();
   await p.reload(); await apparait(p.getByRole('button', { name: 'Mon profil' }));
   await p.locator('[data-r="menu-plus-ouvrir"]').click();
   await p.getByRole('menuitem', { name: 'Paramètres' }).click();
-  await p.locator('[data-r="devenir-partenaire"]').click();
-  ok('prestataire : « Vous êtes prestataire TerraClick », fiche publiée', await apparait(p.getByRole('heading', { name: 'Vous êtes prestataire TerraClick' })));
+  // Devenu prestataire : Paramètres mène à son tableau de bord, l'invitation disparaît.
+  ok('prestataire : Paramètres propose son tableau de bord, plus « Devenir prestataire »',
+     (await apparait(p.locator('[data-r="lien-tableau-pro"]'))) && (await p.locator('[data-r="devenir-partenaire"]').count()) === 0);
+  await p.goto('http://localhost:4173/'); await apparait(p.getByRole('button', { name: 'Mon profil' })); // session rechargée
+  await p.locator('[data-r="tabbar"]').getByRole('button', { name: /Profil/ }).click();
+  ok('prestataire : son profil le dit « Prestataire » et ouvre son espace en un geste',
+     (await apparait(p.locator('[data-r="acces-espace-pro"]'))) && /Prestataire/.test(await p.locator('[data-r="carte-identite"]').textContent()));
   await ctx.close();
 }
 
@@ -1102,10 +1118,12 @@ const numeroInscrit = numeroNeuf();
   await menuiserie.locator('[data-r="basculer-secteur"]').click();
   await apparait(menuiserie.getByText('Désactivé', { exact: true }));
   const vue = await neuve(1440, 1000);
-  await apparait(vue.p.locator('[data-r="secteurs-rapides-liste"]'));
-  await vue.p.waitForTimeout(600);
-  ok('secteurs : désactivé, il disparaît de l’accueil client',
-     (await vue.p.locator('[data-r="secteurs-rapides-liste"]').getByText('Plombier').count()) > 0 && (await vue.p.locator('[data-r="secteurs-rapides-liste"]').getByText('Menuisier').count()) === 0);
+  // Les cartes « Nos services » de l'accueil (les puces « Recherché en ce moment » sont masquées).
+  const services = vue.p.locator('[data-bloc="populaires"]');
+  await apparait(services);
+  // La liste par défaut s'affiche d'abord, puis celle de l'API : on attend qu'elle arrive.
+  const disparue = await services.getByText('Menuiserie').waitFor({ state: 'detached', timeout: 8000 }).then(() => true, () => false);
+  ok('secteurs : désactivé, il disparaît de l’accueil client', disparue && (await services.getByText('Plomberie').count()) > 0);
   await vue.ctx.close();
   await menuiserie.locator('[data-r="basculer-secteur"]').click();
   ok('secteurs : réactivé, il revient', await apparait(menuiserie.getByText('Ouvert aux clients')));
@@ -1170,7 +1188,7 @@ const numeroInscrit = numeroNeuf();
   await matrice.getByRole('checkbox', { name: 'Manager : Mettre un prestataire en avant' }).uncheck();
 
   await rail.getByRole('button', { name: 'Se déconnecter' }).click();
-  ok('admin : « Se déconnecter » ferme la session', (await apparait(p.getByText('Recherches populaires').or(p.locator('[data-r="accueil-fil"]')).first())) && (await rail.count()) === 0);
+  ok('admin : « Se déconnecter » ferme la session', (await apparait(p.getByText('Nos services').or(p.locator('[data-r="accueil-fil"]')).first())) && (await rail.count()) === 0);
   await ctx.close();
 
   // Manager : l'opérationnel seulement — ni rôles, ni prix, ni mise en avant
@@ -1269,7 +1287,7 @@ if (ESPACE_PRO_DEMO) {
   await p.getByRole('button', { name: 'Tout marquer comme lu' }).click();
   ok('notifications lues : plus de pastille « Nouveau »', !(await p.getByText('Nouveau', { exact: true }).isVisible().catch(() => false)));
   await rail.getByRole('button', { name: "Quitter l'espace pro" }).click();
-  ok('« Quitter l’espace pro » ramène au site', await apparait(p.getByText('Recherches populaires')));
+  ok('« Quitter l’espace pro » ramène au site', await apparait(p.getByText('Nos services')));
   await ctx.close();
 }
 

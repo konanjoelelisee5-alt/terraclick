@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from "react";
 import { api, ErreurApi, messageErreur } from "../../lib/api";
+import { peut } from "../../lib/acces";
 import { CONFIG } from "../../lib/config";
+import { libelleEspacePro, useEspacePro } from "../../lib/espacePro";
 import { reduirePhoto } from "../../lib/photo";
 import { Avatar } from "../../components/Avatar";
 import { useNotifications } from "../../lib/pressing";
@@ -122,6 +124,7 @@ export function ProfilMobile() {
   };
 
   const { nonLues } = useNotifications(!!etat.auth);
+  const espacePro = useEspacePro(auth);
   // Demandes qui attendent quelque chose du client (confirmer, répondre).
   const aTraiter = demandes.filter((d) => ["Marquée terminée", "Acceptée"].includes(d.statut)).length;
   // Une prestation terminée attend un avis : c'est ce que « Nouveau » signale.
@@ -208,7 +211,7 @@ export function ProfilMobile() {
           )}
           <span style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "28px", lineHeight: 1.15, textAlign: "center" }}>{auth.prenom}</span>
           <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "15px", color: GRIS }}>
-            Client
+            {peut(auth, "pro.demandes") ? "Prestataire" : "Client"}
             {/* Numéro confirmé par un code : c'est ce que « Vérifié » garantit pour un client. */}
             <span className="sy-badge sy-badge--success" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
               <Icon name="check" size={13} strokeWidth={2.5} />
@@ -227,6 +230,49 @@ export function ProfilMobile() {
             </button>
           )}
         </div>
+
+        {/* Prestataire : son espace (commandes reçues, suivi, clients) en un geste. */}
+        {peut(auth, "pro.demandes") && (
+          <button
+            data-r="acces-espace-pro"
+            onClick={() => go("proTableau")}
+            style={{
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              padding: 20,
+              border: 0,
+              borderRadius: 24,
+              background: "var(--color-text)",
+              color: "var(--color-neutral-100)",
+              boxShadow: OMBRE_DOUCE,
+              cursor: "pointer",
+              font: "inherit",
+              textAlign: "left",
+            }}
+          >
+            <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ width: 44, height: 44, flex: "none", borderRadius: 14, background: "var(--color-accent)", color: "#fff", display: "grid", placeItems: "center" }}>
+                <Icon name={espacePro?.pressing ? "shirt" : "layout-dashboard"} size={22} strokeWidth={2} />
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: "block", fontSize: "16.5px", fontWeight: 700 }}>{libelleEspacePro(espacePro)}</span>
+                <span style={{ display: "block", fontSize: "13.5px", opacity: 0.75 }}>{espacePro?.nom ?? "Demandes reçues, suivi, clients"}</span>
+              </span>
+            </span>
+            <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+              <span style={{ fontSize: "14px", padding: "6px 12px", borderRadius: 999, background: "rgba(255,255,255,.12)" }}>
+                {espacePro
+                  ? espacePro.aTraiter
+                    ? `${espacePro.aTraiter} ${espacePro.pressing ? "commande" : "demande"}${espacePro.aTraiter > 1 ? "s" : ""} à traiter`
+                    : "Rien à traiter pour l'instant"
+                  : "Commandes reçues, suivi, clients"}
+              </span>
+              <span style={{ flex: "none", fontSize: "14.5px", fontWeight: 600, padding: "10px 18px", borderRadius: 999, background: "var(--color-accent)", color: "#fff" }}>Ouvrir</span>
+            </span>
+          </button>
+        )}
 
         {/* 2 · Deux tuiles côte à côte */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>

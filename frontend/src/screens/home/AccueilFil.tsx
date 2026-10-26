@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SECTEURS, type Secteur } from "../../data/catalogue";
 import { api, type ActualiteApi } from "../../lib/api";
+import { CONFIG } from "../../lib/config";
 import { retenirSecteurs, secteursRecents } from "../../lib/recents";
 import { useNotifications } from "../../lib/pressing";
 import { useApp } from "../../state/app";
@@ -198,12 +199,13 @@ export function AccueilFil() {
 
         {/* ---- Raccourcis : les secteurs, les plus cherchés récemment d'abord ---- */}
         <section aria-label="Raccourcis" data-r="raccourcis" style={{ ...CARTE, padding: "18px 6px 14px" }}>
-          <div style={{ display: "flex", overflowX: "auto", scrollbarWidth: "none" }}>
+          {/* Tous les secteurs d'un coup, trois par ligne : aucun ne se cache hors de l'écran. */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", rowGap: 16 }}>
             {raccourcis.map((s) => (
               <button
                 key={s.cle}
                 onClick={() => ouvrirSecteur(s)}
-                style={{ flex: "0 0 25%", minWidth: 78, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "2px 4px", border: 0, background: "none", font: "inherit", color: "inherit", cursor: "pointer" }}
+                style={{ minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "2px 4px", border: 0, background: "none", font: "inherit", color: "inherit", cursor: "pointer" }}
               >
                 <span style={{ width: 56, height: 56, borderRadius: 999, background: "var(--color-surface)", color: "var(--color-text)", display: "grid", placeItems: "center" }}>
                   <Icon name={s.icone} size={24} strokeWidth={2} />
@@ -214,14 +216,45 @@ export function AccueilFil() {
           </div>
         </section>
 
-        <BandeauInstallation sobre style={{ borderRadius: 28, border: 0, boxShadow: "none", padding: "14px 16px" }} />
+        {CONFIG.installationAccueil && <BandeauInstallation sobre style={{ borderRadius: 28, border: 0, boxShadow: "none", padding: "14px 16px" }} />}
 
         {/* « Devenir prestataire » est dans Paramètres (menu ⋮), pour rester discret. */}
 
-        {/* ---- Fil d'actualité ---- */}
-        <FilActualite />
+        {/* ---- Fil d'actualité, ou les deux entrées du service ---- */}
+        {CONFIG.filActualite ? (
+          <FilActualite />
+        ) : (
+          <EntreesAccueil
+            onBesoin={() => demarrerBesoin()}
+            onPressing={() => {
+              const pressing = SECTEURS.find((s) => s.cle === "pressing");
+              if (pressing) ouvrirSecteur(pressing);
+            }}
+          />
+        )}
       </div>
     </main>
+  );
+}
+
+/** À la place du fil d'actualité (CONFIG.filActualite = false) : les deux usages du service. */
+function EntreesAccueil({ onBesoin, onPressing }: { onBesoin: () => void; onPressing: () => void }) {
+  const entrees = [
+    { r: "entree-besoin", titre: "Une panne ? Un technicien vérifié.", texte: "Décrivez votre besoin en 4 questions : nous vous proposons les bons prestataires près de chez vous.", bouton: "Décrire mon besoin", action: onBesoin },
+    { r: "entree-pressing", titre: "Du linge à laver ?", texte: "Composez votre pack : le pressing vient le chercher chez vous, puis vous le rapporte.", bouton: "Commander au pressing", action: onPressing },
+  ];
+  return (
+    <section aria-label="Que voulez-vous faire ?" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {entrees.map((e) => (
+        <div key={e.r} data-r={e.r} style={{ ...CARTE, padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+          <h2 style={{ margin: 0, fontSize: "17px", fontWeight: 700 }}>{e.titre}</h2>
+          <p style={{ margin: 0, fontSize: "14px", lineHeight: 1.5, color: GRIS }}>{e.texte}</p>
+          <button onClick={e.action} className="sy-btn sy-btn--primary sy-btn--md" style={{ alignSelf: "flex-start", marginTop: 4 }}>
+            {e.bouton}
+          </button>
+        </div>
+      ))}
+    </section>
   );
 }
 

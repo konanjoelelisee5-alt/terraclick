@@ -56,7 +56,7 @@ export function DemandeEnvoyee() {
         {d && <span style={{ fontSize: "14px", color: "var(--color-neutral-700)" }}>Référence {d.reference}</span>}
         <p style={{ margin: 0, fontSize: "15px", maxWidth: "46ch" }}>
           {commande
-            ? `${d?.prestataire?.nom ?? "Le pressing"} va confirmer votre commande. Suivez-la dans vos onglets ; la cloche vous prévient à chaque étape.`
+            ? `${d?.prestataire?.nom ?? "Le pressing"} va confirmer votre commande. Suivez-la dans « Mes commandes » ; la cloche vous prévient à chaque étape.`
             : APRES_ENVOI}
         </p>
       </div>

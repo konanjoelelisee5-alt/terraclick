@@ -74,7 +74,8 @@ function besoinRecommande(d: DemandeApi): Besoin {
   };
 }
 
-export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordApi) => void }) {
+/** `envoye` : on arrive ici juste après l'envoi (CONFIG.envoiDemande = « suivi »). */
+export function OngletCommande({ a, onMaj, envoye = false }: { a: AccordApi; onMaj: (a: AccordApi) => void; envoye?: boolean }) {
   const { go } = useApp();
   const toast = useToast();
   const d = a.demande!;
@@ -118,6 +119,19 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
 
   return (
     <main data-r="onglet-commande" style={{ maxWidth: 640, margin: "0 auto", padding: "20px 16px 48px", display: "flex", flexDirection: "column", gap: 16 }}>
+      {envoye && (
+        <div data-r="commande-envoyee" role="status" style={{ display: "flex", gap: 12, alignItems: "center", padding: "14px 16px", borderRadius: 18, background: "var(--state-success-soft)" }}>
+          <span style={{ width: 34, height: 34, flex: "none", borderRadius: 999, background: "var(--state-success)", color: "#fff", display: "grid", placeItems: "center" }}>
+            <Icon name="check" size={18} strokeWidth={2.5} />
+          </span>
+          <span>
+            <strong style={{ display: "block", fontSize: "15px" }}>{pressing ? "Commande envoyée" : "Demande envoyée"}</strong>
+            <span style={{ fontSize: "13.5px", color: GRIS }}>
+              {a.prestataire.nom} va {pressing ? "la" : "vous"} confirmer. La cloche vous prévient à chaque étape.
+            </span>
+          </span>
+        </div>
+      )}
       <div>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: "13.5px", color: GRIS }}>
           <Icon name={secteur?.icone ?? "wrench"} size={15} />
@@ -187,10 +201,13 @@ export function OngletCommande({ a, onMaj }: { a: AccordApi; onMaj: (a: AccordAp
               Signaler un problème
             </button>
           )}
-          <button data-r="refaire-commande" onClick={refaire} className="sy-btn sy-btn--outline sy-btn--sm" style={ACTION_SUIVI}>
-            <Icon name="rotate-cw" size={16} />
-            Recommander
-          </button>
+          {/* Recommander : une fois la commande finie (livrée, annulée ou refusée), pas avant. */}
+          {(livree || !enCours) && (
+            <button data-r="refaire-commande" onClick={refaire} className="sy-btn sy-btn--outline sy-btn--sm" style={ACTION_SUIVI}>
+              <Icon name="rotate-cw" size={16} />
+              Recommander
+            </button>
+          )}
         </div>
         </div>
       </section>

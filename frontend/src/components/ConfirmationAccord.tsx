@@ -69,7 +69,7 @@ export function ConfirmationAccord() {
         date_intervention: date || null,
       });
       fermer();
-      toast("Accord enregistré", "Retrouvez-le dans vos onglets, avec son reçu.");
+      toast("Accord enregistré", "Retrouvez-le dans « Mes commandes », avec son reçu.");
       go("onglets");
     } catch (e) {
       setErreur(messageErreur(e));
@@ -79,7 +79,7 @@ export function ConfirmationAccord() {
   return (
     <Dialogue
       titre={`Avez-vous conclu avec ${contact.prestataire.nom} ?`}
-      description="Si vous vous êtes entendus pour une intervention, confirmez-le : elle rejoindra vos onglets, avec son reçu."
+      description="Si vous vous êtes entendus pour une intervention, confirmez-le : elle rejoindra « Mes commandes », avec son reçu."
       icone="clipboard-check"
       fond="var(--state-success-soft)"
       encre="var(--lagune-700)"

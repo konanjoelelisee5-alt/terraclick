@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { CONFIG } from "../lib/config";
 import { effacerHistorique } from "../lib/historique";
 import { useApp } from "../state/app";
 import type { Ecran } from "../state/types";
@@ -7,12 +8,13 @@ import { Icon } from "./Icon";
 import { dejaInstallee, proposerInstallation } from "./Installer";
 import { useToast } from "./Toast";
 
-/* Menu ⋮ de l'accueil sur téléphone : une fenêtre blanche ancrée en haut à droite, à la
-   manière du menu d'un navigateur. Une rangée d'icônes (retour, suivant, favoris,
-   installation, actualiser), puis les entrées par groupes séparés d'un trait fin. Les entrées
-   encore à l'étude sont visibles, marquées « Bientôt ». */
+/* Menu ⋮ de l'accueil sur téléphone : une fenêtre blanche ancrée en haut à droite, les
+   entrées par groupes séparés d'un trait fin. Avec CONFIG.menuNavigateur, il reprend le menu
+   d'un navigateur : rangée d'icônes (retour, suivant, favoris, installation, actualiser),
+   données de navigation, téléchargements, onglets récents et entrées « Bientôt ». */
 
-type Entree = { icone: string; libelle: string; ecran?: Ecran; action?: () => void; bientot?: boolean; compte?: boolean };
+/** `navigateur` : entrée du menu façon navigateur, masquée sans CONFIG.menuNavigateur. */
+type Entree = { icone: string; libelle: string; ecran?: Ecran; action?: () => void; bientot?: boolean; compte?: boolean; navigateur?: boolean };
 
 const ROND: React.CSSProperties = {
   width: 52,
@@ -53,32 +55,33 @@ export function MenuPlus({ onFermer }: { onFermer: () => void }) {
     if (!(await proposerInstallation())) go("parametres");
   };
 
-  const groupes: Entree[][] = [
-    // Les relations abouties (accords confirmés), avec leur reçu.
-    [{ icone: "square-plus", libelle: "Mes onglets", ecran: "onglets" }],
+  const tous: Entree[][] = [
+    // Les commandes et demandes en cours, puis leur historique.
+    [{ icone: "square-plus", libelle: "Mes commandes", ecran: "onglets" }],
     [
-      { icone: "history", libelle: "Historique", ecran: "historique" },
-      { icone: "trash-2", libelle: "Supprimer les données de navigation", action: () => setConfirmerEffacement(true) },
+      { icone: "history", libelle: CONFIG.menuNavigateur ? "Historique" : "Historique des recherches", ecran: "historique" },
+      { icone: "trash-2", libelle: "Supprimer les données de navigation", action: () => setConfirmerEffacement(true), navigateur: true },
     ],
     [
-      { icone: "download", libelle: "Téléchargements", ecran: "telechargements" },
+      { icone: "download", libelle: "Téléchargements", ecran: "telechargements", navigateur: true },
       { icone: "star", libelle: "Favoris", ecran: "favoris" },
       // Les recherches faites sur ses autres appareils : il faut un compte.
-      { icone: "monitor-smartphone", libelle: "Onglets récents", ecran: "ongletsRecents", compte: true },
+      { icone: "monitor-smartphone", libelle: "Onglets récents", ecran: "ongletsRecents", compte: true, navigateur: true },
     ],
     [
       { icone: "settings", libelle: "Paramètres", ecran: "parametres" },
-      { icone: "pen-line", libelle: "Personnaliser la page", bientot: true },
-      { icone: "circle-help", libelle: "Aide et commentaires", bientot: true },
+      { icone: "pen-line", libelle: "Personnaliser la page", bientot: true, navigateur: true },
+      { icone: "circle-help", libelle: "Aide et commentaires", bientot: true, navigateur: true },
     ],
   ];
+  const groupes = tous.map((groupe) => groupe.filter((e) => CONFIG.menuNavigateur || !e.navigateur)).filter((groupe) => groupe.length > 0);
 
   // La confirmation d'effacement prend la place du menu, au premier plan.
   if (confirmerEffacement) {
     return (
       <Dialogue
         titre="Supprimer les données de navigation ?"
-        description="Votre historique de recherche et vos onglets seront effacés de vos appareils."
+        description="Votre historique de recherche sera effacé de vos appareils."
         icone="trash-2"
         fond="var(--state-danger-soft)"
         encre="var(--state-danger)"
@@ -120,32 +123,34 @@ export function MenuPlus({ onFermer }: { onFermer: () => void }) {
         <style>{"@keyframes tc-menu { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }"}</style>
 
         {/* Rangée d'icônes. */}
-        <div style={{ display: "flex", justifyContent: "space-between", padding: "0 18px 10px" }}>
-          <button role="menuitem" aria-label="Retour" onClick={() => (onFermer(), history.back())} style={ROND}>
-            <Icon name="arrow-left" size={22} />
-          </button>
-          <button role="menuitem" aria-label="Suivant" onClick={() => (onFermer(), history.forward())} style={ROND}>
-            <Icon name="arrow-right" size={22} />
-          </button>
-          <button role="menuitem" aria-label="Favoris" onClick={() => (onFermer(), go("favoris"))} style={ROND}>
-            <Icon name="star" size={22} />
-          </button>
-          <button
-            role="menuitem"
-            aria-label="Télécharger l'application"
-            onClick={installer}
-            disabled={dejaInstallee()}
-            style={{ ...ROND, opacity: dejaInstallee() ? 0.4 : 1 }}
-          >
-            <Icon name="download" size={22} />
-          </button>
-          <button role="menuitem" aria-label="Actualiser" onClick={() => window.location.reload()} style={ROND}>
-            <Icon name="rotate-cw" size={22} />
-          </button>
-        </div>
+        {CONFIG.menuNavigateur && (
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "0 18px 10px" }}>
+            <button role="menuitem" aria-label="Retour" onClick={() => (onFermer(), history.back())} style={ROND}>
+              <Icon name="arrow-left" size={22} />
+            </button>
+            <button role="menuitem" aria-label="Suivant" onClick={() => (onFermer(), history.forward())} style={ROND}>
+              <Icon name="arrow-right" size={22} />
+            </button>
+            <button role="menuitem" aria-label="Favoris" onClick={() => (onFermer(), go("favoris"))} style={ROND}>
+              <Icon name="star" size={22} />
+            </button>
+            <button
+              role="menuitem"
+              aria-label="Télécharger l'application"
+              onClick={installer}
+              disabled={dejaInstallee()}
+              style={{ ...ROND, opacity: dejaInstallee() ? 0.4 : 1 }}
+            >
+              <Icon name="download" size={22} />
+            </button>
+            <button role="menuitem" aria-label="Actualiser" onClick={() => window.location.reload()} style={ROND}>
+              <Icon name="rotate-cw" size={22} />
+            </button>
+          </div>
+        )}
 
         {groupes.map((groupe, i) => (
-          <div key={i} style={{ borderTop: "1px solid var(--color-divider)", margin: i === 0 ? "4px 0 0" : 0, padding: "6px 0" }}>
+          <div key={i} style={{ borderTop: i === 0 && !CONFIG.menuNavigateur ? 0 : "1px solid var(--color-divider)", margin: i === 0 && CONFIG.menuNavigateur ? "4px 0 0" : 0, padding: "6px 0" }}>
             {groupe.map((e) => (
               <button
                 key={e.libelle}
